@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# usage: gitup [commit massage]
+#
+git status 
+
+printf "contiue? (y/n): "
+read yn
+[ "$yn" != "y" ] && exit 2
+
+if [ $# -eq 0 ];then
+  printf "Endter commit message.: "
+  read m
+else
+  m="$*"
+fi
+
+files=`git status | awk '$2=="modified:" || $2 =="new" {printf($NF " ");}'`
+
+if [ -z "$files" ]; then
+  echo "no modified files."
+  exit 1
+fi
+
+git add $files && git commit -m "$m" && git push
+exit $?
+
