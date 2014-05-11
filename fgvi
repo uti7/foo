@@ -1,0 +1,81 @@
+#!/bin/bash
+function usage {
+  # selfname: ${0//*\//}
+  cat << 'EOT'
+usage: fgvi [-d DIR] [-n] PATTERN FILE [...]
+
+  DIR:     single directry
+  PATTERN: re
+  FILE   : basename
+           also wildcard-char must be escaped (e.g. \*.txt)
+
+   ex.1)
+     $ fgvi -n . \*
+     same as-  find . -name \* -print
+   ex.2)
+     $ fgvi . abc\*.xml
+     same as- vi `find . -name abc\*.xml -print`
+   ex.3)
+     $ fgvi . PATTERN abc\*.xml
+     same as- vi `grep -l PATTERN (find . -name abc\*.xml -print)`
+
+EOT
+}
+
+[ "$#" -lt 2 ] && { usage; exit 2; }
+
+while getopts 'd:n' opt
+do
+    case $opt in
+    d)  base_path="$OPTARG";;
+    n)  is_not_vi=1;;
+		*)  usage; exit 2;;
+		esac
+done
+
+shift `expr $OPTIND - 1` 1>/dev/null 2>&1
+set -f
+
+vi=vim
+
+base_path="${base_path:-.}"
+
+reg_exp="$1"
+shift
+
+file_spec=""
+
+for f in $*
+do
+  if [ -z "$file_spec" ]; then
+    file_spec="-name $f"
+  else
+    file_spec="$file_spec  -o -name $f"
+  fi
+
+  [ -z "$file_spec" ] && { usage; exit 2; }
+
+done
+
+file_spec="( $file_spec ) -a ( ! -name *.swp )"
+
+if [ "${is_not_vi:-0}" -eq 1 ]; then
+  if [ "$reg_exp" != "." ]; then
+    exec find $base_path -type f $file_spec -exec grep -EHn "$reg_exp" {} \;
+  else
+    exec find $base_path -type f $file_spec -exec grep -EHl "$reg_exp" {} \;
+  fi
+else
+  matched=`find $base_path -type f $file_spec -exec grep -Eq "$reg_exp" {} \; -print`
+  if [ ! -z "$matched" ]; then
+    if [ "$reg_exp" != "." ]; then
+      re4vi=`echo "$reg_exp"|sed -e 's#\([()+|]\)#\\\\\1#g'`
+      exec $vi "+/$re4vi/" $matched
+    else
+      exec $vi $matched
+    fi
+  else
+    echo "$reg_exp: No matched."
+    exit 1
+  fi
+fi
