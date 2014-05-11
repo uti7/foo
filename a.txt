@@ -1,0 +1,5 @@
+wip:
+- all samples > api, del from d***
+- web run through base~sample
+- also, y**(x5 confirm sample), bat(g** x5, c** x5, i** x5)
+- *mo* or db relative
