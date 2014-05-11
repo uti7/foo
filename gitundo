@@ -38,7 +38,6 @@ if [ -z "$co_files" ]; then
   exit 1
 fi
 set -x
-git checkout HEAD $co_files
-git pull
+git checkout HEAD $co_files && git pull
 exit $?
 
