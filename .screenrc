@@ -1,0 +1,13 @@
+bind s
+bind s split
+bind 
+bind  split
+bind 
+bind  remove
+bind x
+bind x remove
+startup_message off
+#termcapinfo cygwin KJ=SJIS
+#termcap  facit|vt100|xterm LP:G0
+#terminfo facit|vt100|xterm LP:G0
+defencoding UTF-8
