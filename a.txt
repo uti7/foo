@@ -1,5 +1,7 @@
-wip:
 - all samples > api, del from d***
 - web run through base~sample
+wip:
+- tar cvfz t /h*/*/conf /h*/*/var/*js
+- restart *js_p**x* *js_s*****_ctl
 - also, y**(x5 confirm sample), bat(g** x5, c** x5, i** x5)
 - *mo* or db relative
