@@ -1,3 +1,10 @@
+startup_message off
+#defscrollback 1000
+termcapinfo cygwin KJ=UTF-8
+defencoding UTF-8
+termcap  facit|vt100|xterm LP:G0
+terminfo facit|vt100|xterm LP:G0
+
 bind s
 bind s split
 bind 
@@ -6,8 +13,3 @@ bind 
 bind  remove
 bind x
 bind x remove
-startup_message off
-#termcapinfo cygwin KJ=SJIS
-#termcap  facit|vt100|xterm LP:G0
-#terminfo facit|vt100|xterm LP:G0
-defencoding UTF-8
