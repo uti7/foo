@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash -f
+set -f
 function usage {
   # selfname: ${0//*\//}
   cat << 'EOT'
@@ -38,14 +39,30 @@ set -f
 
 vi=vim
 
-base_path="${base_path:-.}"
+#base_path="${base_path:-.}"
 
 reg_exp="$1"
 shift
 
-file_spec=""
+file_spec_org=""
+if [ -z "$base_path" ]; then
+  for f in $*
+  do
+    d=`dirname $f`
+    if [ "$d" != "." ]; then
+      base_path="$base_path $d"
+    fi
+    file_spec_org="$file_spec_org `basename $f`"
+  done
+else
+  for f in $*
+  do
+    file_spec_org="$file_spec_org `basename $f`"
+  done
+fi
 
-for f in $*
+file_spec=""
+for f in $file_spec_org
 do
   if [ -z "$file_spec" ]; then
     file_spec="-name $f"
