@@ -3,40 +3,63 @@ set -f
 function usage {
   # selfname: ${0//*\//}
   cat << 'EOT'
+synopsis:
+  find DIR -name FILE | grep PATTERN | vim +/PATTERN/
+
 usage:
-  fgvi [-d DIR] [-ni] PATTERN FILE [...]
-  fgvi [-d DIR] [-n] -l FILE [...]
+  fgvi [-d DIR] [-ni] PATTERN [FILE...]
+  fgvi [-d DIR] [-ni] -a PATTERN [-a PATTERN ...] [FILE...]
+  fgvi [-d DIR] [-ni] -l [FILE...]
 
-  -d DIR: search-path what single directry
-  -i          : ignore case for PATTERN
-  -l          : do not mind any PATTERN
-  -n          : no vim, only output like a grep
-  PATTERN: re
-  FILE   : basename
-           also wildcard-char must be escaped (e.g. \*.txt)
+  -d DIR:      : search-path give to find. if omited, then `.'
+  -i           : ignore case
+  -l           : no grep, do not mind any pattern
+  -n           : no vim, only output like a grep
+  -a PATTERN   : regular expression for all PATTERN(s) matching (i.e. AND condition)
+  PATTERN      : a regular expression
+  FILE         : basename of filename or directory/.../filename
+                 if appear directory-spec at FILE, apply to search-path implied.
+                 wildcard-char should be escaped
+                 to avoid expand by shell. (e.g. \*.txt)
+                 if omited, then `\*'
 
-   ex.1)
-     $ fgvi -n . \*
-     same as find . -name \* -print
-   ex.2)
-     $ fgvi . abc\*.xml
-     same as vi `find . -name abc\*.xml -print`
-   ex.3)
-     $ fgvi . PATTERN abc\*.xml
-     same as  vi `grep -l PATTERN (find . -name abc\*.xml -print)`
-
+   ex.)
+     $ fgvi -d /etc PATTERN \*.conf
+      like as:
+        vim +/PATTERN/ \
+          `find /etc -name \*.conf -exec grep -Eq PATTERN {} \; -print`
+   ex.)
+     $ fgvi -nl \*
+      like as:
+        find . -name \* -print
+   ex.)
+     $ fgvi -l abc\*.xml
+      like as:
+        vim `find . -name abc\*.xml -print`
+   ex.)
+     $ fgvi PATTERN abc\*.xml
+      like as:
+        find . -name abc\*.xml -print |
+        vim `grep -El PATTERN` 
+   ex.)
+     $ fgvi -a foo -a bar /etc/\ini /var/log/\*.log
+      like as:
+        find /etc /var/log \( -name \*.ini -o -name \*.log \) \
+          -exec grep -Eq foo {} \; -print` | \
+        grep -EHn 'bar' | vim +/foo\|bar` 
 EOT
 }
 
-[ "$#" -lt 2 ] && { usage; exit 2; }
+#[ "$#" -lt 2 ] && { usage; exit 2; }
 
-while getopts 'd:nil' opt
+while getopts 'a:d:nil' opt
 do
     case $opt in
+    a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
     d)  base_path="$OPTARG";;
     n)  is_not_vi=1;;
     i)  ignore_case_opt="-i";;
-    l)  reg_exp=".";;
+    l)  is_not_grep=1;;
 		*)  usage; exit 2;;
 		esac
 done
@@ -46,29 +69,40 @@ set -f
 
 vi=vim
 
-#base_path="${base_path:-.}"
 
-if [ -z "$reg_exp" ]; then
+if [ ${is_not_grep:-0} -eq 0 ] && [ -z "$reg_exp" ]; then
   reg_exp="$1"
+  [ -z "$reg_exp" ] && usage && exit 2
   shift
 fi
 
-file_spec_org=""
-if [ -z "$base_path" ]; then
-  for f in $*
-  do
-    d=`dirname $f`
-    if [ "$d" != "." ]; then
-      base_path="$base_path $d"
-    fi
-    file_spec_org="$file_spec_org `basename $f`"
-  done
+if [ $# -eq 0 ]; then
+  # file is omited
+  [ -z "$base_path" ] && base_path="."
+  file_spec_org="*"
 else
-  for f in $*
-  do
-    file_spec_org="$file_spec_org `basename $f`"
-  done
+  file_spec_org=""
+  if [ -z "$base_path" ]; then
+    for f in $*
+    do
+      d=`dirname $f`
+      if [ "$d" != "." ]; then
+        base_path="$base_path $d"
+      fi
+      file_spec_org="$file_spec_org `basename $f`"
+    done
+    #base_path="${base_path:-.}"
+  else
+    for f in $*
+    do
+      file_spec_org="$file_spec_org `basename $f`"
+    done
+  fi
 fi
+
+#
+# 1st filtering for ${reg_exp[0]} by find and grep
+#
 
 file_spec=""
 for f in $file_spec_org
@@ -84,25 +118,58 @@ do
 done
 
 file_spec="( $file_spec ) -a ( ! -name *.swp )"
+if [ ${is_not_grep:-0} -eq 0 ]; then
+  matched=`find $base_path -type f $file_spec -exec grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" {} \; -print`
+  re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()+|]\)#\\\\\1#g'`
+  re4grep="${reg_exp[0]}"
+else
+  matched=`find $base_path -type f $file_spec -print`
+fi
+if [ -z "$matched" ]; then
+  echo "${reg_exp[0]}: No matched."
+  exit 1
+fi
 
-if [ "${is_not_vi:-0}" -eq 1 ]; then
-  if [ "$reg_exp" != "." ]; then
-    exec find $base_path -type f $file_spec -exec grep -EHn ${ignore_case_opt:-} "$reg_exp" {} \;
+#
+# filtering for each reg_exp by grep
+#
+if [ ${is_not_grep:-0} -eq 0 ]; then
+  i=1
+  while [ $i -lt "${#reg_exp[@]}" ]
+  do
+    matched_org=$matched
+    matched=""
+    for f in $matched_org
+    do
+      grep -Eq ${ignore_case_opt:-} "${reg_exp[$i]}" $f
+      [ $? -eq 0 ] && matched="$matched $f"
+    done
+    if [ -z "$matched" ]; then
+      echo "${reg_exp[$i]}: No matched."
+      exit 1
+    fi
+
+    r=`echo "${reg_exp[$i]}" |sed -e 's#\([()+|]\)#\\\\\1#g'`
+    re4vi="$re4vi\|$r"
+    re4grep="$re4grep|${reg_exp[$i]}"
+    i=$(( i + 1 ))
+  done
+  [ -n "$ignore_case_opt" ] && re4vi="\(${re4vi}\)\c"
+fi
+
+#
+# action
+#
+if [ ${is_not_vi:-0} -eq 1 ]; then
+  if [ ${is_not_grep:-0} -eq 0 ]; then
+    exec grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
   else
-    exec find $base_path -type f $file_spec -exec grep -EHl ${ignore_case_opt:-} "$reg_exp" {} \;
+    exec echo $matched
   fi
 else
-  matched=`find $base_path -type f $file_spec -exec grep -Eq ${ignore_case_opt:-} "$reg_exp" {} \; -print`
-  if [ ! -z "$matched" ]; then
-    if [ "$reg_exp" != "." ]; then
-      re4vi=`echo "$reg_exp"|sed -e 's#\([()+|]\)#\\\\\1#g'`
-      [ -n "$ignore_case_opt" ] && re4vi="${re4vi}\c"
-      exec $vi "+/$re4vi/" $matched
-    else
-      exec $vi $matched
-    fi
+  if [ ${is_not_grep:-0} -eq 0 ]; then
+    exec $vi "+/$re4vi/" $matched
   else
-    echo "$reg_exp: No matched."
-    exit 1
+    exec $vi $matched
   fi
 fi
