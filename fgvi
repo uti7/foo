@@ -24,10 +24,15 @@ usage:
                  if omited, then `\*'
 
    ex.)
+     $ fgvi PATTERN foo\*.xml
+      like as:
+        find . -name foo\*.xml -print |
+        vim `grep -El PATTERN` 
+   ex.)
      $ fgvi -d /etc PATTERN \*.conf
       like as:
         vim +/PATTERN/ \
-          `find /etc -name \*.conf -exec grep -Eq PATTERN {} \; -print`
+          `find /etc -name \*.conf -print0 | xargs -0  grep -El PATTERN`
    ex.)
      $ fgvi -nl \*
       like as:
@@ -36,11 +41,6 @@ usage:
      $ fgvi -l abc\*.xml
       like as:
         vim `find . -name abc\*.xml -print`
-   ex.)
-     $ fgvi PATTERN abc\*.xml
-      like as:
-        find . -name abc\*.xml -print |
-        vim `grep -El PATTERN` 
    ex.)
      $ fgvi -a foo -a bar /etc/\ini /var/log/\*.log
       like as:
@@ -119,7 +119,7 @@ done
 
 file_spec="( $file_spec ) -a ( ! -name *.swp )"
 if [ ${is_not_grep:-0} -eq 0 ]; then
-  matched=`find $base_path -type f $file_spec -exec grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" {} \; -print`
+  matched=`find $base_path -type f $file_spec -print0 | xargs -0 grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
   re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()+|]\)#\\\\\1#g'`
   re4grep="${reg_exp[0]}"
 else
