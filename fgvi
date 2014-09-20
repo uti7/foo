@@ -1,14 +1,17 @@
 #!/bin/bash -f
 set -f
 function usage {
-  cat << EOT
+  cat << EOT | less
+name:
+  $myname - file traverser
+
 synopsis:
   find DIR -name FILE | grep PATTERN | vim +/PATTERN/
 
 usage:
-  $myname [-d DIR] [-nNix] PATTERN [FILE...]
-  $myname [-d DIR] [-nNix] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR] [-nNix] -l [FILE...]
+  $myname [-d DIR [-d DIR]...] [-nNilx] PATTERN [FILE...]
+  $myname [-d DIR [-d DIR]...] [-nNilx] -a PATTERN [-a PATTERN ...] [FILE...]
+  $myname [-d DIR [-d DIR]...] [-nNilx] -l [FILE...]
 
   -d DIR:      : search-path, given to find. if omited, then \`.'
   -i           : ignore case, for grep, vim
@@ -25,8 +28,7 @@ usage:
                  wildcard-char should be escaped
                  to avoid expand by shell. (e.g. \\*.txt)
                  if omited, then \`\\*'
-
-   ex.)
+  ex.)
 
      $ $myname PATTERN foo\\*.xml
       its like, as:
