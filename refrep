@@ -1,0 +1,26 @@
+#!/bin/sh
+function r
+{
+  prefix='(class|function)\\s+\\w+'
+  re=$1
+  shift
+  files=$*
+  gawk -v ic=1 -v prefix="$prefix" -v re="$re" 'BEGIN{IGNORECASE=ic;x=1;preserve=""}{\
+    if(match($0, prefix)>0){\
+      preserve = FILENAME ":" FNR ":@@@@@:" $0;\
+    }\
+    if(match($0, re)>0){\
+      if(preserve != ""){\
+        print preserve;\
+        preserve = "";\
+      }\
+      print FILENAME ":" FNR ":" $0;\
+      x = 0;\
+    }\
+  }END{exit(x);}' $files
+  return $?
+}
+
+
+r $*
+exit $?

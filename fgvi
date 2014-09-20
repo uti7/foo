@@ -1,67 +1,130 @@
 #!/bin/bash -f
 set -f
 function usage {
-  # selfname: ${0//*\//}
-  cat << 'EOT'
+  cat << EOT
 synopsis:
   find DIR -name FILE | grep PATTERN | vim +/PATTERN/
 
 usage:
-  fgvi [-d DIR] [-ni] PATTERN [FILE...]
-  fgvi [-d DIR] [-ni] -a PATTERN [-a PATTERN ...] [FILE...]
-  fgvi [-d DIR] [-ni] -l [FILE...]
+  $myname [-d DIR] [-nNix] PATTERN [FILE...]
+  $myname [-d DIR] [-nNix] -a PATTERN [-a PATTERN ...] [FILE...]
+  $myname [-d DIR] [-nNix] -l [FILE...]
 
-  -d DIR:      : search-path give to find. if omited, then `.'
-  -i           : ignore case
+  -d DIR:      : search-path, given to find. if omited, then \`.'
+  -i           : ignore case, for grep, vim
   -l           : no grep, do not mind any pattern
   -n           : no vim, only output like a grep
-  -a PATTERN   : regular expression for all PATTERN(s) matching (i.e. AND condition)
+  -N           : ask whether open as vim, after output like a grep
+  -a PATTERN   : regular expression for all PATTERN(s) matching
+                 (i.e. AND condition)
+  -x           : output precedent line (e.g. php declaration) with grep results.
+                 when -l opt used no effect
   PATTERN      : a regular expression
-  FILE         : basename of filename or directory/.../filename
+  FILE         : basename of filename, also directory/.../filename avail
                  if appear directory-spec at FILE, apply to search-path implied.
                  wildcard-char should be escaped
-                 to avoid expand by shell. (e.g. \*.txt)
-                 if omited, then `\*'
+                 to avoid expand by shell. (e.g. \\*.txt)
+                 if omited, then \`\\*'
 
    ex.)
-     $ fgvi PATTERN foo\*.xml
-      like as:
-        find . -name foo\*.xml -print |
-        vim `grep -El PATTERN` 
-   ex.)
-     $ fgvi -d /etc PATTERN \*.conf
-      like as:
-        vim +/PATTERN/ \
-          `find /etc -name \*.conf -print0 | xargs -0  grep -El PATTERN`
-   ex.)
-     $ fgvi -nl \*
-      like as:
-        find . -name \* -print
-   ex.)
-     $ fgvi -l abc\*.xml
-      like as:
-        vim `find . -name abc\*.xml -print`
-   ex.)
-     $ fgvi -a foo -a bar /etc/\ini /var/log/\*.log
-      like as:
-        find /etc /var/log \( -name \*.ini -o -name \*.log \) \
-          -exec grep -Eq foo {} \; -print` | \
-        grep -EHn 'bar' | vim +/foo\|bar` 
+
+     $ $myname PATTERN foo\\*.xml
+      its like, as:
+        find . -name foo\\*.xml -print |
+        vim \`grep -El PATTERN\` 
+
+     $ $myname -d /etc PATTERN \\*.conf
+      as:
+        vim +/PATTERN/ \\
+          \`find /etc -name \\*.conf -print0 | xargs -0  grep -El PATTERN\`
+
+     $ $myname -nl \\*
+      as:
+        find . -name \\* -print
+
+     $ $myname -l \\*bar.php
+      as:
+        vim \`find . -name \\*bar.php -print\`
+
+     $ $myname -a foo -a bar /etc/\\*ini /var/log/\\*.log
+      as:
+        find /etc /var/log \\( -name \\*.ini -o -name \\*.log \\) \\
+          -exec grep -Eq foo {} \\; -print | \\
+        grep -EHn 'bar' | vim +/foo\\|bar 
 EOT
 }
 
-#[ "$#" -lt 2 ] && { usage; exit 2; }
+function refrep
+{
+  if [ -z "$default_precedent" ]; then
+    precedent='(class|function)\\s+\\w+'
+  else
+    precedent="$default_precedent"
+  fi
+  re=$1
+  shift
+  files=$*
+  [ -n "$ignore_case_opt" ] && ic=1
+  gawk -v ic=${ic:-0} -v precedent="$precedent" -v re="$re" 'BEGIN{IGNORECASE=ic;x=1;preserve=""}{\
+    if(match($0, precedent)>0){\
+      preserve = FILENAME ":" FNR ":@@@@@:" $0;\
+    }\
+    if(match($0, re)>0){\
+      if(preserve != ""){\
+        print preserve;\
+        preserve = "";\
+      }\
+      print FILENAME ":" FNR ":" $0;\
+      x = 0;\
+    }\
+  }END{exit(x);}' $files
+  return $?
+}
 
-while getopts 'a:d:nil' opt
+function mkrc
+{
+  cat << EOT >"$HOME/.${myname}rc"
+### default settings
+
+## -d
+#base_path="."
+
+## 1: -n, 2: -N
+#is_not_vi=2
+
+## -i
+#ignore_case_opt="-i"
+
+## -l
+#is_not_grep=1
+
+## FILE
+#default_file_spec="*"
+
+## for -x
+#default_precedent='(class|function)\\s+\\w+'
+EOT
+}
+
+myname=${0//*\//}
+
+if [ ! -r "$HOME/.${myname}rc" ]; then
+  mkrc
+fi
+. "$HOME/.${myname}rc"
+
+while getopts 'a:d:nNilx' opt
 do
     case $opt in
     a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
-    d)  base_path="$OPTARG";;
+    d)  base_path="${base_path:-} $OPTARG";;
     n)  is_not_vi=1;;
+    N)  is_not_vi=2;;
     i)  ignore_case_opt="-i";;
     l)  is_not_grep=1;;
-		*)  usage; exit 2;;
-		esac
+    x)  is_out_precedent=1;;
+    *)  usage; exit 2;;
+    esac
 done
 
 shift `expr $OPTIND - 1` 1>/dev/null 2>&1
@@ -79,7 +142,7 @@ fi
 if [ $# -eq 0 ]; then
   # file is omited
   [ -z "$base_path" ] && base_path="."
-  file_spec_org="*"
+  file_spec_org="${default_file_spec:-*}"
 else
   file_spec_org=""
   if [ -z "$base_path" ]; then
@@ -160,13 +223,31 @@ fi
 #
 # action
 #
-if [ ${is_not_vi:-0} -eq 1 ]; then
+if [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
-    exec grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
+    if [ ${is_out_precedent:-0} -eq 0 ]; then
+      grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
+    else
+      refrep "$re4grep" $matched
+    fi
+    x=$?
   else
-    exec echo $matched
+    x=1
+    for f in $matched
+    do
+      echo $f
+      x=0
+    done
   fi
-else
+  if [ ${is_not_vi:-0} -gt 1 ]; then
+    echo -n "will open as vim, ok?(y/n):"
+    read Q
+    [ "$Q" != 'y' ] && exit "$x"
+    is_not_vi=0
+  fi
+fi
+
+if [ ${is_not_vi:-0} -eq 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     exec $vi "+/$re4vi/" $matched
   else
