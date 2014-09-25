@@ -9,13 +9,13 @@ synopsis:
   find DIR -name FILE | grep PATTERN | vim +/PATTERN/
 
 usage:
-  $myname [-d DIR] [-d DIR...] [-nNilx] PATTERN [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilx] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilx] -l [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilLx] PATTERN [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilLx] -a PATTERN [-a PATTERN ...] [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilLx] -l [FILE...]
 
   -d DIR:      : search-path, given to find. if omited, then \`.'
   -i           : ignore case, for grep, vim
-  -l           : no grep, do not mind any pattern
+  -l, -L       : no grep, do not mind any pattern
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
   -a PATTERN   : regular expression for all PATTERN(s) matching
@@ -119,7 +119,7 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-while getopts 'a:d:nNilx' opt
+while getopts 'a:d:nNilLx' opt
 do
     case $opt in
     a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
@@ -133,8 +133,12 @@ do
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
       ;;
     i)  ignore_case_opt="-i";;
-    l)  is_not_grep=1
+    l)
+      is_not_grep=1
       [ ${is_not_vi:-0} -gt 0 ] && is_file_with_matches=1
+      ;;
+    L)
+      is_not_grep=1
       ;;
     x)  is_out_precedent=1;;
     *)  usage; exit 2;;
