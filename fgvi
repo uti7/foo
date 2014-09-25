@@ -9,26 +9,30 @@ synopsis:
   find DIR -name FILE | grep PATTERN | vim +/PATTERN/
 
 usage:
-  $myname [-d DIR [-d DIR]...] [-nNilx] PATTERN [FILE...]
-  $myname [-d DIR [-d DIR]...] [-nNilx] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR [-d DIR]...] [-nNilx] -l [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilx] PATTERN [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilx] -a PATTERN [-a PATTERN ...] [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilx] -l [FILE...]
 
   -d DIR:      : search-path, given to find. if omited, then \`.'
   -i           : ignore case, for grep, vim
   -l           : no grep, do not mind any pattern
-  -n           : no vim, only output like a grep
-  -N           : ask whether open as vim, after output like a grep
+  -n           : no vim, only output like grep
+  -N           : ask whether open as vim, after output like grep
   -a PATTERN   : regular expression for all PATTERN(s) matching
                  (i.e. AND condition)
   -x           : output precedent line (e.g. php declaration) with grep results.
                  when -l opt used no effect
   PATTERN      : a regular expression
-  FILE         : basename of filename, also directory/.../filename avail
+  FILE         : basename of filename, also directory/.../filename available
                  if appear directory-spec at FILE, apply to search-path implied.
                  wildcard-char should be escaped
                  to avoid expand by shell. (e.g. \\*.txt)
                  if omited, then \`\\*'
-  ex.)
+note:
+  if option -l (with) -n, or -l (with) -N are specified:
+                 print only each file name which, like its \`grep -l'
+
+example:
 
      $ $myname PATTERN foo\\*.xml
       its like, as:
@@ -120,19 +124,28 @@ do
     case $opt in
     a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
     d)  base_path="${base_path:-} $OPTARG";;
-    n)  is_not_vi=1;;
-    N)  is_not_vi=2;;
+    n)
+      is_not_vi=1
+      [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
+      ;;
+    N)
+      is_not_vi=2
+      [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
+      ;;
     i)  ignore_case_opt="-i";;
-    l)  is_not_grep=1;;
+    l)  is_not_grep=1
+      [ ${is_not_vi:-0} -gt 0 ] && is_file_with_matches=1
+      ;;
     x)  is_out_precedent=1;;
     *)  usage; exit 2;;
     esac
 done
 
 shift `expr $OPTIND - 1` 1>/dev/null 2>&1
-set -f
 
 vi=vim
+
+[ ${is_file_with_matches:-0} -eq 1 ] && is_not_grep=0
 
 
 if [ ${is_not_grep:-0} -eq 0 ] && [ -z "$reg_exp" ]; then
@@ -227,8 +240,11 @@ fi
 #
 if [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
-    if [ ${is_out_precedent:-0} -eq 0 ]; then
+    if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
+    then
       grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
+    elif [ ${is_file_with_matches:-0} -eq 1 ]; then
+      grep -El ${ignore_case_opt:-} "$re4grep" $matched
     else
       refrep "$re4grep" $matched
     fi
