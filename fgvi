@@ -9,19 +9,21 @@ synopsis:
   find DIR -name FILE | grep PATTERN | vim +/PATTERN/
 
 usage:
-  $myname [-d DIR] [-d DIR...] [-nNilLx] PATTERN [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilLx] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilLx] -l [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilLxz] PATTERN [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilLxz] -a PATTERN [-a PATTERN ...] [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilLxz] -l [FILE...]
 
-  -d DIR:      : search-path, given to find. if omited, then \`.'
-  -i           : ignore case, for grep, vim
+  -d DIR:      : search-path, givens to find. if omited, then \`.'
+  -i           : ignore case, its applied the FILE as well as the PATTERN
   -l, -L       : no grep, do not mind any pattern
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
   -a PATTERN   : regular expression for all PATTERN(s) matching
                  (i.e. AND condition)
   -x           : output precedent line (e.g. php declaration) with grep results.
-                 when -l opt used no effect
+                 (see the variable \`default_precedent' what a setting in \$HOME/.${myname}rc for details)
+                 has no effect when no-grep opt (-l, -L) specified
+  -z           : for .gz compressed file, zgrep is used instead of grep
   PATTERN      : a regular expression
   FILE         : basename of filename, also directory/.../filename available
                  if appear directory-spec at FILE, apply to search-path implied.
@@ -32,7 +34,7 @@ note:
   if option -l (with) -n, or -l (with) -N are specified:
                  print only each file name which, like its \`grep -l'
 
-example:
+examples:
 
      $ $myname PATTERN foo\\*.xml
       its like, as:
@@ -60,10 +62,24 @@ example:
 EOT
 }
 
+function zrefrep
+{
+  re=$1
+  shift
+  x=1
+  for zf in $*
+  do
+    zcat $zf | refrep $re
+    [ $? -eq 0 ] && x=0
+  done
+  return $x
+}
+
 function refrep
 {
   if [ -z "$default_precedent" ]; then
-    precedent='(class|function)\\s+\\w+'
+    #precedent='(class|function)\\s+\\w+' # no available exec on awk 3.x
+    precedent='(class|function)[ \\t]+\\w+'
   else
     precedent="$default_precedent"
   fi
@@ -71,16 +87,18 @@ function refrep
   shift
   files=$*
   [ -n "$ignore_case_opt" ] && ic=1
-  gawk -v ic=${ic:-0} -v precedent="$precedent" -v re="$re" 'BEGIN{IGNORECASE=ic;x=1;preserve=""}{\
+  gawk -v ic=${ic:-0} -v zf=${zf:-unknown} -v precedent="$precedent" -v re="$re" 'BEGIN{IGNORECASE=ic;x=1;preserve=""}{\
     if(match($0, precedent)>0){\
-      preserve = FILENAME ":" FNR ":@@@@@:" $0;\
+      fname = (FILENAME == "-") ? zf : FILENAME;\
+      preserve = fname ":" FNR ":@@@@@:" $0;\
     }\
     if(match($0, re)>0){\
       if(preserve != ""){\
         print preserve;\
         preserve = "";\
       }\
-      print FILENAME ":" FNR ":" $0;\
+      fname = (FILENAME == "-") ? zf : FILENAME;\
+      print fname ":" FNR ":" $0;\
       x = 0;\
     }\
   }END{exit(x);}' $files
@@ -108,18 +126,22 @@ function mkrc
 #default_file_spec="*"
 
 ## for -x
-#default_precedent='(class|function)\\s+\\w+'
+#default_precedent='(class|function)[ \\t]+\\w+'
 EOT
 }
 
 myname=${0//*\//}
+vi=vim
+grep=grep
+refrep=refrep
+name_opt="-name"
 
 if [ ! -r "$HOME/.${myname}rc" ]; then
   mkrc
 fi
 . "$HOME/.${myname}rc"
 
-while getopts 'a:d:nNilLx' opt
+while getopts 'a:d:nNilLxz' opt
 do
     case $opt in
     a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
@@ -132,7 +154,7 @@ do
       is_not_vi=2
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
       ;;
-    i)  ignore_case_opt="-i";;
+    i)  ignore_case_opt="-i";name_opt="-iname";;
     l)
       is_not_grep=1
       [ ${is_not_vi:-0} -gt 0 ] && is_file_with_matches=1
@@ -141,13 +163,13 @@ do
       is_not_grep=1
       ;;
     x)  is_out_precedent=1;;
+    z)  grep=zgrep;refrep=zrefrep;;
     *)  usage; exit 2;;
     esac
 done
 
 shift `expr $OPTIND - 1` 1>/dev/null 2>&1
 
-vi=vim
 
 [ ${is_file_with_matches:-0} -eq 1 ] && is_not_grep=0
 
@@ -190,9 +212,9 @@ file_spec=""
 for f in $file_spec_org
 do
   if [ -z "$file_spec" ]; then
-    file_spec="-name $f"
+    file_spec="$name_opt $f"
   else
-    file_spec="$file_spec  -o -name $f"
+    file_spec="$file_spec  -o $name_opt $f"
   fi
 
   [ -z "$file_spec" ] && { usage; exit 2; }
@@ -201,8 +223,18 @@ done
 
 file_spec="( $file_spec ) -a ( ! -name *.swp )"
 if [ ${is_not_grep:-0} -eq 0 ]; then
-  matched=`find $base_path -type f $file_spec -print0 | xargs -0 grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
-  re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()+|]\)#\\\\\1#g'`
+  if [ "$grep" = "grep" ]; then
+    matched=`find $base_path -type f $file_spec -print0 | xargs -0 $grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
+  else
+    # for zgrep, to know each filename because zgrep -H does not work.
+    for f in `find $base_path -type f $file_spec -print`
+    do
+      $grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" $f
+      [ $? -eq 0 ] && matched="$matched $f"
+      
+    done
+  fi
+  re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
   re4grep="${reg_exp[0]}"
 else
   matched=`find $base_path -type f $file_spec -print`
@@ -223,7 +255,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
     matched=""
     for f in $matched_org
     do
-      grep -Eq ${ignore_case_opt:-} "${reg_exp[$i]}" $f
+      $grep -Eq ${ignore_case_opt:-} "${reg_exp[$i]}" $f
       [ $? -eq 0 ] && matched="$matched $f"
     done
     if [ -z "$matched" ]; then
@@ -231,7 +263,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
       exit 1
     fi
 
-    r=`echo "${reg_exp[$i]}" |sed -e 's#\([()+|]\)#\\\\\1#g'`
+    r=`echo "${reg_exp[$i]}" |sed -e 's#\([()?+|]\)#\\\\\1#g'`
     re4vi="$re4vi\|$r"
     re4grep="$re4grep|${reg_exp[$i]}"
     i=$(( i + 1 ))
@@ -246,11 +278,11 @@ if [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
-      grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
+      $grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
-      grep -El ${ignore_case_opt:-} "$re4grep" $matched
+      $grep -El ${ignore_case_opt:-} "$re4grep" $matched
     else
-      refrep "$re4grep" $matched
+      $refrep "$re4grep" $matched
     fi
     x=$?
   else
