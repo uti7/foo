@@ -9,19 +9,20 @@ synopsis:
   find DIR -name FILE | grep PATTERN | vim +/PATTERN/
 
 usage:
-  $myname [-d DIR] [-d DIR...] [-nNilLxz] PATTERN [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilLxz] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilLxz] -l [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilxz] PATTERN [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNilxz] -a PATTERN [-a PATTERN ...] [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nNixz] -L [FILE...]
+  $myname [-d DIR] [-d DIR...] [-ixz] -l [FILE...]
 
-  -d DIR:      : search-path, givens to find. if omited, then \`.'
+  -d DIR:      : a search-path, givens to find. if omited, then \`.'
   -i           : ignore case, its applied the FILE as well as the PATTERN
   -l, -L       : no grep, do not mind any pattern
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
   -a PATTERN   : regular expression for all PATTERN(s) matching
-                 (i.e. AND condition)
+                 (i.e. AND condition of them)
   -x           : output precedent line (e.g. php declaration) with grep results.
-                 (see the variable \`default_precedent' what a setting in \$HOME/.${myname}rc for details)
+                 (see the variable \`default_precedent' what setting in \$HOME/.${myname}rc for details)
                  has no effect when no-grep opt (-l, -L) specified
   -z           : for .gz compressed file, zgrep is used instead of grep
   PATTERN      : a regular expression
