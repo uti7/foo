@@ -309,3 +309,4 @@ if [ ${is_not_vi:-0} -eq 0 ]; then
     exec $vi $matched
   fi
 fi
+exit $x
