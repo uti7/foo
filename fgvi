@@ -6,17 +6,18 @@ name:
   $myname - file traverser
 
 synopsis:
-  find DIR -name FILE | grep PATTERN | vim +/PATTERN/
+  find DIR -name FILE ->  grep PATTERN ->  vim +/PATTERN/
 
 usage:
   $myname [-d DIR] [-d DIR...] [-nNilxz] PATTERN [FILE...]
   $myname [-d DIR] [-d DIR...] [-nNilxz] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNixz] -L [FILE...]
-  $myname [-d DIR] [-d DIR...] [-ixz] -l [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nN] -L [FILE...]
+  $myname [-d DIR] [-d DIR...] [-nN] -D [FILE...]
 
   -d DIR:      : a search-path, givens to find. if omited, then \`.'
+  -D           : find target is only directory, and no grep forcely.
   -i           : ignore case, its applied the FILE as well as the PATTERN
-  -l, -L       : no grep, do not mind any pattern
+  -l, -L       : no grep, do not mind any pattern (see below the note:)
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
   -a PATTERN   : regular expression for all PATTERN(s) matching
@@ -34,6 +35,7 @@ usage:
 note:
   if option -l (with) -n, or -l (with) -N are specified:
                  print only each file name which, like its \`grep -l'
+                 however, -L is never grep
 
 examples:
 
@@ -127,7 +129,7 @@ function mkrc
 #default_file_spec="*"
 
 ## for -x
-#default_precedent='(class|function)[ \\t]+\\w+'
+#default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
 EOT
 }
 
@@ -136,17 +138,19 @@ vi=vim
 grep=grep
 refrep=refrep
 name_opt="-name"
+type_opt="f"
 
 if [ ! -r "$HOME/.${myname}rc" ]; then
   mkrc
 fi
 . "$HOME/.${myname}rc"
 
-while getopts 'a:d:nNilLxz' opt
+while getopts 'a:d:DnNilLxz' opt
 do
     case $opt in
     a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
     d)  base_path="${base_path:-} $OPTARG";;
+    D)  type_opt="d"; is_not_grep=1;;
     n)
       is_not_vi=1
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
@@ -225,10 +229,10 @@ done
 file_spec="( $file_spec ) -a ( ! -name *.swp )"
 if [ ${is_not_grep:-0} -eq 0 ]; then
   if [ "$grep" = "grep" ]; then
-    matched=`find $base_path -type f $file_spec -print0 | xargs -0 $grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
+    matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
   else
     # for zgrep, to know each filename because zgrep -H does not work.
-    for f in `find $base_path -type f $file_spec -print`
+    for f in `find $base_path -type $type_opt $file_spec -print`
     do
       $grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" $f
       [ $? -eq 0 ] && matched="$matched $f"
@@ -238,7 +242,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
   re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
   re4grep="${reg_exp[0]}"
 else
-  matched=`find $base_path -type f $file_spec -print`
+  matched=`find $base_path -type $type_opt $file_spec -print`
 fi
 if [ -z "$matched" ]; then
   echo "${reg_exp[0]}: No matched."
