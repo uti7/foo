@@ -218,27 +218,33 @@ if [ $# -eq 0 ]; then
   file_spec_org="${default_file_spec:-*}"
 else
   file_spec_org=""
-  if [ -z "$base_path" ]; then
+  #if [ -z "$base_path" ]; then
     for f in $*
     do
       d=`dirname $f`
       if [ "$d" != "." ]; then
-        base_path="$base_path $d"
+        if [ -d "$d" ]; then
+          base_path="$base_path $d"
+        else
+          reg_exp[${#reg_exp[@]}]="$d"
+          invert_opt[${#invert_opt[@]}]="for_must_path"
+        fi
       fi
       file_spec_org="$file_spec_org `basename $f`"
     done
-    #base_path="${base_path:-.}"
-  else
-    for f in $*
-    do
-      file_spec_org="$file_spec_org `basename $f`"
-    done
-  fi
+  #else
+  #  for f in $*
+  #  do
+  #    file_spec_org="$file_spec_org `basename $f`"
+  #  done
+  #fi
 fi
 
 #
 # 1st filtering for ${reg_exp[0]} by find and grep
 #
+
+base_path=${base_path:-.}
 
 file_spec=""
 for f in $file_spec_org
@@ -268,34 +274,45 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
   fi
   re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
   re4grep="${reg_exp[0]}"
+
+  if [ -z "$matched" ]; then
+    echo "${reg_exp[0]}: No matched."
+    exit 1
+  fi
+
+  i=1
 else
   matched=`find $base_path -type $type_opt $file_spec -print`
-fi
-if [ -z "$matched" ]; then
-  echo -n "${reg_exp[0]}: No matched."
-  exit 1
+  if [ -z "$matched" ]; then
+    echo "${file_spec}: No matched."
+    exit 1
+  fi
+
+  i=0
 fi
 
 #
 # filtering for each reg_exp by grep
 #
-if [ ${is_not_grep:-0} -eq 0 ]; then
-  i=1
   while [ $i -lt "${#reg_exp[@]}" ]
   do
     matched_org=$matched
     matched=""
     for f in $matched_org
     do
-      if [ -z "${invert_opt[$i]}" ]; then
+      if [ ${is_not_grep:-0} -eq 0 -a -z "${invert_opt[$i]}" ]; then
         $grep -Eq ${ignore_case_opt:-} "${reg_exp[$i]}" $f
         x=$?
-      elif [ "${invert_opt[$i]}" = "for_content" ]; then
+      elif [ ${is_not_grep:-0} -eq 0 -a "${invert_opt[$i]}" = "for_content" ]; then
         # invert grep (no match expected)
         x=`$grep -Ec ${ignore_case_opt:-} "${reg_exp[$i]}" $f`
       elif [ "${invert_opt[$i]}" = "for_path" ]; then
         # exclude path contains
-        echo $f | grep -v "${reg_exp[$i]}"
+        echo $f | grep -Evq ${ignore_case_opt:-} "${reg_exp[$i]}"
+        x=$?
+      elif [ "${invert_opt[$i]}" = "for_must_path" ]; then
+        # must be path contains
+        echo $f | grep -Eq ${ignore_case_opt:-} "${reg_exp[$i]}"
         x=$?
       fi
       [ $x -eq 0 ] && matched="$matched $f"
@@ -320,8 +337,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
     fi
     i=$(( i + 1 ))
   done
-  [ -n "$ignore_case_opt" ] && re4vi="\(${re4vi}\)\c"
-fi
+  [ -n "$ignore_case_opt" -a -n "$re4vi" ] && re4vi="\(${re4vi}\)\c"
 
 #
 # action
