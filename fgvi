@@ -24,23 +24,27 @@ usage:
   -N           : ask whether open as vim, after output like grep
   -a PATTERN   : regular expression for all PATTERN(s) matching
                  (i.e. AND condition of them)
-  -v PATTERN   : ivert matching which NOT condition.
+  -v PATTERN   : invert matching which NOT condition.
                  use it following one or more \`-a PATTERN'
-  -V PATTERN   : ivert matching which NOT condition for each path.
+  -V PATTERN   : invert matching which NOT condition for each path.
                  use it following one or more \`-a PATTERN'
   -x           : output precedent line (e.g. php declaration) with grep results.
-                 (see the variable \`default_precedent' what setting in \$HOME/.${myname}rc for details)
+                 (see the variable \`default_precedent' what setting in
+                 \$HOME/.${myname}rc for details)
                  has no effect when no-grep opt (-l, -L) specified
   -z           : for .gz compressed file, zgrep is used instead of grep
   PATTERN      : a regular expression
-  FILE         : basename of filename, also directory/.../filename available
+  FILE         : basename of filename, or directory/[directory/.../]filename
                  if appear directory-spec at FILE, apply to search-path implied.
+                 also, if its a descendant directory of search-path,
+                 it may be far with seach-path.
                  wildcard-char should be escaped
                  to avoid expand by shell. (e.g. \\*.txt)
                  if omited, then \`\\*'
 note:
-  if option -l (with) -n, or -l (with) -N are specified:
-                 print only each file name which, like its \`grep -l'
+                 if option -l with -n (or -l with -N) are specified,
+                 grep invoked and print only each file name which, like its
+                 output of \`grep -l'
                  however, -L is never grep
 
 examples:
@@ -284,7 +288,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
 else
   matched=`find $base_path -type $type_opt $file_spec -print`
   if [ -z "$matched" ]; then
-    echo "${file_spec}: No matched."
+    echo "${file_spec_org}: No matched."
     exit 1
   fi
 
