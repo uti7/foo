@@ -1,5 +1,6 @@
 #!/bin/bash -f
 set -f
+#IFS=$'\n'
 function usage {
   cat << EOT | less
 name:
@@ -190,11 +191,6 @@ do
       invert_opt[${#invert_opt[@]}]="for_content"
       ;;
     V)
-      if [ ${#reg_exp[@]} -eq 0 ]; then
-        echo "ERROR: -$opt opt is available that following one or more \`-a PATTERN'"
-        echo "to see usage, try \`$myname -h'"
-        exit 2
-      fi
       reg_exp[${#reg_exp[@]}]="$OPTARG"
       invert_opt[${#invert_opt[@]}]="for_path"
       ;;
@@ -211,7 +207,8 @@ shift `expr $OPTIND - 1` 1>/dev/null 2>&1
 
 
 if [ ${is_not_grep:-0} -eq 0 ] && [ -z "$reg_exp" ]; then
-  reg_exp="$1"
+  reg_exp[0]="$1"
+  invert_opt[0]=""
   [ -z "$reg_exp" ] && usage && exit 2
   shift
 fi
@@ -245,7 +242,7 @@ else
 fi
 
 #
-# 1st filtering for ${reg_exp[0]} by find and grep
+# 1st filtering for ${reg_exp[0]} by find (and grep)
 #
 
 base_path=${base_path:-.}
@@ -265,19 +262,29 @@ done
 
 file_spec="( $file_spec ) -a ( ! -name *.swp )"
 if [ ${is_not_grep:-0} -eq 0 ]; then
-  if [ "$grep" = "grep" ]; then
-    matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
-  else
-    # for zgrep, to know each filename because zgrep -H does not work.
-    for f in `find $base_path -type $type_opt $file_spec -print`
-    do
-      $grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" $f
-      [ $? -eq 0 ] && matched="$matched $f"
-      
-    done
+  if [ -z "${invert_opt[0]}" ]; then
+    # content filtering
+    if [ "$grep" = "grep" ]; then
+      matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
+    else
+      # for zgrep, to know each filename because zgrep -H does not work.
+      for f in `find $base_path -type $type_opt $file_spec -print`
+      do
+        $grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" $f
+        [ $? -eq 0 ] && matched="$matched $f"
+        
+      done
+    fi
+    re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
+    re4grep="${reg_exp[0]}"
+  elif [ "${invert_opt[0]}" = "for_must_path" ]; then
+    # path filtering
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -E ${ignore_case_opt:-} "${reg_exp[0]}"`
+  elif [ "${invert_opt[0]}" = "for_path" ]; then
+    # path invert filtering
+    echo "path invert filtering"
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -Ev ${ignore_case_opt:-} "${reg_exp[0]}"`
   fi
-  re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
-  re4grep="${reg_exp[0]}"
 
   if [ -z "$matched" ]; then
     echo "${reg_exp[0]}: No matched."
@@ -286,7 +293,15 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
 
   i=1
 else
-  matched=`find $base_path -type $type_opt $file_spec -print`
+  # not grep
+  if [ "${invert_opt[0]}" = "for_must_path" ]; then
+    # path filtering
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -E ${ignore_case_opt:-} "${reg_exp[0]}"`
+  elif [ "${invert_opt[0]}" = "for_path" ]; then
+    # path invert filtering
+    echo "path invert filtering"
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -Ev ${ignore_case_opt:-} "${reg_exp[0]}"`
+  fi
   if [ -z "$matched" ]; then
     echo "${file_spec_org}: No matched."
     exit 1
