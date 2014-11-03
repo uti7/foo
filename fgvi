@@ -11,7 +11,7 @@ synopsis:
 
 usage:
   $myname [-d DIR -d DIR...] [-nNilxz] PATTERN [FILE...]
-  $myname [-d DIR -d DIR...] [-nNilxz] -a PATTERN [{-a|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR -d DIR...] [-nNilxz] -{-a|-V} PATTERN [{-a|-v|-V} PATTERN ...] [FILE...]
   $myname [-d DIR -d DIR...] [-nN] -L [FILE...]
   $myname [-d DIR -d DIR...] [-nN] -D [FILE...]
   $myname [-h]
@@ -23,18 +23,17 @@ usage:
   -l, -L       : no grep, do not mind any pattern (see below the note:)
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
-  -a PATTERN   : regular expression for all PATTERN(s) matching
+  -a PATTERN   : extended regular expression for all PATTERN(s) matching
                  (i.e. AND condition of them)
   -v PATTERN   : invert matching which NOT condition.
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert matching which NOT condition for each path.
-                 use it following one or more \`-a PATTERN'
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in
                  \$HOME/.${myname}rc for details)
                  has no effect when no-grep opt (-l, -L) specified
   -z           : for .gz compressed file, zgrep is used instead of grep
-  PATTERN      : a regular expression
+  PATTERN      : a extended regular expression
   FILE         : basename of filename, or directory/[directory/.../]filename
                  if appear directory-spec at FILE, apply to search-path implied.
                  also, if its a descendant directory of search-path,
