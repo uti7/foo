@@ -281,7 +281,6 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
     matched=`find $base_path -type $type_opt $file_spec -print | $grep -E ${ignore_case_opt:-} "${reg_exp[0]}"`
   elif [ "${invert_opt[0]}" = "for_path" ]; then
     # path invert filtering
-    echo "path invert filtering"
     matched=`find $base_path -type $type_opt $file_spec -print | $grep -Ev ${ignore_case_opt:-} "${reg_exp[0]}"`
   fi
 
@@ -300,6 +299,8 @@ else
     # path invert filtering
     echo "path invert filtering"
     matched=`find $base_path -type $type_opt $file_spec -print | $grep -Ev ${ignore_case_opt:-} "${reg_exp[0]}"`
+  else
+    matched=`find $base_path -type $type_opt $file_spec -print`
   fi
   if [ -z "$matched" ]; then
     echo "${file_spec_org}: No matched."
