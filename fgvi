@@ -11,7 +11,7 @@ synopsis:
 
 usage:
   $myname [-d DIR -d DIR...] [-nNilxz] PATTERN [FILE...]
-  $myname [-d DIR -d DIR...] [-nNilxz] -{-a|-V} PATTERN [{-a|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR -d DIR...] [-nNilxz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
   $myname [-d DIR -d DIR...] [-nN] -L [FILE...]
   $myname [-d DIR -d DIR...] [-nN] -D [FILE...]
   $myname [-h]
@@ -25,6 +25,8 @@ usage:
   -N           : ask whether open as vim, after output like grep
   -a PATTERN   : extended regular expression for all PATTERN(s) matching
                  (i.e. AND condition of them)
+  -p PATTERN   : filtering for each path
+  -P PATTERN   : same as -V
   -v PATTERN   : invert matching which NOT condition.
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert matching which NOT condition for each path.
@@ -155,7 +157,7 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-while getopts 'a:d:DhnNilLv:V:xz' opt
+while getopts 'a:d:DhnNilLp:P:v:V:xz' opt
 do
     case $opt in
     a)
@@ -188,6 +190,14 @@ do
       fi
       reg_exp[${#reg_exp[@]}]="$OPTARG"
       invert_opt[${#invert_opt[@]}]="for_content"
+      ;;
+    p)
+      reg_exp[${#reg_exp[@]}]="$OPTARG"
+      invert_opt[${#invert_opt[@]}]="for_must_path"
+      ;;
+    P)
+      reg_exp[${#reg_exp[@]}]="$OPTARG"
+      invert_opt[${#invert_opt[@]}]="for_path"
       ;;
     V)
       reg_exp[${#reg_exp[@]}]="$OPTARG"
@@ -230,7 +240,11 @@ else
           invert_opt[${#invert_opt[@]}]="for_must_path"
         fi
       fi
-      file_spec_org="$file_spec_org `basename $f`"
+      f=`basename $f`
+      if [ -n "${ignore_case_opt}" ]; then
+        f='*'$f'*'  # partial matching
+      fi
+      file_spec_org="$file_spec_org $f"
     done
   #else
   #  for f in $*
@@ -297,7 +311,6 @@ else
     matched=`find $base_path -type $type_opt $file_spec -print | $grep -E ${ignore_case_opt:-} "${reg_exp[0]}"`
   elif [ "${invert_opt[0]}" = "for_path" ]; then
     # path invert filtering
-    echo "path invert filtering"
     matched=`find $base_path -type $type_opt $file_spec -print | $grep -Ev ${ignore_case_opt:-} "${reg_exp[0]}"`
   else
     matched=`find $base_path -type $type_opt $file_spec -print`
@@ -381,7 +394,7 @@ if [ ${is_not_vi:-0} -gt 0 ]; then
     done
   fi
   if [ ${is_not_vi:-0} -gt 1 ]; then
-    echo -n "will open as vim, ok?(y/n):"
+    echo -n "will open as vim, ok?(enter [y]es or else):"
     read Q
     [ "$Q" != 'y' ] && exit "$x"
     is_not_vi=0
