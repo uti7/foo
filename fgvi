@@ -23,13 +23,13 @@ usage:
   -l, -L       : no grep, do not mind any pattern (see below the note:)
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
-  -a PATTERN   : extended regular expression for all PATTERN(s) matching
+  -a PATTERN   : for all PATTERN(s) matching
                  (i.e. AND condition of them)
-  -p PATTERN   : filtering for each path
-  -P PATTERN   : same as -V
-  -v PATTERN   : invert matching which NOT condition.
+  -p PATTERN   : filtering for every path
+  -v PATTERN   : invert matching for content which NOT condition.
                  use it following one or more \`-a PATTERN'
-  -V PATTERN   : invert matching which NOT condition for each path.
+  -V PATTERN   : invert filtering for every path which NOT condition.
+  -P PATTERN   : same as -V
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in
                  \$HOME/.${myname}rc for details)
@@ -49,6 +49,9 @@ note:
                  output of \`grep -l'
                  however, -L is never grep
 
+file:
+                 \$HOME/.${myname}rc : the preferences. it will automaticaly
+                 generated when ${myname} exec for the 1st time.
 examples:
 
      $ $myname PATTERN foo\\*.xml
