@@ -26,9 +26,9 @@ usage:
   -a PATTERN   : for all PATTERN(s) matching
                  (i.e. AND condition of them)
   -p PATTERN   : filtering for every path
-  -v PATTERN   : invert matching for content which NOT condition.
+  -v PATTERN   : invert matching for file content which NOT condition.
                  use it following one or more \`-a PATTERN'
-  -V PATTERN   : invert filtering for every path which NOT condition.
+  -V PATTERN   : invert filtering for every path
   -P PATTERN   : same as -V
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in
@@ -160,59 +160,73 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-while getopts 'a:d:DhnNilLp:P:v:V:xz' opt
+opt=` getopt -q -o a:d:DhnNilLp:P:v:V:xz -- "$@"`
+[ $? -ne 0 ] && usage && exit 2
+
+eval set -- "$opt"
+while [ 0 ]
 do
-    case $opt in
-    a)
-      reg_exp[${#reg_exp[@]}]="$OPTARG"
+    case $1 in
+    -a)
+      reg_exp[${#reg_exp[@]}]="$2"
       invert_opt[${#invert_opt[@]}]=""
+      shift 2
       ;;
-    d)  base_path="${base_path:-} $OPTARG";;
-    D)  type_opt="d"; is_not_grep=1;;
-    n)
+    -d)  base_path="${base_path:-} $2"; shift 2;;
+    -D)  type_opt="d"; is_not_grep=1
+        shift
+      ;;
+    -n)
       is_not_vi=1
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
+      shift
       ;;
-    N)
+    -N)
       is_not_vi=2
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
+      shift
       ;;
-    i)  ignore_case_opt="-i";name_opt="-iname";;
-    l)
+    -i)  ignore_case_opt="-i";name_opt="-iname"; shift;;
+    -l)
       is_not_grep=1
       [ ${is_not_vi:-0} -gt 0 ] && is_file_with_matches=1
+      shift
       ;;
-    L)
+    -L)
       is_not_grep=1
+      shift
       ;;
-    v)
+    -v)
       if [ ${#reg_exp[@]} -eq 0 ]; then
         echo "ERROR: -$opt opt is available that following one or more \`-a PATTERN'"
         echo "to see usage, try \`$myname -h'"
         exit 2
       fi
-      reg_exp[${#reg_exp[@]}]="$OPTARG"
+      reg_exp[${#reg_exp[@]}]="$2"
       invert_opt[${#invert_opt[@]}]="for_content"
+      shift 2
       ;;
-    p)
-      reg_exp[${#reg_exp[@]}]="$OPTARG"
+    -p)
+      reg_exp[${#reg_exp[@]}]="$2"
       invert_opt[${#invert_opt[@]}]="for_must_path"
+      shift 2
       ;;
-    P)
-      reg_exp[${#reg_exp[@]}]="$OPTARG"
+    -P)
+      reg_exp[${#reg_exp[@]}]="$2"
       invert_opt[${#invert_opt[@]}]="for_path"
+      shift 2
       ;;
-    V)
-      reg_exp[${#reg_exp[@]}]="$OPTARG"
+    -V)
+      reg_exp[${#reg_exp[@]}]="$2"
       invert_opt[${#invert_opt[@]}]="for_path"
+      shift 2
       ;;
-    x)  is_out_precedent=1;;
-    z)  grep=zgrep;refrep=zrefrep;;
+    -x)  is_out_precedent=1; shift;;
+    -z)  grep=zgrep;refrep=zrefrep; shift;;
+    --) shift; break;;
     *)  usage; exit 2;;
     esac
 done
-
-shift `expr $OPTIND - 1` 1>/dev/null 2>&1
 
 
 [ ${is_file_with_matches:-0} -eq 1 ] && is_not_grep=0
