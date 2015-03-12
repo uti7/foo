@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# usage: gitup [commit massage]
+# usage: gitup COMMIT_MESSAGE
 #
 git status 
 
@@ -9,13 +9,15 @@ read yn
 [ "$yn" != "y" ] && exit 2
 
 if [ $# -eq 0 ];then
-  printf "Endter commit message.: "
-  read m
+  #printf "Enter commit message.: "
+  #read m
+  echo 'commit message is not specified.'
+  exit 2
 else
   m="$*"
 fi
 
-files=`git status | awk '$2=="modified:" || $2 =="new" {printf($NF " ");}'`
+files=`git status | awk 'match($1,"modified:")>0 || match($1,"new")>0 {printf($NF " ");}'`
 
 if [ -z "$files" ]; then
   echo "no modified files."
