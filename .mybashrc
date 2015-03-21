@@ -1,0 +1,26 @@
+# [ -f $HOME/.mybashrc ] && source $HOME/.mybashrc
+
+#unset HISTFILE
+alias h=history
+alias ls="ls --show-control-chars -aF"
+alias l='ls -ltraF'
+alias rm="rm -i"
+alias mv="mv -i"
+alias cp="cp -ip"
+alias how="cvs -n -q update"
+#alias vi="jvim"
+alias vi="vim"
+alias gvim='/cygdrive/c/cast/app/gvim64/gvim.exe `cygpath -ad $*`'
+alias fj="fgvi"
+
+export EDITOR=vim
+export LANG=ja_JP.utf8
+#export CVSEDITOR=jvim
+#export PAGER=/usr/local/bin/w3m\ -s
+#export PAGER=/usr/local/bin/w3m
+
+export TEMP="/cygdrive/c/cast/tmp"
+export SCREENDIR="$TEMP/uscreens"
+export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
+export PATH=$HOME/bin:$PATH
+
