@@ -1,40 +1,56 @@
 #!/bin/bash -f
 set -f
+#IFS=$'\n'
 function usage {
   cat << EOT | less
 name:
   $myname - file traverser
 
 synopsis:
-  find DIR -name FILE | grep PATTERN | vim +/PATTERN/
+  find DIR -name FILE ->  grep PATTERN ->  vim +/PATTERN/
 
 usage:
-  $myname [-d DIR] [-d DIR...] [-nNilxz] PATTERN [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNilxz] -a PATTERN [-a PATTERN ...] [FILE...]
-  $myname [-d DIR] [-d DIR...] [-nNixz] -L [FILE...]
-  $myname [-d DIR] [-d DIR...] [-ixz] -l [FILE...]
+  $myname [-d DIR -d DIR...] [-nNFilxz] PATTERN [FILE...]
+  $myname [-d DIR -d DIR...] [-nNFilxz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR -d DIR...] [-nN] -L [FILE...]
+  $myname [-d DIR -d DIR...] [-nN] -D [FILE...]
+  $myname [-h]
 
-  -d DIR:      : a search-path, givens to find. if omited, then \`.'
+  -d DIR       : a search-path, givens to find. if omited, then \`.'
+  -D           : find target is only directory, and no grep forcely.
+  -h           : show usage.
+  -F           : PATTERN as fixed strings (fgrep)
   -i           : ignore case, its applied the FILE as well as the PATTERN
-  -l, -L       : no grep, do not mind any pattern
+  -l, -L       : no grep, do not mind any pattern (see below the note:)
   -n           : no vim, only output like grep
   -N           : ask whether open as vim, after output like grep
-  -a PATTERN   : regular expression for all PATTERN(s) matching
-                 (i.e. AND condition of them)
+  -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
+  -p PATTERN   : filtering for every path
+  -v PATTERN   : invert matching for file content which NOT condition.
+                 use it following one or more \`-a PATTERN'
+  -V PATTERN   : invert filtering for every path
+  -P PATTERN   : same as -V
   -x           : output precedent line (e.g. php declaration) with grep results.
-                 (see the variable \`default_precedent' what setting in \$HOME/.${myname}rc for details)
+                 (see the variable \`default_precedent' what setting in
+                 \$HOME/.${myname}rc for details)
                  has no effect when no-grep opt (-l, -L) specified
   -z           : for .gz compressed file, zgrep is used instead of grep
-  PATTERN      : a regular expression
-  FILE         : basename of filename, also directory/.../filename available
+  PATTERN      : a extended regular expression
+  FILE         : basename of filename, or directory/[directory/.../]filename
                  if appear directory-spec at FILE, apply to search-path implied.
-                 wildcard-char should be escaped
+                 also, if its a descendant directory of search-path,
+                 it may be far with seach-path.  wildcard-char should be escaped
                  to avoid expand by shell. (e.g. \\*.txt)
                  if omited, then \`\\*'
 note:
-  if option -l (with) -n, or -l (with) -N are specified:
-                 print only each file name which, like its \`grep -l'
+                 option -l with -n (or -N) are specified,
+                 grep invoked and print only each file name which, like its
+                 output of \`grep -l'
+                 however, -L is never grep
 
+file:
+                 \$HOME/.${myname}rc : the preferences. it will automaticaly
+                 generated when ${myname} exec for the 1st time.
 examples:
 
      $ $myname PATTERN foo\\*.xml
@@ -127,7 +143,7 @@ function mkrc
 #default_file_spec="*"
 
 ## for -x
-#default_precedent='(class|function)[ \\t]+\\w+'
+#default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
 EOT
 }
 
@@ -136,47 +152,90 @@ vi=vim
 grep=grep
 refrep=refrep
 name_opt="-name"
+type_opt="f"
+pattern_opt="E"
 
 if [ ! -r "$HOME/.${myname}rc" ]; then
   mkrc
 fi
 . "$HOME/.${myname}rc"
 
-while getopts 'a:d:nNilLxz' opt
+opt=` getopt -q -o a:d:DhnNFilLp:P:v:V:xz -- "$@"`
+[ $? -ne 0 ] && usage && exit 2
+
+eval set -- "$opt"
+while [ 0 ]
 do
-    case $opt in
-    a)  reg_exp[${#reg_exp[@]}]="$OPTARG";;
-    d)  base_path="${base_path:-} $OPTARG";;
-    n)
+    case $1 in
+    -a)
+      reg_exp[${#reg_exp[@]}]="$2"
+      invert_opt[${#invert_opt[@]}]=""
+      shift 2
+      ;;
+    -d)  base_path="${base_path:-} $2"; shift 2;;
+    -D)  type_opt="d"; is_not_grep=1
+        shift
+      ;;
+    -n)
       is_not_vi=1
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
+      shift
       ;;
-    N)
+    -N)
       is_not_vi=2
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
+      shift
       ;;
-    i)  ignore_case_opt="-i";name_opt="-iname";;
-    l)
+    -i)  ignore_case_opt="-i";name_opt="-iname"; shift;;
+    -F)  pattern_opt="F"; shift;;
+    -l)
       is_not_grep=1
       [ ${is_not_vi:-0} -gt 0 ] && is_file_with_matches=1
+      shift
       ;;
-    L)
+    -L)
       is_not_grep=1
+      shift
       ;;
-    x)  is_out_precedent=1;;
-    z)  grep=zgrep;refrep=zrefrep;;
+    -v)
+      if [ ${#reg_exp[@]} -eq 0 ]; then
+        echo "ERROR: -$opt opt is available that following one or more \`-a PATTERN'"
+        echo "to see usage, try \`$myname -h'"
+        exit 2
+      fi
+      reg_exp[${#reg_exp[@]}]="$2"
+      invert_opt[${#invert_opt[@]}]="for_content"
+      shift 2
+      ;;
+    -p)
+      reg_exp[${#reg_exp[@]}]="$2"
+      invert_opt[${#invert_opt[@]}]="for_must_path"
+      shift 2
+      ;;
+    -P)
+      reg_exp[${#reg_exp[@]}]="$2"
+      invert_opt[${#invert_opt[@]}]="for_path"
+      shift 2
+      ;;
+    -V)
+      reg_exp[${#reg_exp[@]}]="$2"
+      invert_opt[${#invert_opt[@]}]="for_path"
+      shift 2
+      ;;
+    -x)  is_out_precedent=1; shift;;
+    -z)  grep=zgrep;refrep=zrefrep; shift;;
+    --) shift; break;;
     *)  usage; exit 2;;
     esac
 done
-
-shift `expr $OPTIND - 1` 1>/dev/null 2>&1
 
 
 [ ${is_file_with_matches:-0} -eq 1 ] && is_not_grep=0
 
 
 if [ ${is_not_grep:-0} -eq 0 ] && [ -z "$reg_exp" ]; then
-  reg_exp="$1"
+  reg_exp[0]="$1"
+  invert_opt[0]=""
   [ -z "$reg_exp" ] && usage && exit 2
   shift
 fi
@@ -187,27 +246,37 @@ if [ $# -eq 0 ]; then
   file_spec_org="${default_file_spec:-*}"
 else
   file_spec_org=""
-  if [ -z "$base_path" ]; then
+  #if [ -z "$base_path" ]; then
     for f in $*
     do
       d=`dirname $f`
       if [ "$d" != "." ]; then
-        base_path="$base_path $d"
+        if [ -d "$d" ]; then
+          base_path="$base_path $d"
+        else
+          reg_exp[${#reg_exp[@]}]="$d"
+          invert_opt[${#invert_opt[@]}]="for_must_path"
+        fi
       fi
-      file_spec_org="$file_spec_org `basename $f`"
+      f=`basename $f`
+      if [ -n "${ignore_case_opt}" ]; then
+        f='*'$f'*'  # partial matching
+      fi
+      file_spec_org="$file_spec_org $f"
     done
-    #base_path="${base_path:-.}"
-  else
-    for f in $*
-    do
-      file_spec_org="$file_spec_org `basename $f`"
-    done
-  fi
+  #else
+  #  for f in $*
+  #  do
+  #    file_spec_org="$file_spec_org `basename $f`"
+  #  done
+  #fi
 fi
 
 #
-# 1st filtering for ${reg_exp[0]} by find and grep
+# 1st filtering for ${reg_exp[0]} by find (and grep)
 #
+
+base_path=${base_path:-.}
 
 file_spec=""
 for f in $file_spec_org
@@ -224,53 +293,102 @@ done
 
 file_spec="( $file_spec ) -a ( ! -name *.swp )"
 if [ ${is_not_grep:-0} -eq 0 ]; then
-  if [ "$grep" = "grep" ]; then
-    matched=`find $base_path -type f $file_spec -print0 | xargs -0 $grep -El ${ignore_case_opt:-} "${reg_exp[0]}"`
-  else
-    # for zgrep, to know each filename because zgrep -H does not work.
-    for f in `find $base_path -type f $file_spec -print`
-    do
-      $grep -Eq ${ignore_case_opt:-} "${reg_exp[0]}" $f
-      [ $? -eq 0 ] && matched="$matched $f"
-      
-    done
+  if [ -z "${invert_opt[0]}" ]; then
+    # content filtering
+    if [ "$grep" = "grep" ]; then
+      matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
+    else
+      # for zgrep, to know each filename because zgrep -H does not work.
+      for f in `find $base_path -type $type_opt $file_spec -print`
+      do
+        $grep -${pattern_opt}q ${ignore_case_opt:-} "${reg_exp[0]}" $f
+        [ $? -eq 0 ] && matched="$matched $f"
+        
+      done
+    fi
+    re4vi="${reg_exp[0]}"
+    [ $pattern_opt = "E" ] && re4vi=`echo "$re4vi"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
+    re4grep="${reg_exp[0]}"
+  elif [ "${invert_opt[0]}" = "for_must_path" ]; then
+    # path filtering
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+  elif [ "${invert_opt[0]}" = "for_path" ]; then
+    # path invert filtering
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
   fi
-  re4vi=`echo "${reg_exp[0]}"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
-  re4grep="${reg_exp[0]}"
+
+  if [ -z "$matched" ]; then
+    echo "${reg_exp[0]}: No matched."
+    exit 1
+  fi
+
+  i=1
 else
-  matched=`find $base_path -type f $file_spec -print`
-fi
-if [ -z "$matched" ]; then
-  echo "${reg_exp[0]}: No matched."
-  exit 1
+  # not grep
+  if [ "${invert_opt[0]}" = "for_must_path" ]; then
+    # path filtering
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+  elif [ "${invert_opt[0]}" = "for_path" ]; then
+    # path invert filtering
+    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+  else
+    matched=`find $base_path -type $type_opt $file_spec -print`
+  fi
+  if [ -z "$matched" ]; then
+    echo "${file_spec_org}: No matched."
+    exit 1
+  fi
+
+  i=0
 fi
 
 #
 # filtering for each reg_exp by grep
 #
-if [ ${is_not_grep:-0} -eq 0 ]; then
-  i=1
   while [ $i -lt "${#reg_exp[@]}" ]
   do
     matched_org=$matched
     matched=""
     for f in $matched_org
     do
-      $grep -Eq ${ignore_case_opt:-} "${reg_exp[$i]}" $f
-      [ $? -eq 0 ] && matched="$matched $f"
+      if [ ${is_not_grep:-0} -eq 0 -a -z "${invert_opt[$i]}" ]; then
+        $grep -${pattern_opt}q ${ignore_case_opt:-} "${reg_exp[$i]}" $f
+        x=$?
+      elif [ ${is_not_grep:-0} -eq 0 -a "${invert_opt[$i]}" = "for_content" ]; then
+        # invert grep (no match expected)
+        x=`$grep -${pattern_opt}c ${ignore_case_opt:-} "${reg_exp[$i]}" $f`
+      elif [ "${invert_opt[$i]}" = "for_path" ]; then
+        # exclude path contains
+        echo $f | grep -${pattern_opt}vq ${ignore_case_opt:-} "${reg_exp[$i]}"
+        x=$?
+      elif [ "${invert_opt[$i]}" = "for_must_path" ]; then
+        # must be path contains
+        echo $f | grep -${pattern_opt}q ${ignore_case_opt:-} "${reg_exp[$i]}"
+        x=$?
+      fi
+      [ $x -eq 0 ] && matched="$matched $f"
     done
     if [ -z "$matched" ]; then
       echo "${reg_exp[$i]}: No matched."
       exit 1
     fi
 
-    r=`echo "${reg_exp[$i]}" |sed -e 's#\([()?+|]\)#\\\\\1#g'`
-    re4vi="$re4vi\|$r"
-    re4grep="$re4grep|${reg_exp[$i]}"
+    if [ -z "${invert_opt[$i]}" ]; then
+      r=`echo "${reg_exp[$i]}" |sed -e 's#\([()?+|]\)#\\\\\1#g'`
+      if [ -n "$re4vi" ]; then
+        re4vi="$re4vi\|$r"
+      else
+        re4vi="$r"
+      fi
+      if [ -n "$re4grep" ]; then
+        re4grep="$re4grep|${reg_exp[$i]}"
+      else
+        re4grep="${reg_exp[$i]}"
+      fi
+    fi
     i=$(( i + 1 ))
   done
-  [ -n "$ignore_case_opt" ] && re4vi="\(${re4vi}\)\c"
-fi
+  [ -n "$ignore_case_opt" -a -n "$re4vi" ] && re4vi="\(${re4vi}\)\c"
 
 #
 # action
@@ -279,9 +397,9 @@ if [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
-      $grep -EHn ${ignore_case_opt:-} "$re4grep" $matched
+      $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
-      $grep -El ${ignore_case_opt:-} "$re4grep" $matched
+      $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
       $refrep "$re4grep" $matched
     fi
@@ -295,7 +413,7 @@ if [ ${is_not_vi:-0} -gt 0 ]; then
     done
   fi
   if [ ${is_not_vi:-0} -gt 1 ]; then
-    echo -n "will open as vim, ok?(y/n):"
+    echo -n "will open as vim, ok?(enter [y]es or else):"
     read Q
     [ "$Q" != 'y' ] && exit "$x"
     is_not_vi=0
