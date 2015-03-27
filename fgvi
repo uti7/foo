@@ -16,10 +16,10 @@ usage:
   $myname [-d DIR -d DIR...] [-nN] -D [FILE...]
   $myname [-h]
 
-  -d DIR       : a search-path, givens to find. if omited, then \`.'
-  -D           : find target is only directory, and no grep forcely.
+  -d DIR       : a search-path, givens to find(1). if omited, then \`.'
+  -D           : find target is only directory, and no grep(1) forcely.
   -h           : show usage.
-  -F           : PATTERN as fixed strings (fgrep)
+  -F           : PATTERN as fixed strings (fgrep(1))
   -i           : ignore case, its applied the FILE as well as the PATTERN
   -l, -L       : no grep, do not mind any pattern (see below the note:)
   -n           : no vim, only output like grep
