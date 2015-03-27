@@ -10,15 +10,17 @@ synopsis:
   find(1) DIR -name FILE ->  grep(1) PATTERN ->  vim(1) +/PATTERN/
 
 usage:
-  $myname [-d DIR -d DIR...] [-nNFilxtz] PATTERN [FILE...]
-  $myname [-d DIR -d DIR...] [-nNFilxtz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
-  $myname [-d DIR -d DIR...] [-nN] -L [FILE...]
-  $myname [-d DIR -d DIR...] [-nN] -D [FILE...]
+  $myname [-d DIR -d DIR...] [-nNFiIclxtz] PATTERN [FILE...]
+  $myname [-d DIR -d DIR...] [-nNFiIclxtz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR -d DIR...] [-nNiIc] -L [FILE...]
+  $myname [-d DIR -d DIR...] [-nNiIc] -D [FILE...]
   $myname [-h]
 
   -d DIR       : a search-path, givens to find(1). if omited, then \`.'
   -h           : show usage.
   -i           : ignore case, its applied the FILE as well as the PATTERN
+  -I           : reset ignore case that spec in the .${myname}rc, but FILE has no effect
+  -c           : complete matching for FILE, default: partial matching
   -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
   -D           : find target is only directory, and no grep forcely.
   -n           : no vim(1), only output like grep
@@ -137,7 +139,11 @@ function mkrc
 #is_not_vi=2
 
 ## -i
-#ignore_case_opt="-i"
+#ignore_case_opt="-i" # for PATTERN
+#name_opt="-iname"    # for FILE
+
+## -c
+#is_complete_filename_match=1
 
 ## -l
 #is_not_grep=1
@@ -163,7 +169,7 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-opt=` getopt -q -o a:d:DhnNFilLp:P:v:V:txz -- "$@"`
+opt=` getopt -q -o a:d:DhnNFiIclLp:P:v:V:txz -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -190,7 +196,9 @@ do
       shift
       ;;
     -i)  ignore_case_opt="-i";name_opt="-iname"; shift;;
+    -I)  unset ignore_case_opt; shift;;
     -F)  pattern_opt="F"; shift;;
+    -c)  is_complete_filename_match=1; shift;;
     -l)
       is_not_grep=1
       [ ${is_not_vi:-0} -gt 0 ] && is_file_with_matches=1
@@ -267,7 +275,7 @@ else
         fi
       fi
       f=`basename $f`
-      if [ -n "${ignore_case_opt}" ]; then
+      if [ ${is_complete_filename_match-0} -eq 0 ]; then
         f='*'$f'*'  # partial matching
       fi
       file_spec_org="$file_spec_org $f"
