@@ -7,34 +7,37 @@ name:
   $myname - file traverser
 
 synopsis:
-  find DIR -name FILE ->  grep PATTERN ->  vim +/PATTERN/
+  find(1) DIR -name FILE ->  grep(1) PATTERN ->  vim(1) +/PATTERN/
 
 usage:
-  $myname [-d DIR -d DIR...] [-nNFilxz] PATTERN [FILE...]
-  $myname [-d DIR -d DIR...] [-nNFilxz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR -d DIR...] [-nNFilxtz] PATTERN [FILE...]
+  $myname [-d DIR -d DIR...] [-nNFilxtz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
   $myname [-d DIR -d DIR...] [-nN] -L [FILE...]
   $myname [-d DIR -d DIR...] [-nN] -D [FILE...]
   $myname [-h]
 
   -d DIR       : a search-path, givens to find(1). if omited, then \`.'
-  -D           : find target is only directory, and no grep(1) forcely.
   -h           : show usage.
-  -F           : PATTERN as fixed strings (fgrep(1))
   -i           : ignore case, its applied the FILE as well as the PATTERN
-  -l, -L       : no grep, do not mind any pattern (see below the note:)
-  -n           : no vim, only output like grep
-  -N           : ask whether open as vim, after output like grep
+  -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
+  -D           : find target is only directory, and no grep forcely.
+  -n           : no vim(1), only output like grep
+  -N           : ask whether open by vim
   -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
   -p PATTERN   : filtering for every path
   -v PATTERN   : invert matching for file content which NOT condition.
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert filtering for every path
   -P PATTERN   : same as -V
+  -F           : PATTERN as fixed strings (behave like fgrep(1))
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in
                  \$HOME/.${myname}rc for details)
                  has no effect when no-grep opt (-l, -L) specified
   -z           : for .gz compressed file, zgrep is used instead of grep
+  -t           : find target is only text, that determined by file(1).
+                 it's not available with \`-z'
+
   PATTERN      : a extended regular expression
   FILE         : basename of filename, or directory/[directory/.../]filename
                  if appear directory-spec at FILE, apply to search-path implied.
@@ -46,7 +49,7 @@ note:
                  option -l with -n (or -N) are specified,
                  grep invoked and print only each file name which, like its
                  output of \`grep -l'
-                 however, -L is never grep
+                 however, -L specified never grep
 
 file:
                  \$HOME/.${myname}rc : the preferences. it will automaticaly
@@ -128,7 +131,7 @@ function mkrc
 ### default settings
 
 ## -d
-#base_path="."
+#base_path="/opt /etc /var/log"
 
 ## 1: -n, 2: -N
 #is_not_vi=2
@@ -140,7 +143,7 @@ function mkrc
 #is_not_grep=1
 
 ## FILE
-#default_file_spec="*"
+#default_file_spec="* .[a-zA-Z]*"
 
 ## for -x
 #default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
@@ -160,7 +163,7 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-opt=` getopt -q -o a:d:DhnNFilLp:P:v:V:xz -- "$@"`
+opt=` getopt -q -o a:d:DhnNFilLp:P:v:V:txz -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -224,6 +227,11 @@ do
       ;;
     -x)  is_out_precedent=1; shift;;
     -z)  grep=zgrep;refrep=zrefrep; shift;;
+    -t)
+      is_only_text=1
+      grep=grep
+      refrep=refrep
+      shift;;
     --) shift; break;;
     *)  usage; exit 2;;
     esac
@@ -296,7 +304,12 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
   if [ -z "${invert_opt[0]}" ]; then
     # content filtering
     if [ "$grep" = "grep" ]; then
-      matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
+      if [ ${is_only_text:-0} -eq 0 ]; then
+        matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
+      else
+        # file type testing for text
+        matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | xargs $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
+      fi
     else
       # for zgrep, to know each filename because zgrep -H does not work.
       for f in `find $base_path -type $type_opt $file_spec -print`
@@ -311,10 +324,20 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
     re4grep="${reg_exp[0]}"
   elif [ "${invert_opt[0]}" = "for_must_path" ]; then
     # path filtering
-    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+    if [ ${is_only_text:-0} -eq 0 ]; then
+      matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+    else
+      # file type testing for text
+      matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+    fi
   elif [ "${invert_opt[0]}" = "for_path" ]; then
     # path invert filtering
-    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+    if [ ${is_only_text:-0} -eq 0 ]; then
+      matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+    else
+      # file type testing for text
+     matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+    fi
   fi
 
   if [ -z "$matched" ]; then

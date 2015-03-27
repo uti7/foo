@@ -17,7 +17,7 @@ else
   m="$*"
 fi
 
-files=`git status | awk 'match($1,"modified:")>0 || match($1,"new")>0 {printf($NF " ");}'`
+files=`git status | sed -e 's/^#//' | awk 'match($1,"modified:")>0 || match($1,"new")>0 {printf($NF " ");}'`
 
 if [ -z "$files" ]; then
   echo "no modified files."
