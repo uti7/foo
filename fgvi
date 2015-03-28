@@ -10,21 +10,22 @@ synopsis:
   find(1) DIR -name FILE ->  grep(1) PATTERN ->  vim(1) +/PATTERN/
 
 usage:
-  $myname [-d DIR -d DIR...] [-nNFiIclxtz] PATTERN [FILE...]
-  $myname [-d DIR -d DIR...] [-nNFiIclxtz] -{-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
-  $myname [-d DIR -d DIR...] [-nNiIc] -L [FILE...]
-  $myname [-d DIR -d DIR...] [-nNiIc] -D [FILE...]
+  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-FiIclxtz] PATTERN [FILE...]
+  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-FiIclxtz] {-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -L [FILE...]
+  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -D [FILE...]
   $myname [-h]
 
   -d DIR       : a search-path, givens to find(1). if omited, then \`.'
   -h           : show usage.
   -i           : ignore case, its applied the FILE as well as the PATTERN
-  -I           : reset ignore case that spec in the .${myname}rc, but FILE has no effect
+  -I           : reset ignore case that spec in the .${myname}rc, however FILE has no effect
   -c           : complete matching for FILE, default: partial matching
   -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
   -D           : find target is only directory, and no grep forcely.
   -n           : no vim(1), only output like grep
   -N           : ask whether open by vim
+  -e CMD       : execute CMD instead of vim
   -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
   -p PATTERN   : filtering for every path
   -v PATTERN   : invert matching for file content which NOT condition.
@@ -40,6 +41,8 @@ usage:
   -t           : find target is only text, that determined by file(1).
                  it's not available with \`-z'
 
+  DIR          : a directory
+  CMD          : command string that single argument expressed (e.g. \`-e ls\\ -l')
   PATTERN      : a extended regular expression
   FILE         : basename of filename, or directory/[directory/.../]filename
                  if appear directory-spec at FILE, apply to search-path implied.
@@ -169,7 +172,7 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-opt=` getopt -q -o a:d:DhnNFiIclLp:P:v:V:txz -- "$@"`
+opt=` getopt -q -o a:d:De:hnNFiIclLp:P:v:V:txz -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -195,6 +198,7 @@ do
       [ ${is_not_grep:-0} -eq 1 ] && is_file_with_matches=1
       shift
       ;;
+    -e)  execute_cmd="$2"; is_not_vi=3; shift 2;;
     -i)  ignore_case_opt="-i";name_opt="-iname"; shift;;
     -I)  unset ignore_case_opt; shift;;
     -F)  pattern_opt="F"; shift;;
@@ -246,7 +250,7 @@ do
 done
 
 
-[ ${is_file_with_matches:-0} -eq 1 ] && is_not_grep=0
+[ ${is_file_with_matches:-0} -eq 1 ] && is_not_grep=0 # -ln or -lN
 
 
 if [ ${is_not_grep:-0} -eq 0 ] && [ -z "$reg_exp" ]; then
@@ -424,7 +428,11 @@ fi
 #
 # action
 #
-if [ ${is_not_vi:-0} -gt 0 ]; then
+if [ ${is_not_vi:-0} -eq 3 ]; then
+  # execute CMD
+  echo $matched | xargs ${execute_cmd:-ls}
+  x=$?
+elif [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
@@ -443,7 +451,7 @@ if [ ${is_not_vi:-0} -gt 0 ]; then
       x=0
     done
   fi
-  if [ ${is_not_vi:-0} -gt 1 ]; then
+  if [ ${is_not_vi:-0} -eq 2 ]; then
     echo -n "will open as vim, ok?(enter [y]es or else):"
     read Q
     [ "$Q" != 'y' ] && exit "$x"
