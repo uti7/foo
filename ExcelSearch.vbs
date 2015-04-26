@@ -1,8 +1,9 @@
 Option Explicit
 
-Dim d, patterns
-d = "C:\cast\proj\nipmms"
-patterns = Split("完了,所有者", ",")
+Dim dir, patterns, file
+dir = "C:\cast\proj\nipmms"
+patterns = Array("フロー", "加工")
+file = ".\file.tsv"
 
 ''''''''''
 Function searchByExcel(path)
@@ -19,12 +20,15 @@ Function searchByExcel(path)
 			If Not hit Is Nothing Then
 				hit1stAddr = hit.Address
 				Do
+					Dim v
+					v = Replace(hit, vbLF, vbCrLf)
 					'WScript.Echo "hit:" & hit
 					outfile.WriteLine path _
 					&  vbTab & ws.Name _
 					&  vbTab & hit.Row _
+					&  vbTab & hit.Column _
 					&  vbTab & key _
-					&  vbTab & """" & hit & """"
+					&  vbTab & """" & v & """"
 					Set hit = ur.FindNext(hit)
 				Loop While Not hit Is Nothing And hit1stAddr <> hit.Address
 			End If
@@ -51,9 +55,9 @@ Function process(folder)
 End Function
 
 ''''''''''
-Dim fso, results, outfile, excel, res
+Dim fso, outfile, excel, ret
 Set fso = CreateObject("Scripting.FileSystemObject")
-Set outfile = fso.OpenTextFile(".\file.tsv", 2, True)
+Set outfile = fso.OpenTextFile(file, 2, True)
 Set excel = CreateObject("Excel.Application")
 excel.Visible = False
 excel.DisplayAlerts = False
@@ -61,10 +65,11 @@ excel.DisplayAlerts = False
 outfile.WriteLine "ファイル名" _
 	&  vbTab & "シート" _
 	&  vbTab & "行" _
+	&  vbTab & "列" _
 	&  vbTab & "検索文字列" _
 	&  vbTab & "セルの値"
 
-res = process(fso.GetFolder(d))
+ret = process(fso.GetFolder(dir))
 
 outfile.Close
 Set fso = Nothing
