@@ -45,7 +45,7 @@ Do While Not file.AtEndOfStream
 		isItemEnd = True
 	Else
 		isItemEnd = False
-		buf = buf & val & vbCrLf
+		buf = buf & val & vbLf
 	End If
 
 	If isItemEnd Then

@@ -1,8 +1,8 @@
 Option Explicit
 
 Dim dir, patterns, file
-dir = "C:\cast\proj\nipmms"
-patterns = Array("フロー", "加工")
+dir = "."
+patterns = Array("appendix")
 file = ".\file.tsv"
 
 ''''''''''
@@ -34,6 +34,7 @@ Function searchByExcel(path)
 			End If
 		Next
 	Next
+  wbs.Close
 	searchByExcel = ret
 End Function
 
@@ -59,7 +60,7 @@ Dim fso, outfile, excel, ret
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set outfile = fso.OpenTextFile(file, 2, True)
 Set excel = CreateObject("Excel.Application")
-excel.Visible = False
+excel.Visible = True
 excel.DisplayAlerts = False
 
 outfile.WriteLine "ファイル名" _
