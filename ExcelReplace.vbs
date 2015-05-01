@@ -66,7 +66,7 @@ Stop
 		End If
 		Dim ws
 		Set ws = wbs.Worksheets(sheetname)
-		ws.Cells(row, column).Value = buf
+		ws.Cells(row, column).Value = Mid(buf, 2, Len(buf)-2)
 		buf = ""
 	End If
 Loop
