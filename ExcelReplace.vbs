@@ -1,4 +1,5 @@
 Option Explicit
+
 If WScript.Arguments.Count < 1 Then
 	WScript.Echo "usage:" & vbCrLf _
 	& "  コマンドプロンプトで:" & vbCrlf _
@@ -7,6 +8,8 @@ If WScript.Arguments.Count < 1 Then
 	& "  ファイルエクスプローラで この vbs に file.tsv をドロップします."
 	WScript.Quit 2
 End If
+
+Const UpdateLinksNone = 0
 
 Dim fso, excel, ret, file
 Set fso = CreateObject("Scripting.FileSystemObject")
@@ -61,7 +64,7 @@ Stop
 				wbs.Save
 				wbs.Close
 			End If
-			Set wbs = excel.Workbooks.Open(xlsname)
+			Set wbs = excel.Workbooks.Open(xlsname, UpdateLinksNone)
 			currentxls = xlsname
 		End If
 		Dim ws
