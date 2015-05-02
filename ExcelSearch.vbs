@@ -1,11 +1,27 @@
 Option Explicit
 
 Dim dir, patterns, file
-dir = "."
-patterns = Array("appendix")
+dir = "C:\cast\proj\nipmms"
+patterns = Array("‰ÁH","Š—LŽÒ")
 file = ".\file.tsv"
 
 Const UpdateLinksNone = 0
+
+' usage : cscript.exe this.vbs [/d:dir] [/o:file] [pattern...]
+Dim args, i
+Set args = WScript.Arguments
+If args.Named.Exists("d") Then
+	dir = args.Named.Item("d")
+End If
+If args.Named.Exists("o") Then
+	file = args.Named.Item("o")
+End If
+If args.Unnamed.Count > 0 Then
+	ReDim patterns(args.Unnamed.Count - 1)
+	For i = 0 To  args.Unnamed.Count - 1
+		patterns(i) = args.Unnamed.Item(i)
+	Next
+End If
 
 ''''''''''
 Function searchByExcel(path)
