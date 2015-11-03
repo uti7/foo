@@ -190,25 +190,25 @@ colorscheme default " (GUI使用時)
 :imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
 :map <F6> a<C-R>=strftime("%Y-%m-%d")<CR><Esc>
 :imap <F6> <C-R>=strftime("%Y-%m-%d")<CR>
-map <F1> :files
-map <F2> :bp
-map <F3> :bn
-map <F4> :bd
-map <F8> :cp
-map <F9> :cn
-map <C-F8> :tp
-map <C-F9> :tn
-cmap  :pwd
-map  :n%
+map <F1> :files<CR>
+map <F2> :bp<CR>
+map <F3> :bn<CR>
+map <F4> :bd<CR>
+map <F8> :cp<CR>
+map <F9> :cn<CR>
+map <C-F8> :tp<CR>
+map <C-F9> :tn<CR>
+cmap  :pwd<CR>
+map  :n%<CR>
 "map  JAa
 map  gq
 map gC	"+y
 map gX	"+x
 map gV	"+gP
 imap gV	a"+gPxa
-cmap dvs set columns=160:VDsplit ~/デスクトップ/syllabus/htdocs/
-cmap dvd set columns=160:VDsplit 
-cmap Vsp set columns=160:vsp 
+cmap dvs set columns=160<CR>VDsplit ~/デスクトップ/syllabus/htdocs/
+cmap dvd set columns=160<CR>VDsplit 
+cmap Vsp set columns=160<CR>vsp 
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 set tags=./tags,ctags,$temp/mono.doubt
 set grepprg=c:\cast\app\vim\grep.exe\ -n
@@ -251,3 +251,5 @@ map  <C-X> "+x
 "visual map  <C-V> "+gP
 "imap  <C-V> "+gP
 imap <C-V> a<ESC>"+gPxa
+
+au BufEnter * execute 'lcd ' fnameescape(expand('%:p:h'))
