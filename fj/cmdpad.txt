@@ -1,0 +1,133 @@
+Attribute VB_Name = "Module1"
+Sub RunLine()
+Attribute RunLine.VB_ProcData.VB_Invoke_Func = "m\n14"
+
+On Error GoTo EH
+
+    Dim sh, cl As String, winstyle
+    winstyle = 1
+    Set sh = CreateObject("WScript.Shell")
+    
+    Dim k
+For Each k In Selection
+    
+    Call setWorkingDir(sh, k)
+    cl = getCmdLine(k)
+    If isInternal(cl) Then
+        cl = "cmd /c " & cl
+        winstyle = 7
+    End If
+    sh.Run cl, winstyle, True
+    
+Next
+    
+    Exit Sub
+
+EH:
+    MsgBox Err.Description & vbCrLf & vbCrLf & cl
+End Sub
+
+Sub RunConsoleGet()
+Attribute RunConsoleGet.VB_ProcData.VB_Invoke_Func = "n\n14"
+
+On Error GoTo EH
+
+    Dim sh, fso, cl As String, tempout
+    
+    Set sh = CreateObject("WScript.Shell")
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    tempout = sh.ExpandEnvironmentStrings("%TEMP%") & "\" & fso.GetTempName
+    
+    Dim k
+For Each k In Selection
+    
+    Call setWorkingDir(sh, k)
+    cl = getCmdLine(k)
+    cl = "cmd /c " & cl & ">" & tempout
+    sh.Run cl, 7, True
+    
+    Dim ts, buf, r, c
+    c = ActiveCell.Column
+    r = ActiveCell.Row + 1
+    
+    Set ts = fso.OpenTextFile(tempout, 1, False)
+    Do While ts.AtEndOfStream <> True
+        buf = ts.ReadLine
+        Cells(r, c).Value = buf
+        r = r + 1
+        DoEvents
+    Loop
+    ts.Close
+    fso.DeleteFile tempout, True
+    
+Next
+    
+    MsgBox "done."
+    Exit Sub
+
+EH:
+    MsgBox Err.Description & vbCrLf & vbCrLf & cl
+
+End Sub
+
+Sub setWorkingDir(sh, k)
+    If Not k.Comment Is Nothing Then
+        sh.CurrentDirectory = k.Comment.Text
+    End If
+End Sub
+
+Function getCmdLine(k) As String
+    Dim s, c, r, blankspaces, isInsertSpace As Boolean
+    c = k.Column
+    r = k.Row
+
+    Do While c < 1024
+        isInsertSpace = True
+        If Cells(r, c).Value = "" Then
+            blankspaces = blankspaces + 1
+            If blankspaces > 1 Then
+                getCmdLine = Trim(s)
+                Exit Function
+            End If
+            s = s & " "
+        Else
+            blankspaces = 0
+            
+            If Cells(r, c).Interior.ColorIndex <> xlNone Then
+                isInsertSpace = False
+            ElseIf c > 1 Then
+                If Cells(r, c - 1).Interior.ColorIndex <> xlNone Then
+                    isInsertSpace = False
+                End If
+            End If
+            
+            s = s & IIf(isInsertSpace, " ", "") & Cells(r, c).Value
+        
+            
+        End If
+        c = c + 1
+        
+    Loop
+    getCmdLine = Trim(s)
+    
+End Function
+
+
+Function isInternal(cl As String) As Boolean
+    Dim s
+    If InStr(1, cl, " ", vbTextCompare) > 0 Then
+        s = Mid(cl, 1, InStr(1, cl, " ", vbTextCompare) - 1)
+    Else
+        s = cl
+    End If
+    Select Case s
+    Case "dir"
+        isInternal = True
+    Case "echo"
+        isInternal = True
+    Case "start"
+        isInternal = True
+    End Select
+        
+End Function

@@ -1,0 +1,196 @@
+Attribute VB_Name = "Module1"
+Option Explicit
+
+Sub execSQL()
+Dim con As New ADODB.Connection
+Dim connectionString As String
+
+Dim sDBSever As String
+Dim sDBName As String
+Dim sLoginID As String
+Dim sPassWD As String
+
+sDBSever = "192.168.0.88"
+sDBName = "aaa"
+sLoginID = "bbb"
+sPassWD = "ccc"
+
+
+
+'接続文字列
+'connectionString = "Provider=Sqloledb"
+'connectionString = "Driver={SQL Server};"
+'& "Persist Security Info=True" _
+
+con.Provider = "SQLOLEDB"
+
+connectionString = "" _
+& "Driver={SQL Server}" _
+& ";Data Source=" & sDBSever _
+& ";Initial Catalog=" & sDBName _
+& ";Connect Timeout=15" _
+& ";User Id=" & sLoginID _
+& ";Password=" & sPassWD
+
+On Error GoTo Err_DBConnectOpen
+
+'SQL文を実行（RecordSETで受け取ります）
+Dim q As String
+q = getQueryStr()
+If q = "" Then
+    Exit Sub
+End If
+
+Dim isOutCurrentRow As Boolean
+If InStr(1, q, "@") = 1 Then
+    q = Replace(q, "@", "", 1, 1)
+    isOutCurrentRow = True
+End If
+
+'接続
+con.Open connectionString
+
+
+
+Dim rs, i, j, n, sc
+Set rs = con.Execute(q)
+
+'結果をセルに書き込む
+'rs.MoveFirst
+
+If isOutCurrentRow Then
+    i = ActiveCell.Row
+    sc = ActiveCell.Column - 1
+Else
+    i = 1
+    sc = 0
+End If
+
+n = rs.Fields.Count
+Do Until rs.EOF = True
+    For j = 1 To n
+        If i = 1 Then
+            ActiveSheet.Cells(1, sc + j) = rs.Fields(j - 1).Name
+        End If
+        
+        ActiveSheet.Cells(i + 1, sc + j) = rs.Fields(j - 1).Value
+    Next
+    rs.MoveNext
+    i = i + 1
+    If i > 10000 Then
+        MsgBox "too many records, stopped at 10,000 "
+        Exit Do
+    End If
+    DoEvents
+Loop
+
+
+'接続を閉じる
+con.Close
+Set con = Nothing
+
+i = i + 1
+
+If isOutCurrentRow Then
+    ActiveSheet.Cells(i, sc + 1) = "END"
+    ActiveSheet.Cells(i + 1, sc + 1).Select
+    ActiveSheet.Activate
+    Exit Sub
+End If
+
+
+Do While ActiveSheet.Cells(i, 1) <> ""
+For j = 1 To n
+    ' end , below cleared
+    ActiveSheet.Cells(i, j) = ""
+Next
+DoEvents
+i = i + 1
+Loop
+
+i = 1
+Do While ActiveSheet.Cells(i, 1) <> ""
+    DoEvents
+    i = i + 1
+Loop
+ActiveSheet.Cells(i, 1) = "END"
+ActiveSheet.Cells(i + 1, 1).Select
+ActiveSheet.Activate
+'Sheets("Sheet1").Range("A1").Select
+
+If Not ActiveSheet.AutoFilterMode Then
+    ' かかっていなければかける
+    ActiveSheet.Range("A1").AutoFilter
+Else
+    ' かかっていればかけなおす
+    'Sheets("Sheet1").Range("A1").AutoFilterMode = False
+    ActiveSheet.Range("A1").AutoFilter ' remove
+    ActiveSheet.Range("A1").AutoFilter ' set
+End If
+
+
+
+ActiveSheet.Activate
+
+'MsgBox ("done.")
+
+Exit Sub
+
+'エラー処理
+Err_DBConnectOpen:
+MsgBox Err.Description
+
+'Connectionの状態を確認し、クローズ
+If con.State <> ADODB.adStateClosed Then
+    con.Close
+End If
+Set con = Nothing
+
+End Sub
+
+Function getQueryStr() As String
+    Dim s As Shape
+    For Each s In ActiveSheet.Shapes
+        If s.Type = MsoShapeType.msoTextBox Then
+            Exit For
+        End If
+    Next
+    If Not IsEmpty(s) Then
+        s.Select
+        getQueryStr = Selection.Characters.Text
+    Else
+        MsgBox "has no textbox shape."
+    End If
+End Function
+
+Sub sim3()
+    Dim i As Long, dist As Integer, isFinished As Boolean
+    Dim prevR As Integer, giveup_dist As Integer
+    giveup_dist = 100 '7 '  \12800
+    i = 1
+    Do While Sheets("sim").Cells(i, 3).Value <> ""
+        Sheets("sim").Cells(i, 6).Value = ""
+        If isFinished Then
+            GoTo CCC
+        End If
+        
+        Sheets("sim").Cells(i, 6).Value = (2 ^ dist) * 100
+        If Sheets("sim").Cells(i, 4).Value = 1 Then
+            isFinished = True
+            dist = 0
+        Else
+            dist = dist + 1
+            If dist > giveup_dist Then
+                isFinished = True
+                dist = 0
+            End If
+        End If
+CCC:
+        i = i + 1
+        DoEvents
+        If Sheets("sim").Cells(i, 3).Value <= prevR Then
+            isFinished = False
+        End If
+        prevR = Sheets("sim").Cells(i, 3).Value
+    Loop
+End Sub
