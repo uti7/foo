@@ -322,7 +322,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
     # content filtering
     if [ "$grep" = "grep" ]; then
       if [ ${is_only_text:-0} -eq 0 ]; then
-        matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]} | sed -e 's/[ ()]/?/g"`
+        matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]} | sed -e 's/[ ()]/?/g'"`
       else
         # file type testing for text
         matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | xargs $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
@@ -457,7 +457,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     done
   fi
   if [ ${is_not_vi:-0} -eq 2 ]; then
-    echo -n "will open as vim, ok?(enter [y]es or else):"
+    echo -n "will open as $vi, ok?(enter [y]es or else):"
     read Q
     [ "$Q" != 'y' ] && exit "$x"
     is_not_vi=0
