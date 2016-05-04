@@ -1,4 +1,4 @@
-#!/bin/bash -f
+#mmu!/bin/bash -f
 set -f
 #IFS=$'\n'
 function usage {
@@ -31,7 +31,7 @@ usage:
   -v PATTERN   : invert matching for file content which NOT condition.
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert filtering for every path
-  -P PATTERN   : same as -V
+  -P PRUNEDIR  : find -name PRUNEDIR prune 
   -F           : PATTERN as fixed strings (behave like fgrep(1))
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in
@@ -230,8 +230,7 @@ do
       shift 2
       ;;
     -P)
-      reg_exp[${#reg_exp[@]}]="$2"
-      invert_opt[${#invert_opt[@]}]="for_path"
+      prune_spec="$prune_spec -name $2 -prune -o"
       shift 2
       ;;
     -V)
@@ -316,20 +315,22 @@ do
 
 done
 
-file_spec="( $file_spec ) -a ( ! -name *.swp )"
+file_spec="-type $type_opt ( $file_spec ) -a ( ! -name *.swp )"
+[ ! -z "$prune_spec" ] && file_spec="$prune_spec $file_spec"
+
 if [ ${is_not_grep:-0} -eq 0 ]; then
   if [ -z "${invert_opt[0]}" ]; then
     # content filtering
     if [ "$grep" = "grep" ]; then
       if [ ${is_only_text:-0} -eq 0 ]; then
-        matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]} | sed -e 's/[ ()]/?/g'"`
+        matched=`find $base_path $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]} | sed -e 's/[ ()]/?/g'"`
       else
         # file type testing for text
-        matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | xargs $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
+        matched=`find $base_path $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | xargs $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
       fi
     else
       # for zgrep, to know each filename because zgrep -H does not work.
-      for f in `find $base_path -type $type_opt $file_spec -print`
+      for f in `find $base_path $file_spec -print`
       do
         $grep -${pattern_opt}q ${ignore_case_opt:-} "${reg_exp[0]}" $f
         [ $? -eq 0 ] && matched="$matched $f"
@@ -342,18 +343,18 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
   elif [ "${invert_opt[0]}" = "for_must_path" ]; then
     # path filtering
     if [ ${is_only_text:-0} -eq 0 ]; then
-      matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+      matched=`find $base_path $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
     else
       # file type testing for text
-      matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+      matched=`find $base_path $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
     fi
   elif [ "${invert_opt[0]}" = "for_path" ]; then
     # path invert filtering
     if [ ${is_only_text:-0} -eq 0 ]; then
-      matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+      matched=`find $base_path $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
     else
       # file type testing for text
-     matched=`find $base_path -type $type_opt $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+     matched=`find $base_path $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
     fi
   fi
 
@@ -367,12 +368,12 @@ else
   # not grep
   if [ "${invert_opt[0]}" = "for_must_path" ]; then
     # path filtering
-    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+    matched=`find $base_path $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
   elif [ "${invert_opt[0]}" = "for_path" ]; then
     # path invert filtering
-    matched=`find $base_path -type $type_opt $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+    matched=`find $base_path $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
   else
-    matched=`find $base_path -type $type_opt $file_spec -print`
+    matched=`find $base_path $file_spec -print`
   fi
   if [ -z "$matched" ]; then
     echo "${file_spec_org}: No matched."
