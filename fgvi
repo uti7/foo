@@ -83,7 +83,7 @@ examples:
       as:
         find /etc /var/log \\( -name \\*.ini -o -name \\*.log \\) \\
           -exec grep -Eq foo {} \\; -print | \\
-        grep -EHn 'bar' | vim +/foo\\|bar 
+        grep -EHn 'bar' | vim +/foo\\|bar/
 EOT
 }
 
