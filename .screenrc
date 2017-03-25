@@ -13,3 +13,7 @@ bind 
 bind  remove
 bind x
 bind x remove
+bind k
+bind k focus up
+bind j
+bind j focus down

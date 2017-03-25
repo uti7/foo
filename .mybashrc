@@ -22,5 +22,5 @@ export LANG=ja_JP.utf8
 export TEMP="/cygdrive/c/cast/tmp"
 export SCREENDIR="$TEMP/uscreens"
 export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
-export PATH=$HOME/bin:$PATH
+export PATH=$HOME/bin:$HOME/foo:$PATH
 
