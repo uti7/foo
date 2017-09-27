@@ -2893,10 +2893,10 @@ function doTweet(mono){
 
 	// consumer key などの設定 |
 	var accessor = {
-		consumerKey    : "JMSMekIwchJBImPAsHrpg",
-		consumerSecret : "Kg4leOuIn2aptNkkMnoU3oTrqUZB9eLSsu7wqXuMWA",
-		token          : "150972543-mowZtEu48tsbOqEeVGbBvNjwsB5gE6zgJ6zLFC8c",
-		tokenSecret    : "uz4mafmWsXeX7vv735EF2asqyXAwpanbYmv6SBoiZs"
+		consumerKey    : "xxxxxxxxxxxxxxxxxxxxx",
+		consumerSecret : "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+		token          : "xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+		tokenSecret    : "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 	};
 
 	// OAuthオブジェクトの生成
