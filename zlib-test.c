@@ -1,3 +1,4 @@
+// $ gcc -Wall -O2 -std=c99 zlib-test.c -lz -o zlib-test
 // Copyright 2010 Susumu Yata <syata@acm.org>
 
 #include <errno.h>
