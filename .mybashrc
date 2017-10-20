@@ -10,7 +10,6 @@ alias cp="cp -ip"
 alias bc="bc -q"
 #alias vi="jvim"
 alias vi="vim"
-alias gvim='cygstart /cygdrive/c/cast/app/gvim64/gvim.exe $*'
 alias fj="fgvi"
 
 export EDITOR=vim
@@ -24,6 +23,9 @@ export SCREENDIR="$TEMP/uscreens"
 export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
 export PATH=$HOME/bin:$HOME/foo:$PATH
 
+function gvim {
+cygstart /cygdrive/c/cast/app/gvim64/gvim.exe `cygpath -d $*`
+}
 function jwhois {
 /cygdrive/c/progra~2/GnuWin32/bin/jwhois $*
 }
