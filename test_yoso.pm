@@ -3,45 +3,44 @@
 #use Carp qw(carp croak);
 
 # example:
-# 	one liner;
-#		$ perl -sw -e 'require "test.pm";my $s = new test("./test.db");$s->create("foo", 5, 3);my @v = (1,2,3,5,4);$s->replace(\@v);my $sth=$s->cheap_select(undef);while(my @row =$sth->fetchrow_array()){foreach(@row){print "$_,";}print "\n";}'
+#   one liner;
+#   $ perl -sw -e 'require "../bar/test_yoso.pm";my $s = new test1("aaa"); ...
 #
-#		in script;
+#    in script;
 #    use FindBin qw($Bin);
 #    use lib "$Bin";
-#    use test;
+#    use test_yoso;
 
 package test_yoso::test1;
 
-	sub new {
-		my $class_name = shift;
-		my $path = shift;
-		my $self = {
-			path => $path,
-			foo => undef,
-			test2array => ()
-		};
-		return bless $self, $class_name;
-	}
+  sub new {
+    my $class_name = shift;
+    my $path = shift;
+    my $self = {
+      path => $path,
+      foo => undef,
+      test2array => ()
+    };
+    return bless $self, $class_name;
+  }
 
-	sub foo {
-		my $self = shift;
+  sub foo {
+    my $self = shift;
     my $foo = shift;
     if(defined($foo)){
-			$self->{foo} = $foo;
-		}
-		return $self->{foo};
-	}
-1;
+      $self->{foo} = $foo;
+    }
+    return $self->{foo};
+  }
+
 
 package test_yoso::test2;
-	sub new {
-		my $class_name = shift;
-		my $hoge = shift;
-		my $self = {
-			hoge => $hoge,
-			hogehoge => undef
-		};
-		return $self;
-	}
- 1;
+  sub new {
+    my $hoge = shift;
+    my $self = {
+      hoge => $hoge,
+      hogehoge => undef
+    };
+    return $self;
+  }
+1;
