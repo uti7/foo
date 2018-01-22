@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+use strict;
+
+#MAIN
+{
+    die <<USAGE if scalar(@ARGV) != 2;
+Usage: $0 TAG_FILE SOURCE_DIR
+USAGE
+
+    my $file = $ARGV[0];
+    my $sourcedir = $ARGV[1];
+    if ($sourcedir =~ m|/$|) {
+        $sourcedir = $`; 
+    }   
+
+    open IN, $file or die "Can't open $file\n";
+    my @lines;
+    while (<IN>) {
+        chomp;
+        my $line = $_; 
+        $line =~ /^([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)/;
+        my ($word, $path, $pattern, $flag) = ($1, $2, $3, $4);
+
+        if (defined($flag)) {
+            if ($pattern =~ m|^/\^sub\s+|) {
+                my $p = substr($path, length($sourcedir) + 1); 
+                $p = $` if $p =~ /\.pm$/;
+                $p =~ s|/|::|g;
+
+                my $w = $p . "::" . $word;
+
+                push(@lines, [$w, "$w\t$path\t$pattern\t$flag"]);
+            }   
+        }   
+
+        push(@lines, [$word, $line]);
+
+    }   
+    close IN; 
+
+    my @sorted = sort { $a->[0] cmp $b->[0] } @lines;
+
+    for (@sorted) {
+        print $_->[1], "\n";
+    }   
+}
