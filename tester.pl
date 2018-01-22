@@ -61,4 +61,5 @@ print "\n";
 my $c = tvchannel->new();
 say $c->{tbs} . "\n";
 
+say $dayofweek::sunday;
 exit(0);
