@@ -30,6 +30,6 @@ imap gV	sw=2
 
 set lcs=tab:>.,eol:$,trail:_,extends:\
 
-imap nnj 日本語ページを併設。（英語）<Esc>
+nnoremap <C-]> g<C-]>
 
 cmap dvd vert diffsplit 
