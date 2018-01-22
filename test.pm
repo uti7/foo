@@ -11,7 +11,7 @@
 #    use lib "$Bin";
 #    use test;
 
-package test1;
+package test1{
 
 	sub new {
 		my $class_name = shift;
@@ -32,6 +32,7 @@ package test1;
 		}
 		return $self->{foo};
 	}
+};
 1;
 
 package test2;

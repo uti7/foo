@@ -19,7 +19,7 @@ package test_yoso::test1;
     my $self = {
       path => $path,
       foo => undef,
-      test2array => ()
+      bararray => ()
     };
     return bless $self, $class_name;
   }
@@ -43,4 +43,5 @@ package test_yoso::test2;
     };
     return $self;
   }
+  our $iii="jjj";
 1;
