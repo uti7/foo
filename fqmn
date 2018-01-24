@@ -23,8 +23,12 @@ USAGE
         my ($word, $path, $pattern, $flag) = ($1, $2, $3, $4);
 
         if (defined($flag)) {
-            if ($pattern =~ m|^/\^sub\s+|) {
-                my $p = substr($path, length($sourcedir) + 1); 
+            if ($pattern =~ m|^/\^\s*sub\s+|) {
+                my  $p = $path;
+                my $quoted = quotemeta($sourcedir);
+                if($p =~ /^$quoted/){
+                  $p = substr($p, length($sourcedir . '/') ); 
+                }
                 $p = $` if $p =~ /\.pm$/;
                 $p =~ s|/|::|g;
 
