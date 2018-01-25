@@ -8,6 +8,7 @@ use File::Basename qw/basename dirname/;
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use File::Find;
 use Data::Dumper;
+use Carp qw(carp croak);
 use 5.10.0;
 
 use utf8;
@@ -29,13 +30,37 @@ my $is_help = 0;
 my $root_dir = ".";
 my $merge_tags = undef;
 GetOptions(
-	'help|h' => \$is_help,
+	'help|h'=> \$is_help,
 	'root_dir|d=s' => \$root_dir,
 	'merge_tags|t=s' => \$merge_tags,
 );
 
 die $usage if($is_help);
 die "$root_dir: $!\n" if( !-d $root_dir);
+
+package pkg {
+  sub new(){
+    my $myname = shift;
+    my $package_name = shift;
+    Carp::croak("ERROR: no package name.") unless(defined($package_name));
+
+    my $self = {
+      package_name => $package_name,
+      variables => (), 
+    };
+    return bless $self, $myname;
+  }
+  sub add_variable(){
+    my $self = shift;
+    my $variable_name = shift;
+    Carp::croak("ERROR: no variable_name.") unless(defined($variable_name));
+    push @{$self->{variables}}, $variable_name;
+  }
+  sub variables(){
+    my $self = shift;
+    return @{$self->{variables}};
+  }
+};
 
 our $fh;
 if(defined($merge_tags)){
@@ -70,11 +95,17 @@ say $wd;
 
   while(my $line = <IN>){
     chomp $line;
-    my @token = split /(\s)+|\b/, $line;
-    #my @token = split /\b/, $line;
-    print $fh Dumper(@token);
+    my @token_array = split /(\s)+|\b/, $line;
+    my $token;
+    while(1){
+      last if($#token_array < 0 );
+      $token = shift(@token_array);
+      next unless(defined($token) && $token !~ /^\s*$/);
+      #print $fh $token . "\n";
+      print Dumper($token);
+      #print STDERR "left: $#token_array \n";
+    }
     print $fh  "\n---------\n";
-    next if($#token == -1);
   }
   close(IN);
   return;
