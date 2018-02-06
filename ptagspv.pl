@@ -38,29 +38,61 @@ GetOptions(
 die $usage if($is_help);
 die "$root_dir: $!\n" if( !-d $root_dir);
 
-package pkg {
+###
+package identifier {
   sub new(){
     my $myname = shift;
-    my $package_name = shift;
-    Carp::croak("ERROR: no package name.") unless(defined($package_name));
+
+    my $path = shift;
+    my $ident = shift;
+    my $type = shift;
+    my $nestlevel = shift;
+
+    Carp::croak("ERROR: no type.") unless(defined($type));
 
     my $self = {
-      package_name => $package_name,
-      variables => (), 
+      ident => $ident,
+      type => $type,
+      nestlevel => $nestlevel,
+      path => $path,
+      members => (), 
     };
     return bless $self, $myname;
   }
-  sub add_variable(){
+  sub type(){
     my $self = shift;
-    my $variable_name = shift;
-    Carp::croak("ERROR: no variable_name.") unless(defined($variable_name));
-    push @{$self->{variables}}, $variable_name;
+    my $type = shift;
+    if(defined($type)){
+      $self->{type} = $type;
+    }
+    return $self->{type};
   }
-  sub variables(){
+  sub ident(){
     my $self = shift;
-    return @{$self->{variables}};
+    my $ident = shift;
+    if(defined($ident)){
+      $self->{type} = $ident;
+    }
+    return $self->{ident};
+  }
+  sub add_members(){
+    my $self = shift;
+    my $member_name = shift;
+    Carp::croak("ERROR: no  member name.") unless(defined($member_name));
+    push @{$self->{members}}, $member_name;
+  }
+  sub members(){
+    my $self = shift;
+    return @{$self->{members}};
   }
 };
+###
+
+###
+#
+###
+my %state = {idle => 0, inpackage => 1, inhash => 2};
+our @ids = ();
 
 our $fh;
 if(defined($merge_tags)){
@@ -73,43 +105,82 @@ find( \&process, $root_dir );
 
 close $fh;
 
+#
+#
+#
 sub process()
 {
   return if($_ !~ /\.p[lm]$/);
   #print $fh "$File::Find::name\n";
-  &parse_package_variable($File::Find::dir, $File::Find::name, $_);
+  &invoke_per_file($File::Find::dir, $File::Find::name, $_);
 }
 
-sub parse_package_variable()
+#
+#
+#
+sub invoke_per_file()
 {
   my $dir = shift;
   my $path = shift;
   my $file = shift;
 
-use Cwd;
+  my $nest_level = 0;
+  my $current = identifier->new($path, "main", "p", $nest_level);
+  #use Cwd;
 
-my $wd = Cwd::getcwd();
-say $wd;
+#my $wd = Cwd::getcwd();
+#say $wd;
 
   open(IN, "<", $file) || die "$file: $!.";
 
   while(my $line = <IN>){
     chomp $line;
-    my @token_array = split /(\s)+|\b/, $line;
-    my $token;
-    while(1){
-      last if($#token_array < 0 );
-      $token = shift(@token_array);
-      next unless(defined($token) && $token !~ /^\s*$/);
-      #print $fh $token . "\n";
-      print Dumper($token);
-      #print STDERR "left: $#token_array \n";
-    }
-    print $fh  "\n---------\n";
+    &perform_per_line(split /(\s)+|\b/, $line);
   }
   close(IN);
+}
+
+#
+#
+#
+sub perform_per_line()
+{
+  my @line = @_;
+    while(1){
+      last if($#line < 0 );
+      &treat_token(shift(@line));
+    }
+  }
   return;
 }
+
+#
+#
+#
+sub treat_token()
+{
+  my $token = shift;
+
+  my $new_entry;
+  my $last_keyword = "none";
+
+  if($token eq '{'){
+    $nest_level++;
+  } elsif($token eq '}'){
+    $nest_level--;
+  } elsif($token eq 'package'){
+    $new_entry = identifier->new($path, undef, "p", $nest_level);
+
+    $last_key_word =$token;
+  } elsif($token =~ /^\w+$/ ){
+    # identifier
+    if(!defined($new_entry->{ident})){
+      $new_entry->{ident} = $token;
+    }
+  }
+  
+}
+
 =cut
 
 exit $?;
