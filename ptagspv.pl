@@ -112,6 +112,9 @@ sub process()
 {
   return if($_ !~ /\.p[lm]$/);
   #print $fh "$File::Find::name\n";
+
+  our $nest_level = 0;
+  our @itree = identifier->new($File::Find::name, "main", "p", $nest_level);
   &invoke_per_file($File::Find::dir, $File::Find::name, $_);
 }
 
@@ -124,13 +127,12 @@ sub invoke_per_file()
   my $path = shift;
   my $file = shift;
 
-  my $nest_level = 0;
-  my $current = identifier->new($path, "main", "p", $nest_level);
   #use Cwd;
 
 #my $wd = Cwd::getcwd();
 #say $wd;
 
+  my @context = ();
   open(IN, "<", $file) || die "$file: $!.";
 
   while(my $line = <IN>){
@@ -161,21 +163,50 @@ sub treat_token()
 {
   my $token = shift;
 
-  my $new_entry;
-  my $last_keyword = "none";
+  my $i;
+  my $last= "none";
 
   if($token eq '{'){
-    $nest_level++;
-  } elsif($token eq '}'){
-    $nest_level--;
-  } elsif($token eq 'package'){
-    $new_entry = identifier->new($path, undef, "p", $nest_level);
+    push @context, $token);
+    shift(@context) if($#context) > 2 );
 
-    $last_key_word =$token;
+    $nest_level++;
+    if(defined($i)){
+      $i->{nest_level} = $nest_level;
+    }
+
+  } elsif($token eq '}'){
+    push @context, $token);
+    shift(@context) if($#context) > 2 );
+
+    $nest_level--;
+
+  } elsif($token eq 'package'){
+    push @context, "p");
+    shift(@context) if($#context) > 2 );
+
+    $i = identifier->new($path, undef, "p", $nest_level);
+    #push @itree, $i;
+    $last_key_word ="p";
+
+  } elsif($token =~ /^(our|local|my)$/ ){
+    push @context, "v");
+    shift(@context) if($#context) > 2 );
+
+    if(defined($i) && !defined($i->{type})){
+      $i->{ident} = "v";
+    }
+  } elsif($token =~ /^[\$%@]$/ ){
+    push @context, $token);
+    shift(@context) if($#context) > 2 );
+
   } elsif($token =~ /^\w+$/ ){
     # identifier
-    if(!defined($new_entry->{ident})){
-      $new_entry->{ident} = $token;
+    push @context, "i");
+    shift(@context) if($#context) > 2 );
+
+    if(defined($i) && !defined($i->{ident})){
+      $i->{ident} = $token;
     }
   }
   
