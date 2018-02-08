@@ -31,5 +31,6 @@ imap gV	sw=2
 set lcs=tab:>.,eol:$,trail:_,extends:\
 
 nnoremap <C-]> g<C-]>
+set complete=.,w,b,u,t
 
 cmap dvd vert diffsplit 
