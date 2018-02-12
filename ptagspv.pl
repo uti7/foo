@@ -50,7 +50,7 @@ my $_is_discard = 0;  # whether discard a line
 my $_is_skip = 0;  # whether skip to next semicolon
 my $_is_next = 0;  # whether skip to end of line
 
-use constant CONTEXT_MAX => 3; # flow away context meterial
+use constant CONTEXT_MAX => 4; # flow away context meterial
 
 ###
 package identifier {
@@ -106,6 +106,7 @@ package identifier {
 #
 ###
 
+@_appearance = ();
 our $fh;
 if(defined($merge_tags)){
   open($fh, ">>$merge_tags") || die "$merge_tags: $!.";
@@ -122,7 +123,7 @@ close $fh;
 #
 sub process()
 {
-  return if($_ !~ /\.p[lm]$/);
+  return if($_ !~ /\.p[lm]$/);  # exclude filename
   #print $fh "$File::Find::name\n";
 
   &invoke_per_file($_);
@@ -146,11 +147,12 @@ use Cwd;
   open(IN, "<", $wd ."/" . $file) || die "$File::Find::name: $!.";
 
   $_nest_level = 0;
-  @_appearance = ();
   push @_context, qw/PACKAGE IDENT/ ;
-  $_i = identifier->new($File::Find::name, "main", "p", $_nest_level);
-  push @_appearance, $_i;
 
+  if($#_appearance == -1){
+    $_i = identifier->new($File::Find::name, "main", "p", $_nest_level);
+    push @_appearance, $_i;
+  }
 
   while(my $line = <IN>){
     chomp $line;
@@ -207,6 +209,10 @@ sub treat_per_token()
     #
     push @_context, "SEMICOLON"; shift(@_context) if($#_context > CONTEXT_MAX );
 
+  }elsif($token =~ /^::$/){
+    # package name connector
+    #
+    push @_context, "::"; shift(@_context) if($#_context > CONTEXT_MAX );
     
   }elsif($token =~ /^\{$/){
     # open curly bracket
@@ -257,13 +263,16 @@ sub treat_per_token()
     #
     push @_context, "VPREFIX"; shift(@_context) if($#_context > CONTEXT_MAX );
 
+  } elsif($token =~ /^\d+$/ ){
+    # numeric chunk
+    push @_context, "NUM"; shift(@_context) if($#_context > CONTEXT_MAX );
   } elsif($token =~ /^\w+$/ ){
     # identifier
     # basicaly new timing
+    #
+    my $whatis = &determin_ident($token);
+
     push @_context, "IDENT"; shift(@_context) if($#_context > CONTEXT_MAX );
-
-    my $whatis = &determin_ident();
-
 
     if($whatis eq "PACKAGE"){
       $_i = identifier->new($File::Find::name, $token, "p", $_nest_level);
@@ -284,9 +293,11 @@ sub treat_per_token()
 
 sub determin_ident()
 {
-
+  my $token = shift;
   my $c = join("\t", @_context);
   if($c =~ /PACKAGE$/){
+    return "PACKAGE";
+  }elsif($c =~ /PACKAGE\t(IDENT\t::\t)*$/){
     return "PACKAGE";
   }elsif($c =~ /SUB$/){
     return "SUB";
@@ -296,7 +307,7 @@ sub determin_ident()
   # hash key
   # value
 
-  Carp::croak("unknown indentifier");
+  Carp::croak("ERROR: unknown indentifier at context:$c, token=$token");
 }
 
 sub is_discard(){
