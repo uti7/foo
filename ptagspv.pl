@@ -59,16 +59,20 @@ package identifier {
 
     my $path = shift;
     my $ident = shift;
+    my $token = shift;
     my $type = shift;
     my $nest_level = shift;
 
     Carp::croak("ERROR: no path.") unless(defined($path));
     Carp::croak("ERROR: no ident.") unless(defined($ident));
     Carp::croak("ERROR: no type.") unless(defined($type));
+    Carp::croak("ERROR: no token.") unless(defined($token));
+
     Carp::croak("ERROR: no nestlevel.") unless(defined($nest_level));
 
     my $self = {
       ident => $ident,
+      token => $token,
       type => $type,
       nest_level => $nest_level,
       path => $path,
@@ -99,6 +103,25 @@ package identifier {
     my $self = shift;
     return @{$self->{members}};
   }
+  sub output(){
+    my $self = shift;
+    my $fh = shift;
+    my $rexp;
+    if($self->{type} eq "v"){
+      $rexp = "/$self->{token}$self->{ident}/";
+    }elsif($self->{type} eq "p" && $self->{ident} eq "main"){
+      $rexp = "/$self->{token}$self->{ident}/";
+      return; # not out
+    }else{
+      $rexp = "/$self->{token}\\s+$self->{ident}/";
+    }
+    printf( $fh "%s\t%s\t%s\t%s\n",
+      $self->{ident},
+      $self->{path},
+      $rexp,
+      $self->{type},
+    );
+  }
 };
 ###
 
@@ -116,6 +139,9 @@ if(defined($merge_tags)){
 
 find( \&process, $root_dir );
 
+foreach (@_appearance){
+  $_->output($fh);
+}
 close $fh;
 
 #
@@ -150,7 +176,7 @@ use Cwd;
   push @_context, qw/PACKAGE IDENT/ ;
 
   if($#_appearance == -1){
-    $_i = identifier->new($File::Find::name, "main", "p", $_nest_level);
+    $_i = identifier->new($File::Find::name, "main", "&", "p", $_nest_level);
     push @_appearance, $_i;
   }
 
@@ -256,12 +282,12 @@ sub treat_per_token()
   } elsif($token =~ /^(our|local|my)$/ ){
     # variable declaration
     #
-    push @_context, "DECL"; shift(@_context) if($#_context > CONTEXT_MAX );
+    push @_context, "DECL:$token"; shift(@_context) if($#_context > CONTEXT_MAX );
 
   } elsif($token =~ /^[\$%@]$/ ){
     # variable prefix
     #
-    push @_context, "VPREFIX"; shift(@_context) if($#_context > CONTEXT_MAX );
+    push @_context, "VPREFIX:$token"; shift(@_context) if($#_context > CONTEXT_MAX );
 
   } elsif($token =~ /^\d+$/ ){
     # numeric chunk
@@ -275,15 +301,15 @@ sub treat_per_token()
     push @_context, "IDENT"; shift(@_context) if($#_context > CONTEXT_MAX );
 
     if($whatis eq "PACKAGE"){
-      $_i = identifier->new($File::Find::name, $token, "p", $_nest_level);
+      $_i = identifier->new($File::Find::name, $token, "package", "p", $_nest_level);
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
     }elsif($whatis eq "SUB"){
-      $_i = identifier->new($File::Find::name, $token, "s", $_nest_level);
+      $_i = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level);
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
-    }elsif($whatis eq "VARIABLE"){
-      $_i = identifier->new($File::Find::name, $token, "v", $_nest_level);
+    }elsif($whatis =~ /VARIABLE:(.+?)/){
+      $_i = identifier->new($File::Find::name, $token, "$1", "v", $_nest_level);
       $_appearance[$#_appearance]->add_members($_i);
       $_is_skip = 1; # until varivale semicolon
     }
@@ -301,8 +327,8 @@ sub determin_ident()
     return "PACKAGE";
   }elsif($c =~ /SUB$/){
     return "SUB";
-  }elsif($c =~ /DECL\tVPREFIX$/){
-    return "VARIABLE";
+  }elsif($c =~ /DECL:(.+?)\tVPREFIX:(.+?)$/){
+    return "VARIABLE:$1";
   }
   # hash key
   # value
