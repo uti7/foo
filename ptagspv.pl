@@ -101,7 +101,7 @@ package identifier {
   }
   sub members(){
     my $self = shift;
-    return @{$self->{members}};
+    return @{$self->{members}} if(defined($self->{members}));
   }
   sub output(){
     my $self = shift;
@@ -113,14 +113,15 @@ package identifier {
       $rexp = "/$self->{token}$self->{ident}/";
       return; # not out
     }else{
-      $rexp = "/$self->{token}\\s+$self->{ident}/";
+      $rexp = "/$self->{token}\\s\\+$self->{ident}/";
     }
-    printf( $fh "%s\t%s\t%s\t%s\n",
+    printf( $fh "%s\t%s\t%s;\"\t%s\n",
       $self->{ident},
       $self->{path},
       $rexp,
       $self->{type},
     );
+    map { $_->output($fh) if(defined($_)); } $self->members();
   }
 };
 ###
@@ -308,7 +309,7 @@ sub treat_per_token()
       $_i = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level);
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
-    }elsif($whatis =~ /VARIABLE:(.+?)/){
+    }elsif($whatis =~ /VARIABLE:(.*?)/){
       $_i = identifier->new($File::Find::name, $token, "$1", "v", $_nest_level);
       $_appearance[$#_appearance]->add_members($_i);
       $_is_skip = 1; # until varivale semicolon
