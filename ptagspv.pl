@@ -320,6 +320,7 @@ sub treat_per_token()
 
 sub determin_ident()
 {
+  # list returned
   my $token = shift;
   my $c = join("\t", @_context);
   if($c =~ /PACKAGE$/){
@@ -329,6 +330,7 @@ sub determin_ident()
   }elsif($c =~ /SUB$/){
     return "SUB";
   }elsif($c =~ /DECL:(.+?)\tVPREFIX:(.+?)$/){
+    # list returned
     return "VARIABLE:$1";
   }
   # hash key
