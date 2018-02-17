@@ -41,4 +41,5 @@ set complete=.,w,b,u,t
 "set iskeyword=@,48-57,_,192-255   " txt
 "set iskeyword=@,48-57,_,192-255,: " perl
 
+set tags=./tags;,tags,ptags
 cmap dvd vert diffsplit 
