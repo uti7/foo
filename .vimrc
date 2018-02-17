@@ -30,7 +30,15 @@ imap gV	sw=2
 
 set lcs=tab:>.,eol:$,trail:_,extends:\
 
+" tag duplicatin behavior = list choice
 nnoremap <C-]> g<C-]>
+
+" C-P completion range
 set complete=.,w,b,u,t
+
+" word range
+"set iskeyword=@,48-57,_,192-255,# " .vimrc
+"set iskeyword=@,48-57,_,192-255   " txt
+"set iskeyword=@,48-57,_,192-255,: " perl
 
 cmap dvd vert diffsplit 
