@@ -2,12 +2,6 @@
 #
 # usage: gitup COMMIT_MESSAGE
 #
-git status 
-
-printf "contiue? (y/n): "
-read yn
-[ "$yn" != "y" ] && exit 2
-
 if [ $# -eq 0 ];then
   #printf "Enter commit message.: "
   #read m
@@ -16,6 +10,12 @@ if [ $# -eq 0 ];then
 else
   m="$*"
 fi
+git status 
+
+printf "contiue? (y/n): "
+read yn
+[ "$yn" != "y" ] && exit 2
+
 
 files=`git status | sed -e 's/^#//' | awk 'match($1,"modified:")>0 || match($1,"new")>0 {printf($NF " ");}'`
 

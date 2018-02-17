@@ -8,9 +8,10 @@ use File::Basename qw/basename dirname/;
 my $this_pl = basename $0;
 
 my $usage = << "EOS";
-  Usage: perl $this_pl [-d DIR] [-t TAGS]
-         TAGS: output by ctags (default: STDOUT)
-         DIR find root *.pl *.pm (default: .)
+  Usage: perl $this_pl [-d DIR] [ { -a TAGS | -o TAGS } ]
+         -d DIR  : a root directory what search for *.pl *.pm (default: .)
+         -a TAGS : append to tags file. not specify with -o (default: STDOUT)
+         -o TAGS : output to tags file. not specify with -a (default: STDOUT)
 EOS
 
 # requre: 
@@ -33,11 +34,13 @@ binmode STDERR, ':encoding(utf8)';
 
 my $is_help = 0;
 my $root_dir = ".";
-my $merge_tags = undef;
+my $append_tags_path = undef;
+my $output_tags_path = undef;
 GetOptions(
-  'help|h'=> \$is_help,
+  'help|h' => \$is_help,
   'root_dir|d=s' => \$root_dir,
-  'merge_tags|t=s' => \$merge_tags,
+  'append_tags_path|a=s' => \$append_tags_path,
+  'output_tags_path|o=s' => \$output_tags_path,
 );
 
 die $usage if($is_help);
@@ -139,8 +142,13 @@ package identifier {
 
 @_appearance = ();
 our $fh;
-if(defined($merge_tags)){
-  open($fh, ">>$merge_tags") || die "$merge_tags: $!.";
+if(defined($append_tags_path) && defined($output_tags_path)){
+  # both specified. do not it
+  die &usage;
+}elsif(defined($output_tags_path)){
+  open($fh, ">$output_tags_path") || die "$output_tags_path: $!.";
+}elsif(defined($append_tags_path)){
+  open($fh, ">>$append_tags_path") || die "$append_tags_path: $!.";
 }else{
   open($fh, ">&STDOUT");
 }
