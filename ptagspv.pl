@@ -1,13 +1,21 @@
 #!/usr/bin/perl
 #########
-# Usage: perl aaa.pl [inputfile]
+# Usage: see, below
 #########
-# requre: 
-#  package nesting is NG that use in curly bracket
-#
 use strict;
 use warnings;
 use File::Basename qw/basename dirname/;
+my $this_pl = basename $0;
+
+my $usage = << "EOS";
+  Usage: perl $this_pl [-d DIR] [-t TAGS]
+         TAGS: output by ctags (default: STDOUT)
+         DIR find root *.pl *.pm (default: .)
+EOS
+
+# requre: 
+#  package nesting is NG that use in curly bracket
+#
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use File::Find;
 use Data::Dumper;
@@ -21,12 +29,6 @@ binmode STDIN, ':encoding(utf8)';
 binmode STDOUT, ':encoding(utf8)';
 binmode STDERR, ':encoding(utf8)';
 
-my $this_pl = basename $0;
-my $usage = << "EOS";
-  Usage: perl $this_pl [-d DIR] [-t TAGS]
-         TAGS: output by ctags (default: STDOUT)
-         DIR find root *.pl *.pm (default: .)
-EOS
 
 
 my $is_help = 0;
@@ -41,6 +43,8 @@ GetOptions(
 die $usage if($is_help);
 die "$root_dir: $!\n" if( !-d $root_dir);
 
+use constant CONTEXT_MAX => 4; # flow away context meterial
+
 my $_nest_level = 0;
 my $_i = undef;
 my @_context = ();
@@ -49,8 +53,8 @@ my $_is_instring = 0;
 my $_is_discard = 0;  # whether discard a line
 my $_is_skip = 0;  # whether skip to next semicolon
 my $_is_next = 0;  # whether skip to end of line
-
-use constant CONTEXT_MAX => 4; # flow away context meterial
+my $_line = "no"; # whole data that file line
+my $_lno = 0; # file line no whitch for debug
 
 ###
 package identifier {
@@ -67,12 +71,12 @@ package identifier {
     Carp::croak("ERROR: no ident.") unless(defined($ident));
     Carp::croak("ERROR: no type.") unless(defined($type));
     Carp::croak("ERROR: no token.") unless(defined($token));
-
     Carp::croak("ERROR: no nestlevel.") unless(defined($nest_level));
 
     my $self = {
       ident => $ident,
       token => $token,
+      line => $_line, # in time, perform_per_line
       type => $type,
       nest_level => $nest_level,
       path => $path,
@@ -101,33 +105,36 @@ package identifier {
   }
   sub members(){
     my $self = shift;
-    return @{$self->{members}} if(defined($self->{members}));
+    if(defined($self->{members})){
+      return @{$self->{members}}
+    }
+    return undef;
   }
   sub output(){
     my $self = shift;
     my $fh = shift;
-    my $rexp;
-    if($self->{type} eq "v"){
-      $rexp = "/$self->{token}$self->{ident}/";
-    }elsif($self->{type} eq "p" && $self->{ident} eq "main"){
-      $rexp = "/$self->{token}$self->{ident}/";
-      return; # not out
-    }else{
-      $rexp = "/$self->{token}\\s\\+$self->{ident}/";
+
+    if($self->{type} eq "p" && $self->{ident} eq "main"){
+      return; # no output
     }
-    printf( $fh "%s\t%s\t%s;\"\t%s\n",
+
+    #
+    # OUT
+    #
+    printf( $fh "%s\t%s\t/^%s\$/;\"\t%s\n",
       $self->{ident},
       $self->{path},
-      $rexp,
+      $self->{line},
       $self->{type},
     );
+
     map { $_->output($fh) if(defined($_)); } $self->members();
   }
 };
-###
+### end of package
 
 ###
-#
+# main execute section
 ###
 
 @_appearance = ();
@@ -145,9 +152,9 @@ foreach (@_appearance){
 }
 close $fh;
 
-#
-#
-#
+###
+# subroutines
+###
 sub process()
 {
   return if($_ !~ /\.p[lm]$/);  # exclude filename
@@ -176,21 +183,37 @@ use Cwd;
   $_nest_level = 0;
   push @_context, qw/PACKAGE IDENT/ ;
 
+  # main package registerd 1st, however never output itself
   if($#_appearance == -1){
-    $_i = identifier->new($File::Find::name, "main", "&", "p", $_nest_level);
+    $_i = identifier->new($File::Find::name, "main", "no_token", "p", $_nest_level);
     push @_appearance, $_i;
   }
 
+$_lno= 0;
   while(my $line = <IN>){
     chomp $line;
+$_lno++;
     if(&is_discard($line)){
       next;
     }
+
+    # tag out 3rd field, its not a reg exp.
+    # to use identifer constructor
+    $_line = $line;
+
     $line =~ s/^\s+//; # why do you need it even though you have split it below?
     my @l = split /(\s)+|\b/, $line;
     @l = map { $_ if(defined($_)); } @l;
     @l = grep $_ !~ /^\s*$/, @l;
-    &perform_per_line(@l);
+    my @ll; # more split by each charctor for symbols
+    foreach (@l){
+      if($_ =~ /^\w+$/){ # a word 
+        push @ll, $_; # as is
+      }else{  # symbols
+        push @ll, split //, $_; # as each char
+      }
+    }
+    &perform_per_line(@ll);
   }
   close(IN);
 }
@@ -204,6 +227,8 @@ sub perform_per_line()
   while(1){
     last if($#line < 0 );
     &treat_per_token(shift(@line));
+
+    # line ending also comment ending
     if($_is_next){
       $_is_next = 0;
       last;
@@ -219,6 +244,9 @@ sub treat_per_token()
 {
   my $token = shift;
 
+#print "DEBUG: token=" . $token . ", lineno=" . $_lno . "\n";
+
+  # skip durling semicolon
   if($_is_skip){
     if($token =~/^;$/){
       $_is_skip = 0;
@@ -226,8 +254,14 @@ sub treat_per_token()
     return;
   }
 
+  # begin comment skipping
   if($token =~ /^#$/){
     $_is_next = 1;
+    return;
+  }
+
+  # ignore
+  if($token =~ /^(self|new)$/){
     return;
   }
 
@@ -288,7 +322,19 @@ sub treat_per_token()
   } elsif($token =~ /^[\$%@]$/ ){
     # variable prefix
     #
-    push @_context, "VPREFIX:$token"; shift(@_context) if($#_context > CONTEXT_MAX );
+    # scalar symbol(i.e. `$') has mean what reg-exp, its bothering
+    my $p;
+    if($token eq "\$"){
+      $p = "S"; # scalar
+    }elsif($token eq "%"){
+      $p = "H"; # hash
+    }elsif($token eq "@"){
+      $p = "H"; # list
+    }else{
+      $p = "U"; # nani kore
+    }
+    
+    push @_context, "VPREFIX:$p"; shift(@_context) if($#_context > CONTEXT_MAX );
 
   } elsif($token =~ /^\d+$/ ){
     # numeric chunk
@@ -297,20 +343,20 @@ sub treat_per_token()
     # identifier
     # basicaly new timing
     #
-    my $whatis = &determin_ident($token);
+    my @whatis = &determin_ident($token);
 
     push @_context, "IDENT"; shift(@_context) if($#_context > CONTEXT_MAX );
 
-    if($whatis eq "PACKAGE"){
+    if($whatis[0] eq "PACKAGE"){
       $_i = identifier->new($File::Find::name, $token, "package", "p", $_nest_level);
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
-    }elsif($whatis eq "SUB"){
+    }elsif($whatis[0] eq "SUB"){
       $_i = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level);
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
-    }elsif($whatis =~ /VARIABLE:(.*?)/){
-      $_i = identifier->new($File::Find::name, $token, "$1", "v", $_nest_level);
+    }elsif($whatis[0] eq "VARIABLE"){
+      $_i = identifier->new($File::Find::name, $token, $whatis[1], "v", $_nest_level);
       $_appearance[$#_appearance]->add_members($_i);
       $_is_skip = 1; # until varivale semicolon
     }
@@ -324,19 +370,22 @@ sub determin_ident()
   my $token = shift;
   my $c = join("\t", @_context);
   if($c =~ /PACKAGE$/){
-    return "PACKAGE";
+    return qw/PACKAGE/;
   }elsif($c =~ /PACKAGE\t(IDENT\t::\t)*$/){
-    return "PACKAGE";
+    my @r;
+    push @r, "PACKAGE";
+    push @r, split("\t", $1);
+    return @r;
   }elsif($c =~ /SUB$/){
-    return "SUB";
-  }elsif($c =~ /DECL:(.+?)\tVPREFIX:(.+?)$/){
-    # list returned
-    return "VARIABLE:$1";
+    return qw/SUB/;
+  }elsif($c =~ /DECL:(.+?)\tVPREFIX:.$/){
+    return ("VARIABLE", $1);
   }
   # hash key
   # value
 
-  Carp::croak("ERROR: unknown indentifier at context:$c, token=$token");
+  $c =~ s/\t/,/g; # for carp print
+  Carp::carp("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
 }
 
 sub is_discard(){
