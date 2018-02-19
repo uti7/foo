@@ -80,6 +80,7 @@ package identifier {
       ident => $ident,
       token => $token,
       line => $_line, # in time, perform_per_line
+      line_no => $_lno, # in time, perform_per_line
       type => $type,
       nest_level => $nest_level,
       path => $path,
@@ -124,9 +125,10 @@ package identifier {
     #
     # OUT
     #
-    printf( $fh "%s\t%s\t/^%s\$/;\"\t%s\n",
+    printf( $fh "%s\t%s\t%d;\"^%s\$;\t%s\n",
       $self->{ident},
       $self->{path},
+      $self->{line_no},
       $self->{line},
       $self->{type},
     );
@@ -197,10 +199,10 @@ use Cwd;
     push @_appearance, $_i;
   }
 
-$_lno= 0;
+  $_lno= 0;
   while(my $line = <IN>){
     chomp $line;
-$_lno++;
+    $_lno++;
     if(&is_discard($line)){
       next;
     }
@@ -278,10 +280,10 @@ sub treat_per_token()
     #
     push @_context, "SEMICOLON"; shift(@_context) if($#_context > CONTEXT_MAX );
 
-  }elsif($token =~ /^::$/){
+  }elsif($token =~ /^:$/){
     # package name connector
     #
-    push @_context, "::"; shift(@_context) if($#_context > CONTEXT_MAX );
+    push @_context, "CLN"; shift(@_context) if($#_context > CONTEXT_MAX );
     
   }elsif($token =~ /^\{$/){
     # open curly bracket
@@ -379,7 +381,7 @@ sub determin_ident()
   my $c = join("\t", @_context);
   if($c =~ /PACKAGE$/){
     return qw/PACKAGE/;
-  }elsif($c =~ /PACKAGE\t(IDENT\t::\t)*$/){
+  }elsif($c =~ /PACKAGE\t(IDENT\tCLN\tCLN\t)*$/){
     my @r;
     push @r, "PACKAGE";
     push @r, split("\t", $1);
