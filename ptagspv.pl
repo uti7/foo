@@ -123,9 +123,9 @@ package identifier {
     }
 
     #
-    # OUT
+    # OUTTER
     #
-    printf( $fh "%s\t%s\t%d;\"^%s\$;\t%s\n",
+    printf( $fh "%s\t%s\t%d;\t\"^%s\$;\t%s\n",
       $self->{ident},
       $self->{path},
       $self->{line_no},
@@ -271,9 +271,9 @@ sub treat_per_token()
   }
 
   # ignore
-  if($token =~ /^(self|new)$/){
-    return;
-  }
+  #if($token =~ /^(self|new)$/){
+  #  return;
+  #}
 
   if($token =~ /^;$/){
     # semicolon
@@ -366,10 +366,16 @@ sub treat_per_token()
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
     }elsif($whatis[0] eq "VARIABLE"){
-      $_i = identifier->new($File::Find::name, $token, $whatis[1], "v", $_nest_level);
-      $_appearance[$#_appearance]->add_members($_i);
+      if($token ne "self"){
+        $_i = identifier->new($File::Find::name, $token, $whatis[1], "v", $_nest_level);
+        $_appearance[$#_appearance]->add_members($_i);
+      }
       $_is_skip = 1; # until varivale semicolon
     }
+  }else{
+    my $c = join("\t", @_context);
+    print STDERR ("NOTICE: $File::Find::name:$_lno: ignored TOKEN. token=[$token] context=[$c]\n");
+    push @_context, "OTHER"; shift(@_context) if($#_context > CONTEXT_MAX );
   }
   
 }
@@ -395,7 +401,8 @@ sub determin_ident()
   # value
 
   $c =~ s/\t/,/g; # for carp print
-  Carp::carp("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
+  #Carp::carp("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
+  print STDERR ("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
 }
 
 sub is_discard(){
