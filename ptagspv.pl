@@ -14,8 +14,20 @@ my $usage = << "EOS";
          -o TAGS : output to tags file. not specify with -a (default: STDOUT)
 EOS
 
+my $header = << "EOS";
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	uti7	/none\@none.none/
+!_TAG_PROGRAM_NAME	indipendet ctags for perl	//
+!_TAG_PROGRAM_URL	http://ctags.github.com	/ditstribute site/
+!_TAG_PROGRAM_VERSION	0.1	//
+EOS
+
 # requre: 
 #  package nesting is NG that use in curly bracket
+#
+# limit:
+# variable is no output that declared in sub 
 #
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use File::Find;
@@ -125,7 +137,7 @@ package identifier {
     #
     # OUTTER
     #
-    printf( $fh "%s\t%s\t%d;\t\"^%s\$;\t%s\n",
+    printf( $fh "%s\t%s\t%d;\t\"^%s\$\t%s\n",
       $self->{ident},
       $self->{path},
       $self->{line_no},
@@ -133,7 +145,7 @@ package identifier {
       $self->{type},
     );
 
-    map { $_->output($fh) if(defined($_)); } $self->members();
+    map { $_->output($fh) if(defined($_) && $_->type() ne "s"); } $self->members();
   }
 };
 ### end of package
@@ -144,16 +156,21 @@ package identifier {
 
 @_appearance = ();
 our $fh;
+my $tmp_path;
+
 if(defined($append_tags_path) && defined($output_tags_path)){
   # both specified. do not it
   die &usage;
 }elsif(defined($output_tags_path)){
-  open($fh, ">$output_tags_path") || die "$output_tags_path: $!.";
+#  $tmp_path = "$ENV{TMP}/$output_tags_path.$$";
+#  open($fh, ">$tmp_path") || die "$tmp_path $!.";
+  open($fh, ">$output_tags_path") || die "$tmp_path $!.";
 }elsif(defined($append_tags_path)){
   open($fh, ">>$append_tags_path") || die "$append_tags_path: $!.";
 }else{
   open($fh, ">&STDOUT");
 }
+print $fh $header;
 
 find( \&process, $root_dir );
 
@@ -161,6 +178,10 @@ foreach (@_appearance){
   $_->output($fh);
 }
 close $fh;
+
+#if(defined($output_tags_path)){
+#`sort $tmp_path >$output_tags_path` || die $!;
+#}
 
 ###
 # subroutines
