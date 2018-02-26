@@ -14,7 +14,7 @@ package month;
 
       my $self = {
         tbs => 4,
-        asashi => 5,
+        'asashi' => 5,
         ntv => 6,
       };
       return bless $self, $name;

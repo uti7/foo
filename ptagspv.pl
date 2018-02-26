@@ -453,13 +453,13 @@ sub treat_per_token()
         $_i->add_members($n);
         $_i = $n;
       }
-=pod
+#=pod
       elsif(defined($_i->parent()) && $_i->parent()->type() eq "p"){
         $n = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level, $_i->parent());
         $_i->parent()->add_members($n);
         $_i = $n;
       }
-=cut
+#=cut
       else{
         $n = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level);
         $_current_main->add_members($n);
