@@ -12,12 +12,29 @@ use utf8;
 
 use Data::Dumper;
 
-#use FindBin qw($Bin);
-#use lib "$Bin";
+use FindBin qw($Bin);
+use lib "$Bin";
 
 use lib "../bar";
 use test_yoso;
 use test_pkg;
+
+use constant DEBUG => 0;
+use constant {
+        SEC   => 0,
+        MIN   => 1,
+        HOUR  => 2,
+        MDAY  => 3,
+        MON   => 4,
+        YEAR  => 5,
+        WDAY  => 6,
+        YDAY  => 7,
+        ISDST => 8,
+    };
+
+    use constant WEEKDAYS => qw(
+        Sunday Monday Tuesday Wednesday Thursday Friday Saturday
+    );
 
 my $t1 = new test_yoso::test1("aaa");
 
@@ -62,4 +79,6 @@ my $c = tvchannel->new();
 say $c->{tbs} . "\n";
 
 say $dayofweek::sunday;
+
+print "Today is ", (WEEKDAYS)[ (localtime)[WDAY] ];
 exit(0);

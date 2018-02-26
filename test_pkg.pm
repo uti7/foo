@@ -19,5 +19,5 @@ package month;
       };
       return bless $self, $name;
     }
-}
+};
 1;

@@ -18,7 +18,7 @@ my $header = << "EOS";
 !_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
 !_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
 !_TAG_PROGRAM_AUTHOR	uti7	/none\@none.none/
-!_TAG_PROGRAM_NAME	indipendet ctags for perl	//
+!_TAG_PROGRAM_NAME	independent ctags for perl	//
 !_TAG_PROGRAM_URL	http://ctags.github.com	/ditstribute site/
 !_TAG_PROGRAM_VERSION	0.1	//
 EOS
@@ -33,6 +33,7 @@ use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use File::Find;
 use Data::Dumper;
 use Carp qw(carp croak);
+$Carp::Verbose = 1;
 use 5.10.0;
 
 use utf8;
@@ -45,12 +46,14 @@ binmode STDERR, ':encoding(utf8)';
 
 
 my $is_help = 0;
+my $_is_warn = 0;
 my $root_dir = ".";
 my $append_tags_path = undef;
 my $output_tags_path = undef;
 GetOptions(
   'help|h' => \$is_help,
   'root_dir|d=s' => \$root_dir,
+  'is_warn|w' => \$_is_warn,
   'append_tags_path|a=s' => \$append_tags_path,
   'output_tags_path|o=s' => \$output_tags_path,
 );
@@ -68,8 +71,9 @@ my $_is_instring = 0;
 my $_is_discard = 0;  # whether discard a line
 my $_is_skip = 0;  # whether skip to next semicolon
 my $_is_next = 0;  # whether skip to end of line
-my $_line = "no"; # whole data that file line
+my $_line = "no data"; # whole data that file line
 my $_lno = 0; # file line no whitch for debug
+my $_current_main = undef; # current file main indentifier
 
 ###
 package identifier {
@@ -81,6 +85,7 @@ package identifier {
     my $token = shift;
     my $type = shift;
     my $nest_level = shift;
+    my $parent = shift;
 
     Carp::croak("ERROR: no path.") unless(defined($path));
     Carp::croak("ERROR: no ident.") unless(defined($ident));
@@ -96,7 +101,8 @@ package identifier {
       type => $type,
       nest_level => $nest_level,
       path => $path,
-      members => undef,
+      parent => $parent,  # it may be undef
+      members => [],
     };
     return bless $self, $myname;
   }
@@ -113,10 +119,17 @@ package identifier {
     my $self = shift;
     return $self->{nest_level};
   }
+  sub parent(){
+    my $self = shift;
+    return $self->{parent};
+  }
   sub add_members(){
     my $self = shift;
     my $member = shift;
-    Carp::carp("WARN no member") unless(defined($member));
+    Carp::carp("WARN: no member") unless(defined($member));
+    if(!defined($member->{parent})){
+      $member->{parent} = $self;
+    }
     push @{$self->{members}}, $member;
   }
   sub members(){
@@ -130,12 +143,14 @@ package identifier {
     my $self = shift;
     my $fh = shift;
 
+=pod
     if($self->{type} eq "p" && $self->{ident} eq "main"){
       return; # no output
     }
+=cut
 
     #
-    # OUTTER
+    # PRINTING
     #
     printf( $fh "%s\t%s\t%d;\t\"^%s\$\t%s\n",
       $self->{ident},
@@ -144,8 +159,17 @@ package identifier {
       $self->{line},
       $self->{type},
     );
+    if(defined($self->parent())){
+      printf( $fh "%s::%s\t%s\t%d;\t\"^%s\$\t%s\n",
+        $self->parent()->{ident}, $self->{ident},
+        $self->{path},
+        $self->{line_no},
+        $self->{line},
+        $self->{type},
+      );
+    }
 
-    map { $_->output($fh) if(defined($_) && $_->type() ne "s"); } $self->members();
+    map { $_->output($fh) if(defined($_)); } $self->members();
   }
 };
 ### end of package
@@ -209,18 +233,19 @@ use Cwd;
   @_context = ();
   $_is_instring = 0;
 
-  open(IN, "<", $wd ."/" . $file) || die "$File::Find::name: $!.";
-
+  $_lno= 0;
+  $_line= "no data";
   $_nest_level = 0;
   push @_context, qw/PACKAGE IDENT/ ;
 
-  # main package registerd 1st, however never output itself
-  if($#_appearance == -1){
-    $_i = identifier->new($File::Find::name, "main", "no_token", "p", $_nest_level);
-    push @_appearance, $_i;
-  }
+  # main package, it always registerd 1st
+  $_i = identifier->new($File::Find::name, "main", "no_token", "p", $_nest_level);
+  push @_appearance, $_i;
+  $_current_main = $_i;
 
-  $_lno= 0;
+
+  open(IN, "<", $wd ."/" . $file) || die "$File::Find::name: $!.";
+
   while(my $line = <IN>){
     chomp $line;
     $_lno++;
@@ -228,7 +253,7 @@ use Cwd;
       next;
     }
 
-    # tag out 3rd field, its not a reg exp.
+    # tag out 3rd field, its a ex cmd.
     # to use identifer constructor
     $_line = $line;
 
@@ -279,14 +304,17 @@ sub treat_per_token()
 
   # skip durling semicolon
   if($_is_skip){
-    if($token =~/^;$/){
+    if($token eq ";"){
       $_is_skip = 0;
+      return;
     }
-    return;
+    if($token ne "{" && $token ne "}"){
+      return;
+    }
   }
 
   # begin comment skipping
-  if($token =~ /^#$/){
+  if($token eq "#"){
     $_is_next = 1;
     return;
   }
@@ -296,17 +324,25 @@ sub treat_per_token()
   #  return;
   #}
 
-  if($token =~ /^;$/){
+  if($token eq ";"){
     # semicolon
     #
+    # no bracket package, then move it
+    my $i = $#_context;
+    if($_context[$i] eq "IDENT"){
+      $i--;
+      if($_context[$i] eq "PACKAGE"){
+        $_i = $_appearance[$#_appearance]; # previous packegea item
+      }
+    }
     push @_context, "SEMICOLON"; shift(@_context) if($#_context > CONTEXT_MAX );
 
-  }elsif($token =~ /^:$/){
+  }elsif($token eq ":"){
     # package name connector
     #
     push @_context, "CLN"; shift(@_context) if($#_context > CONTEXT_MAX );
     
-  }elsif($token =~ /^\{$/){
+  }elsif($token eq "{"){
     # open curly bracket
     #
     push @_context, "OPEN_CURLY_BRACKET"; shift(@_context) if($#_context > CONTEXT_MAX );
@@ -314,33 +350,44 @@ sub treat_per_token()
     $_nest_level++;
     $_i->{nest_level} = $_nest_level;
 
-  } elsif($token =~ /^\}$/){
+  } elsif($token eq "}"){
     # close curly bracket
     #
     push @_context, "CLOSE_CURLY_BRACKET"; shift(@_context) if($#_context > CONTEXT_MAX );
 
+    $_nest_level--;
     # FIXME: packae end timing 
     #  close bracket, next package word
     #
     # packege end
     if($_i->type() eq "p" && $_i->nest_level == $_nest_level){
-      $_i = $_appearance[0]; # return to main
+      $_i = $_current_main; # return to main
     }
-
-    $_nest_level--;
-
-  } elsif($token =~ /^package$/){
+    # sub end
+    elsif($_i->type() eq "s" && $_i->nest_level == $_nest_level){
+      if(defined($_i->parent())){
+        $_i = $_i->parent(); # up to previous
+      }else{
+        $_i = $_current_main; # return to main
+      }
+    }
+  }elsif($token eq "&"){
+    #
+    # call subroutine
+    #
+    push @_context, "AMP"; shift(@_context) if($#_context > CONTEXT_MAX );
+  } elsif($token eq "package"){
     # package
     #
     #
     push @_context, "PACKAGE"; shift(@_context) if($#_context > CONTEXT_MAX );
     # packege end
-    if($_i->type() eq "p" && $_i->nest_level == $_nest_level){
-      $_i = $_appearance[0]; # return to main 
+    if($_i->type() eq "p"){
+      $_i = $_current_main; # return to main 
     }
 
 
-  } elsif($token =~ /^sub$/ ){
+  } elsif($token eq "sub" ){
     # sub routine declaration
     #
     push @_context, "SUB"; shift(@_context) if($#_context > CONTEXT_MAX );
@@ -378,24 +425,58 @@ sub treat_per_token()
 
     push @_context, "IDENT"; shift(@_context) if($#_context > CONTEXT_MAX );
 
+    #
+    # REGISTERING
+    #
     if($whatis[0] eq "PACKAGE"){
-      $_i = identifier->new($File::Find::name, $token, "package", "p", $_nest_level);
+      my $qualified_ident = $token;
+      my $q;
+      my $i = $#_appearance;  # backward ident element no
+      while(my $w = pop @whatis){
+        if($w eq "CLN"){
+          $q = ":";
+        }elsif($w eq "IDENT"){
+          $q = $_appearance[$i]->ident(); # previous ident FIXME: MISTAKE
+          $i--;
+        }elsif($w = "PACKAGE"){
+          last;
+        }
+        $qualified_ident = $q . $qualified_ident if($q);
+      }
+      $_i = identifier->new($File::Find::name, $qualified_ident, "package", "p", $_nest_level);
       push @_appearance, $_i; $_i = $_appearance[$#_appearance];
 
     }elsif($whatis[0] eq "SUB"){
-      $_i = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level);
-      push @_appearance, $_i; $_i = $_appearance[$#_appearance];
+      my $n;
+      if($_i->type() eq "p"){
+        $n = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level );
+        $_i->add_members($n);
+        $_i = $n;
+      }
+=pod
+      elsif(defined($_i->parent()) && $_i->parent()->type() eq "p"){
+        $n = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level, $_i->parent());
+        $_i->parent()->add_members($n);
+        $_i = $n;
+      }
+=cut
+      else{
+        $n = identifier->new($File::Find::name, $token, "sub", "s", $_nest_level);
+        $_current_main->add_members($n);
+        $_i = $n;
+      }
 
     }elsif($whatis[0] eq "VARIABLE"){
-      if($token ne "self"){
-        $_i = identifier->new($File::Find::name, $token, $whatis[1], "v", $_nest_level);
-        $_appearance[$#_appearance]->add_members($_i);
-      }
+      my $n = identifier->new($File::Find::name, $token, $whatis[1], "v", $_nest_level);
+      $_i->add_members($n);
       $_is_skip = 1; # until varivale semicolon
+    }elsif($whatis[0] eq "CALL_SUB"){
+      my $n = identifier->new($File::Find::name, $token, "call sub", "c", $_nest_level);
+      $_i->add_members($n);
     }
   }else{
     my $c = join("\t", @_context);
-    print STDERR ("NOTICE: $File::Find::name:$_lno: ignored TOKEN. token=[$token] context=[$c]\n");
+    print STDERR ("NOTICE: $File::Find::name:$_lno: ignored TOKEN. token=[$token] context=[$c]\n") if($_is_warn);
     push @_context, "OTHER"; shift(@_context) if($#_context > CONTEXT_MAX );
   }
   
@@ -406,24 +487,26 @@ sub determin_ident()
   # list returned
   my $token = shift;
   my $c = join("\t", @_context);
-  if($c =~ /PACKAGE$/){
-    return qw/PACKAGE/;
-  }elsif($c =~ /PACKAGE\t(IDENT\tCLN\tCLN\t)*$/){
+  if($c =~ /PACKAGE(\tIDENT\tCLN\tCLN)*$/){
+    my $a = $1;
+    $a =~ s/^\t// if(defined($a));
     my @r;
     push @r, "PACKAGE";
-    push @r, split("\t", $1);
+    push @r, split("\t", $a) if(defined($a));
     return @r;
   }elsif($c =~ /SUB$/){
     return qw/SUB/;
-  }elsif($c =~ /DECL:(.+?)\tVPREFIX:.$/){
+  }elsif($c =~ /DECL:(our|local|my)\tVPREFIX:.$/){
     return ("VARIABLE", $1);
+  }elsif($c =~ /AMP$/){
+    return qw/CALL_SUB/;
   }
   # hash key
   # value
 
   $c =~ s/\t/,/g; # for carp print
   #Carp::carp("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
-  print STDERR ("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
+  print STDERR ("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n") if($_is_warn);
 }
 
 sub is_discard(){
