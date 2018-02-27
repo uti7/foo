@@ -27,7 +27,6 @@ EOS
 #  package nesting is NG that use in curly bracket
 #
 # limit:
-# variable is no output that declared in sub 
 #
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use File::Find;
@@ -77,12 +76,14 @@ my $_current_main = undef; # current file main identifier
 
 my $RCFILE = "$ENV{HOME}/.ptagsrc";
 our @exclude_file = ();
+our @exclude_dir = ();
 our @exclude_ident = ();
 if(-f $RCFILE){
   require $RCFILE;
 }else{
   open FH, ">", $RCFILE || die $RCFILE . ": $!\n";
   print FH "\@exclude_file = qw(\n);\n";
+  print FH "\@exclude_dir = qw(\n);\n";
   print FH "\@exclude_ident = qw(\n);\n";
   print FH "1;\n";
   close FH;
@@ -227,6 +228,7 @@ sub process()
 {
   return if($_ !~ /\.p[lm]$/);  # exclude filename
   return if(grep {$_ eq $File::Find::name} @exclude_file);
+  return if(grep {$_ eq $File::Find::dir} @exclude_dir);
   #print $fh "$File::Find::name\n";
 
   &invoke_per_file($_);
