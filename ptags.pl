@@ -19,8 +19,8 @@ my $header = << "EOS";
 !_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
 !_TAG_PROGRAM_AUTHOR	uti7	/none\@none.none/
 !_TAG_PROGRAM_NAME	independent ctags for perl	//
-!_TAG_PROGRAM_URL	http://ctags.github.com	/ditstribute site/
-!_TAG_PROGRAM_VERSION	0.1	//
+!_TAG_PROGRAM_URL	https://github.com/uti7/foo/	/ditstribute site/
+!_TAG_PROGRAM_VERSION	0.2	//
 EOS
 
 # requre: 
@@ -73,7 +73,20 @@ my $_is_skip = 0;  # whether skip to next semicolon
 my $_is_next = 0;  # whether skip to end of line
 my $_line = "no data"; # whole data that file line
 my $_lno = 0; # file line no whitch for debug
-my $_current_main = undef; # current file main indentifier
+my $_current_main = undef; # current file main identifier
+
+my $RCFILE = "$ENV{HOME}/.ptagsrc";
+our @exclude_file = ();
+our @exclude_ident = ();
+if(-f $RCFILE){
+  require $RCFILE;
+}else{
+  open FH, ">", $RCFILE || die $RCFILE . ": $!\n";
+  print FH "\@exclude_file = qw(\n);\n";
+  print FH "\@exclude_ident = qw(\n);\n";
+  print FH "1;\n";
+  close FH;
+}
 
 ###
 package identifier {
@@ -152,6 +165,8 @@ package identifier {
     #
     # PRINTING
     #
+    return if(grep { $_ eq $self->{ident} } @exclude_ident);
+
     printf( $fh "%s\t%s\t%d;\t\"^%s\$\t%s\n",
       $self->{ident},
       $self->{path},
@@ -186,9 +201,7 @@ if(defined($append_tags_path) && defined($output_tags_path)){
   # both specified. do not it
   die &usage;
 }elsif(defined($output_tags_path)){
-#  $tmp_path = "$ENV{TMP}/$output_tags_path.$$";
-#  open($fh, ">$tmp_path") || die "$tmp_path $!.";
-  open($fh, ">$output_tags_path") || die "$tmp_path $!.";
+  open($fh, ">$output_tags_path") || die "$output_tags_path $!.";
 }elsif(defined($append_tags_path)){
   open($fh, ">>$append_tags_path") || die "$append_tags_path: $!.";
 }else{
@@ -213,6 +226,7 @@ close $fh;
 sub process()
 {
   return if($_ !~ /\.p[lm]$/);  # exclude filename
+  return if(grep {$_ eq $File::Find::name} @exclude_file);
   #print $fh "$File::Find::name\n";
 
   &invoke_per_file($_);
@@ -505,8 +519,8 @@ sub determin_ident()
   # value
 
   $c =~ s/\t/,/g; # for carp print
-  #Carp::carp("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n");
-  print STDERR ("NOTICE: $File::Find::name:$_lno: ignored indentifier. token=[$token] context=[$c]\n") if($_is_warn);
+  #Carp::carp("NOTICE: $File::Find::name:$_lno: ignored identifier. token=[$token] context=[$c]\n");
+  print STDERR ("NOTICE: $File::Find::name:$_lno: ignored identifier. token=[$token] context=[$c]\n") if($_is_warn);
 }
 
 sub is_discard(){
