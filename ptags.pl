@@ -84,7 +84,7 @@ if(-f $RCFILE){
   open FH, ">", $RCFILE || die $RCFILE . ": $!\n";
   print FH "\@exclude_file = qw(\n);\n";
   print FH "\@exclude_dir = qw(\n);\n";
-  print FH "\@exclude_ident = qw(\n);\n";
+  print FH "\@exclude_ident = qw(\nself\n);\n";
   print FH "1;\n";
   close FH;
 }
@@ -228,7 +228,7 @@ sub process()
 {
   return if($_ !~ /\.p[lm]$/);  # exclude filename
   return if(grep {$_ eq $File::Find::name} @exclude_file);
-  return if(grep {$_ eq $File::Find::dir} @exclude_dir);
+  return if(grep {$File::Find::dir =~ /$_/} @exclude_dir);
   #print $fh "$File::Find::name\n";
 
   &invoke_per_file($_);
