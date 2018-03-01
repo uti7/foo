@@ -139,7 +139,7 @@ function mkrc
 #base_path="/opt /etc /var/log"
 
 ## 1: -n, 2: -N
-#is_not_vi=2
+is_not_vi=2
 
 ## -i
 #ignore_case_opt="-i" # for PATTERN
@@ -156,9 +156,59 @@ function mkrc
 
 ## for -x
 #default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
+
+## for -P 
+prune_spec="-name .git -prune -o -name .svn -o -name ptags -o -name errors.err -o"
+
 EOT
 }
 
+function ancestor_pid
+{
+  # $1: my pud
+  # $2: vim command (e.g. /usr/bin/vim or simply, vim)
+  my_pid=$1
+  target=$2
+
+  #
+  # if necessary, setting as follows
+  #
+  ps_cmd="ps -ef"
+  pid_column=2
+  ppid_column=3
+  cmd_column=6
+
+  $ps_cmd | awk -v pid_column=$pid_column \
+    -v ppid_column=$ppid_column \
+    -v cmd_column=$cmd_column \
+    -v my_pid="$my_pid" \
+  'BEGIN{is_not_found=1;}\
+  (match($cmd_column, "ps") > 0){next;} \
+  ($pid_column == my_pid){ print $ppid_column, $cmd_column; is_not_found=0; exit(is_not_found)}'
+}
+
+function is_parent_vim
+{
+  pid=$$
+  vim="vim"
+  while [ 1 ]
+  do
+    args=(`ancestor_pid $pid $vim`)
+    if [ "`basename ${args[1]}`" = $vim ]; then
+      #echo "${args[1]}"
+      return 0
+    elif [ "${args[0]}" = "1" ]; then
+      #echo "${args[1}]"
+      return 1
+    fi
+    pid=${args[0]}
+  done
+  return 1
+}
+
+#########
+# begin
+##########
 myname=${0//*\//}
 vi=vim
 grep=grep
@@ -292,6 +342,9 @@ else
   #  done
   #fi
 fi
+
+is_parent_vim
+[ $? -eq 0 ] && is_vim_child=1 && is_not_vi=1
 
 #
 # 1st filtering for ${reg_exp[0]} by find (and grep)
@@ -442,7 +495,11 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
-      $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched
+      if [ ${is_vim_child:-0} -eq 1 ]; then
+        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee errors.err
+      else
+        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched
+      fi
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else

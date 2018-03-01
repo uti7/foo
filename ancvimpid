@@ -1,0 +1,52 @@
+#!/bin/bash
+
+
+function ancestor_pid
+{
+  # $1: my pud
+  # $2: vim command (e.g. /usr/bin/vim or simply, vim)
+  my_pid=$1
+  target=$2
+
+  ps_cmd="ps -ef"
+  pid_column=2
+  ppid_column=3
+  tty_column=4
+  cmd_column=6
+
+  $ps_cmd | awk -v pid_column=$pid_column \
+    -v ppid_column=$ppid_column \
+    -v cmd_column=$cmd_column \
+    -v my_pid="$my_pid" \
+  'BEGIN{is_not_found=1;}\
+  (match($cmd_column, "ps") > 0){next;} \
+  ($pid_column == my_pid){ print $ppid_column, $cmd_column; is_not_found=0; exit(is_not_found)}'
+}
+#     UID     PID    PPID  TTY        STIME COMMAND
+#      ga  280208  282216 pty0     20:26:24 /usr/bin/bash
+#      ga  275244  283624 pty0     21:21:30 /usr/bin/ps
+#      ga  283624  283640 pty0     21:21:30 /usr/bin/bash
+#      ga  282216       1 ?        20:26:24 /usr/bin/mintty
+#      ga  283640  280208 pty0     21:17:44 /usr/bin/vim
+
+function is_parent_vim
+{
+  pid=$$
+  vim="vim"
+  while [ 1 ]
+  do
+    args=(`ancestor_pid $pid $vim`)
+    if [ "`basename ${args[1]}`" = $vim ]; then
+      #echo "${args[1]}"
+      return 0
+    elif [ "${args[0]}" = "1" ]; then
+      #echo "${args[1}]"
+      return 1
+    fi
+    pid=${args[0]}
+  done
+  return 1
+}
+
+is_parent_vim
+exit $?
