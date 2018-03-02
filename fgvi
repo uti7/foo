@@ -163,16 +163,15 @@ prune_spec="-name .git -prune -o -name .svn -o -name ptags -o -name errors.err -
 EOT
 }
 
-function ancestor_pid
+
+function is_ancestor_vim
 {
   # $1: my pud
   # $2: vim command (e.g. /usr/bin/vim or simply, vim)
   my_pid=$1
-  target=$2
+  target_cmd=$2
 
-  #
   # if necessary, setting as follows
-  #
   ps_cmd="ps -ef"
   pid_column=2
   ppid_column=3
@@ -182,29 +181,35 @@ function ancestor_pid
     -v ppid_column=$ppid_column \
     -v cmd_column=$cmd_column \
     -v my_pid="$my_pid" \
-  'BEGIN{is_not_found=1;}\
-  (match($cmd_column, "ps") > 0){next;} \
-  ($pid_column == my_pid){ print $ppid_column, $cmd_column; is_not_found=0; exit(is_not_found)}'
+    -v target_cmd="$target_cmd" \
+  'function get_parent(pid){ \
+#print "DEBUG: pid=" pid; \
+    split(plist[pid], item, ","); \
+    return item[1]; \
+  }\
+  { plist[$pid_column] = sprintf("%d,%s", $ppid_column, $cmd_column); } \
+  END{ \
+    lookup_pid = my_pid; \
+#print "DEBUG: lookup_pid=" lookup_pid; \
+    while((lookup_pid = get_parent(lookup_pid)) != ""){ \
+      sub(/^.*\//, "", item[2]); \
+#print "DEBUG: cmd=" item[2]; \
+      if(item[2] == target_cmd){ \
+        exit(0); \
+      } \
+    } \
+    exit(1); }'
 }
 
-function is_parent_vim
-{
-  pid=$$
-  vim="vim"
-  while [ 1 ]
-  do
-    args=(`ancestor_pid $pid $vim`)
-    if [ "`basename ${args[1]}`" = $vim ]; then
-      #echo "${args[1]}"
-      return 0
-    elif [ "${args[0]}" = "1" ]; then
-      #echo "${args[1}]"
-      return 1
-    fi
-    pid=${args[0]}
-  done
-  return 1
-}
+#     UID     PID    PPID  TTY        STIME COMMAND
+#      ga  254320  297684 pty0     02:03:12 /usr/bin/ps
+#      ga  280208  282216 pty0       Mar  1 /usr/bin/bash
+#      ga  279008  280208 pty0     01:16:06 /usr/bin/vim
+#      ga  282216       1 ?          Mar  1 /usr/bin/mintty
+#      ga  297684  279008 pty0     02:03:12 /usr/bin/bash
+
+#is_ancestor_vim $$ $vi
+#exit $?
 
 #########
 # begin
@@ -343,7 +348,7 @@ else
   #fi
 fi
 
-is_parent_vim
+is_ancestor_vim $$ $vi
 [ $? -eq 0 ] && is_vim_child=1 && is_not_vi=1
 
 #
