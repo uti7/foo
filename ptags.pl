@@ -66,9 +66,11 @@ my $_nest_level = 0;
 my $_i = undef;
 my @_context = ();
 my @_appearance  = ();
-my $_is_instring = 0;
+my $_is_instring = 0; # not supported yet
+my $_is_in_const_block = 0;
 my $_is_discard = 0;  # whether discard a line
 my $_is_skip = 0;  # whether skip to next semicolon
+my $_is_skip_comma = 0;  # whether skip to next comma
 my $_is_next = 0;  # whether skip to end of line
 my $_line = "no data"; # whole data that file line
 my $_lno = 0; # file line no whitch for debug
@@ -259,7 +261,6 @@ use Cwd;
   push @_appearance, $_i;
   $_current_main = $_i;
 
-
   open(IN, "<", $wd ."/" . $file) || die "$File::Find::name: $!.";
 
   while(my $line = <IN>){
@@ -273,11 +274,11 @@ use Cwd;
     # to use identifer constructor
     $_line = $line;
 
-    $line =~ s/^\s+//; # why do you need it even though you have split it below?
+    $line =~ s/^\s+//; # even though you have split here why do you need below?
     my @l = split /(\s)+|\b/, $line;
     @l = map { $_ if(defined($_)); } @l;
     @l = grep $_ !~ /^\s*$/, @l;
-    my @ll; # more split by each charctor for symbols
+    my @ll; # more split to each charctor for symbols
     foreach (@l){
       if($_ =~ /^\w+$/){ # a word 
         push @ll, $_; # as is
@@ -288,6 +289,8 @@ use Cwd;
     &perform_per_line(@ll);
   }
   close(IN);
+  # token containing a symbol of an exclamation mark which is normally unusable
+  &perform_per_line(qw("!EOF"));
 }
 
 #
@@ -322,6 +325,18 @@ sub treat_per_token()
   if($_is_skip){
     if($token eq ";"){
       $_is_skip = 0;
+      $_is_skip_comma = 0;
+      $_is_in_const_block = 0;  # force
+      return;
+    }
+    if($token ne "{" && $token ne "}"){
+      return;
+    }
+  }
+  # skip durling comma
+  if($_is_skip_comma){
+    if($token eq ","){
+      $_is_skip_comma = 0;
       return;
     }
     if($token ne "{" && $token ne "}"){
@@ -329,16 +344,11 @@ sub treat_per_token()
     }
   }
 
-  # begin comment skipping
+  # begining a comment skip
   if($token eq "#"){
     $_is_next = 1;
     return;
   }
-
-  # ignore
-  #if($token =~ /^(self|new)$/){
-  #  return;
-  #}
 
   if($token eq ";"){
     # semicolon
@@ -351,6 +361,7 @@ sub treat_per_token()
         $_i = $_appearance[$#_appearance]; # previous packegea item
       }
     }
+    $_is_in_const_block = 0;  # force
     push @_context, "SEMICOLON"; shift(@_context) if($#_context > CONTEXT_MAX );
 
   }elsif($token eq ":"){
@@ -366,6 +377,9 @@ sub treat_per_token()
     $_nest_level++;
     $_i->{nest_level} = $_nest_level;
 
+    if(join("\t", @_context) =~ /USE\tCONST\tOPEN_CURLY_BRACKET$/){
+      $_is_in_const_block = 1;
+    }
   } elsif($token eq "}"){
     # close curly bracket
     #
@@ -376,7 +390,7 @@ sub treat_per_token()
     #  close bracket, next package word
     #
     # packege end
-    if($_i->type() eq "p" && $_i->nest_level == $_nest_level){
+    if($_i->type() eq "p" && $_i->nest_level == $_nest_level && !$_is_in_const_block){
       $_i = $_current_main; # return to main
     }
     # sub end
@@ -386,6 +400,11 @@ sub treat_per_token()
       }else{
         $_i = $_current_main; # return to main
       }
+    # enum const end
+    }elsif($_is_in_const_block && $_i->nest_level == $_nest_level){
+      $_is_in_const_block = 0;  # FIXME: it does not work, has nest-level bug
+      $_is_skip_comma = 0;
+      $_is_skip = 1;
     }
   }elsif($token eq "&"){
     #
@@ -412,6 +431,16 @@ sub treat_per_token()
     # variable declaration
     #
     push @_context, "DECL:$token"; shift(@_context) if($#_context > CONTEXT_MAX );
+
+  } elsif($token eq "use" ){
+    # use possibility the constant
+    #
+    push @_context, "USE"; shift(@_context) if($#_context > CONTEXT_MAX );
+
+  } elsif($token eq "constant" ){
+    # the constant
+    #
+    push @_context, "CONST"; shift(@_context) if($#_context > CONTEXT_MAX );
 
   } elsif($token =~ /^[\$%@]$/ ){
     # variable prefix
@@ -489,6 +518,22 @@ sub treat_per_token()
     }elsif($whatis[0] eq "CALL_SUB"){
       my $n = identifier->new($File::Find::name, $token, "call sub", "c", $_nest_level);
       $_i->add_members($n);
+    }elsif($whatis[0] eq "CONST"){
+      my $n = identifier->new($File::Find::name, $token, "constant", "t", $_nest_level);
+      $_i->add_members($n);
+      $_is_skip = 1; # until varivale semicolon
+    }elsif($_is_in_const_block){
+      # ENUM CONST
+      my $n = identifier->new($File::Find::name, $token, "enum constant", "t", $_nest_level);
+      $_i->add_members($n);
+      $_is_skip_comma = 1; # until const comma
+    }
+  }elsif($token eq "!EOF"){
+    #
+    #
+    # if packege end
+    if($_i->type() eq "p" && $_i->nest_level == $_nest_level){
+      $_i = $_current_main; # return to main
     }
   }else{
     my $c = join("\t", @_context);
@@ -516,6 +561,10 @@ sub determin_ident()
     return ("VARIABLE", $1);
   }elsif($c =~ /AMP$/){
     return qw/CALL_SUB/;
+  }elsif($c =~ /USE\tCONST$/){
+    return qw/CONST/;
+  }elsif($_is_in_const_block){
+    return qw/ENUM_CONST/;
   }
   # hash key
   # value

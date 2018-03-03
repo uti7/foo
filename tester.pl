@@ -36,6 +36,7 @@ use constant {
         Sunday Monday Tuesday Wednesday Thursday Friday Saturday
     );
 
+
 my $t1 = new test_yoso::test1("aaa");
 
 ########
@@ -80,5 +81,10 @@ say $c->{tbs} . "\n";
 
 say $dayofweek::sunday;
 
-print "Today is ", (WEEKDAYS)[ (localtime)[WDAY] ];
+print "Today is ", (WEEKDAYS)[ (localtime)[WDAY] ], "\n";
+
+say $eto::tiger;
+say $radiochannel::jokr;
+say DEBUG;
+say radiochannel::DEBUG;
 exit(0);
