@@ -362,7 +362,7 @@ sub treat_per_token()
       }
     }
     $_is_in_const_block = 0;  # force
-    push @_context, "SEMICOLON"; shift(@_context) if($#_context > CONTEXT_MAX );
+    push @_contex, "SEMICOLON"; shift(@_context) if($#_context > CONTEXT_MAX );
 
   }elsif($token eq ":"){
     # package name connector
@@ -385,7 +385,6 @@ sub treat_per_token()
     #
     push @_context, "CLOSE_CURLY_BRACKET"; shift(@_context) if($#_context > CONTEXT_MAX );
 
-    $_nest_level--;
     # FIXME: packae end timing 
     #  close bracket, next package word
     #
@@ -406,6 +405,7 @@ sub treat_per_token()
       $_is_skip_comma = 0;
       $_is_skip = 1;
     }
+    $_nest_level--;
   }elsif($token eq "&"){
     #
     # call subroutine
