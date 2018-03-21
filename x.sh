@@ -22,7 +22,7 @@ function init_sshpass
   export DISPLAY=dummy:0
 }
 
-function exec_cmdline
+function do_remote_cmd
 {
   target_host="$1"
   shift
@@ -36,12 +36,17 @@ function exec_cmdline
 
 init_sshpass
 
-cmd="ls -traF nai_file"
-echo $cmd
-exec_cmdline "$SSH_HOST" "$cmd"
-echo $?
+#cmd="ls -traF nai_file"
+#echo $cmd
+#do_remote_cmd "$SSH_HOST" "$cmd"
+#echo $?
 
-cmd="ls -la"
-echo $cmd
-exec_cmdline "$SSH_HOST" "$cmd"
-echo $?
+#cmd="ls -la"
+#echo $cmd
+#do_remote_cmd "$SSH_HOST" "$cmd"
+#echo $?
+
+uname -a | do_remote_cmd "$SSH_HOST" "dd of=/tmp/aaa" 2>/dev/null
+do_remote_cmd "$SSH_HOST" "chmod 660 /tmp/aaa"
+do_remote_cmd "$SSH_HOST" "ls -l /tmp/aaa"
+do_remote_cmd "$SSH_HOST" "cat /tmp/aaa"
