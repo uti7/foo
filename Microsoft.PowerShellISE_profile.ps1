@@ -7,6 +7,9 @@ function vi($files){
 c:\cast\app\gvim64\gvim.exe $files
 } 
 
+# same as operator that -split
+# to use .ps1 file command line args who other shell (e.g. .bat file, bash prompt)
+# > powershell.exe -f aaa.ps1 -f "*.html *.php"
 Function str2arr([string] $s, [string] $delim = "\s+", [int] $max = 0)
 {
     $a = @()
