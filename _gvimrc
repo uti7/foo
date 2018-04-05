@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 10-Mar-2018.
+" Last Change: 05-Apr-2018.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -210,6 +210,7 @@ cmap dvs set columns=160:VDsplit ~/デスクトップ/syllabus/htdocs/
 cmap dvd set columns=160:VDsplit 
 cmap Vsp set columns=160:vsp 
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
+cmap FJ !powershell -f $vim\fj.ps1 -p 
 set tags=./tags,ctags,$temp/mono.doubt
 set grepprg=c:\cast\app\vim\grep.exe\ -n
 " Chalice SETTINGS
@@ -257,5 +258,6 @@ nnoremap <C-]> g<C-]>
 
 " fold for txt
 "  zc : close it, zo: open it, zM: close all, zR: open all
-set foldmethod=indent
-set foldlevel=3
+"set foldmethod=indent
+"set foldlevel=3
+
