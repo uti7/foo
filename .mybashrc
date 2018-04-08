@@ -24,7 +24,18 @@ export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
 export PATH=$HOME/bin:$HOME/foo:$PATH
 
 function gvim {
-cygstart /cygdrive/c/cast/app/gvim64/gvim.exe `cygpath -d $*`
+  TMP=$TEMP
+  files=
+  opt=
+  for f in $*
+  do
+    if [ -f "$f" ]; then
+      files+=" `cygpath -d $*`"
+    else
+      opt+=" $f"
+    fi
+  done
+  cygstart /cygdrive/c/cast/app/gvim64/gvim.exe $opt $files
 }
 function jwhois {
 /cygdrive/c/progra~2/GnuWin32/bin/jwhois $*

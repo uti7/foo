@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 06-Apr-2018.
+" Last Change: 08-Apr-2018.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -265,4 +265,4 @@ nnoremap <C-]> g<C-]>
 "set foldmethod=indent
 "set foldlevel=3
 
-set shel=powershell
+set shell=c:\windows\system32\WindowsPowerShell\v1.0\powershell.exe
