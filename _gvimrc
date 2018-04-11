@@ -211,7 +211,7 @@ cmap dvd set columns=160<CR>:VDsplit
 cmap Vsp set columns=160<CR>:vsp 
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 cmap FJ !powershell -f $vim\fj.ps1 -p 
-set tags=./tags,ctags,$temp/mono.doubt
+set tags=tags;,ctags,$temp/mono.doubt
 set grepprg=c:\cast\app\vim\grep.exe\ -n
 " Chalice SETTINGS
 set runtimepath+=$VIM/chalice
@@ -266,3 +266,4 @@ nnoremap <C-]> g<C-]>
 "set foldlevel=3
 
 set shell=c:\windows\system32\WindowsPowerShell\v1.0\powershell.exe
+set shellcmdflag=

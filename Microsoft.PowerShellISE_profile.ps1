@@ -1,6 +1,8 @@
 #Requires -Version 3.0 
 #C:\Users\__YOUR_ACCOUNT__\Documents\WindowsPowerShell\Microsoft.PowerShellISE_profile.ps1
 
+Set-Alias -Name ll -Value Get-ChildItem | Sort-Object LastWriteTime
+
 function foo {cd c:\foo}
 function multiline { foo;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' bar.ahk }
 function vi($files){
