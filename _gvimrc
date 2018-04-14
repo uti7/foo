@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 08-Apr-2018.
+" Last Change: 14-Apr-2018.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -202,10 +202,10 @@ cmap  :pwd<CR>
 map  :n%<CR>
 "map  JAa
 map  gq
-map gC	"+y
-map gX	"+x
-map gV	"+gP
-imap gV	a"+gPxa
+map gC  "+y
+map gX  "+x
+map gV  "+gP
+imap gV  a"+gPxa
 "cmap dvs set columns=160<CR>:VDsplit ~/デスクトップ/syllabus/htdocs/
 cmap dvd set columns=160<CR>:VDsplit 
 cmap Vsp set columns=160<CR>:vsp 
@@ -222,18 +222,32 @@ set lcs=tab:>.,eol:$,trail:_,extends:\
 " inhibit pause on command prompt when external command excetion
 noremap K :silent !{program} <c-r><c-w><cr>
 
-" \u open as url which silent
+" \s open as url which silent
 function! HandleURI()
-  let s:uri = matchstr(getline("."), '[a-z]*:\/\/[^		>,;:"]*')
-  echo s:uri
-  if s:uri != ""
-    exec 'silent !C:\cast\app\w3m\launchLynxOrW3m.exe "' . s:uri . '"'
-  else
-    echo "No URI found in line."
+  let s:uri = matchstr(getline("."), '[a-z]*:\/\/[^  >,;:"]*')
+  if s:uri == ""
+    let s:uri = matchstr(getline("."), '\(\w:\|\\\\\)[^/*?  >|,;:"]*\w')
+    if s:uri == ""
+      echo "No URI or path found in line."
+      return
+    endif
   endif
+  echo s:uri
+  exec 'silent !powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
 endfunction
+map <Leader>s :call HandleURI()<CR>
 
-map <Leader>u :call HandleURI()<CR>
+function! Fj(argstr)
+	" at directory list buffer 
+	let s:cmdline = '!powershell -f ' . $vim . '\fj.ps1 ' . a:argstr
+	exec s:cmdline
+endfunction
+cnoremap FJ call Fj("-p 
+
+
+function! Test(arg)
+	echo expand(a:arg)
+endfunction
 
 let g:netrw_localcopycmd='copy' " avoid netrw notice
 let g:netrw_localrmdir='delete' " avoid netrw
@@ -265,5 +279,5 @@ nnoremap <C-]> g<C-]>
 "set foldmethod=indent
 "set foldlevel=3
 
-set shell=c:\windows\system32\WindowsPowerShell\v1.0\powershell.exe
-set shellcmdflag=
+"set shell=c:\windows\system32\WindowsPowerShell\v1.0\powershell.exe
+"set shellcmdflag=
