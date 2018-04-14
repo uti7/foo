@@ -34,3 +34,15 @@ function invokeCom([string] $member, [array] $args){
 		[Reflection.BindingFlags]::InvokeMethod, $null, $c, $args)
 	return $ret
 }
+
+Function tob64([string] $ipath, [string] $opath)
+{
+$b = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($ipath))
+$ret = [System.IO.File]::WriteAllText($opath, $b, [System.Text.Encoding]::Default)
+ return $ret
+}
+Function fromb64([string] $ipath, [string] $opath)
+{
+$b = [System.IO.File]::ReadAllText($ipath)
+$ret = [System.IO.File]::WriteAllBytes($opath, [Convert]::FromBase64String($b))
+}
