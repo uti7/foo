@@ -224,16 +224,16 @@ noremap K :silent !{program} <c-r><c-w><cr>
 
 " \s open as url which silent
 function! HandleURI()
-  let s:uri = matchstr(getline("."), '[a-z]*:\/\/[^  >,;:"]*')
+  let s:uri = matchstr(getline("."), '[a-z]*:\/\/[^\t>,;:"]*')
   if s:uri == ""
-    let s:uri = matchstr(getline("."), '\(\w:\|\\\\\)[^/*?  >|,;:"]*\w')
+    let s:uri = matchstr(getline("."), '\(\w:\|\\\\\)[^/*?\t>|,;:"]*')
     if s:uri == ""
       echo "No URI or path found in line."
       return
     endif
   endif
   echo s:uri
-  exec 'silent !powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
+  exec '!powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
 endfunction
 map <Leader>s :call HandleURI()<CR>
 
