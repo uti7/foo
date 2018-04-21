@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 14-Apr-2018.
+" Last Change: 21-Apr-2018.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -265,6 +265,7 @@ endif
 
 " force begin of line when type a '#' at ps1 file, let it cancel
 autocmd BufEnter *.ps1 setlocal indentkeys+=0#
+autocmd BufEnter *.ps1_latest setlocal autoread
 
 " titlestring
 autocmd BufEnter * let &titlestring = expand("%")
@@ -274,7 +275,9 @@ map  <C-C> "+y
 map  <C-X> "+x
 "visual map  <C-V> "+gP
 "imap  <C-V> "+gP
-imap <C-V> a<ESC>"+gPxa
+
+imap <C-V> <S-INS>
+cmap <C-V> <S-INS>
 
 " tag duplicatin behavior = list choice
 nnoremap <C-]> g<C-]>
