@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 22-Apr-2018.
+" Last Change: 05-May-2018.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -233,10 +233,27 @@ function! HandleURI()
     endif
   endif
   let s:uri = substitute(s:uri, '%', '\\%', "g")
+  let s:uri = substitute(s:uri, '\]$', '', "g")
   echo s:uri
   exec 'silent !powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
 endfunction
 map <Leader>s :call HandleURI()<CR>
+
+function! Test()
+  let s:uri = matchstr(getline("."), '[a-z]+:\/\/[^	<>|,;:"]*')
+  if s:uri == ""
+    let s:uri = matchstr(getline("."), '\([a-z]:\|\\\\\)[^/*?	<>|,;:"]*')
+    if s:uri == ""
+      echo "No URI or path found in line."
+      return
+    endif
+  endif
+  let s:uri = substitute(s:uri, '%', '\\%', "g")
+  let s:uri = substitute(s:uri, '\]$', '', "g")
+  echo s:uri
+	"echo a:arg
+endfunction
+"map <Leader>t :call Test()<CR>
 
 function! Fj(argstr)
 	" at directory list buffer 
@@ -245,14 +262,6 @@ function! Fj(argstr)
 endfunction
 cnoremap FJ call Fj("-p 
 
-
-function! Test()
-  let s:uri = matchstr(getline("."), '[a-z]+:\/\/[^	<>|,;:"]*')
-  let s:uri = substitute(s:uri, '%', '\\%', "g")
-	echo s:uri
-	"echo a:arg
-endfunction
-"map <Leader>t :call Test()<CR>
 
 let g:netrw_localcopycmd='copy' " avoid netrw notice
 let g:netrw_localrmdir='delete' " avoid netrw
