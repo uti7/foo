@@ -11,6 +11,7 @@ alias bc="bc -q"
 #alias vi="jvim"
 alias vi="vim"
 alias fj="fgvi"
+alias now="date +'%Y%m%d%H%M%S'"
 
 export EDITOR=vim
 export LANG=ja_JP.utf8
