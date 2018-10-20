@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.min.js"
+      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+      crossorigin="anonymous"></script>
+    <script type"text/javascript"><!--
+      $(function(){
+        $('#b').click(function(){
+          $('#msg').text($(':input[name=r]:checked').val());
+        });
+      });
+      //-->
+    </script>
+  </head>
+  <body>
+    <label for="msg">message:</label><span id="msg"></span>
+    <form id="f" name="f">
+      <!--
+      <input type="hidden" name="r" value=""/><span>on/off</span>
+      -->
+      <input type="radio" name="r" value="1" checked="checked"/><span>on</span>
+      <input type="radio" name="r" value="0"/><span>off</span>
+      <button id="b" type="button">click</button>
+  </body>
+</html>
