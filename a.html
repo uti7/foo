@@ -7,7 +7,27 @@
     <script type"text/javascript"><!--
       $(function(){
         $('#b').click(function(){
-          $('#msg').text($(':input[name=r]:checked').val());
+          $('#msg').text($('#f :input[name=r]:checked').val());
+					var name = 'r';
+					var jnode=$(':input[name="'+name+'"]');
+					if(jnode.attr("type") == 'radio'){
+						value = jnode.filter(':checked').val()
+					}else{
+						value = jnode.val();
+					}
+					inner = '<tr><td><input name="'+name+'" type="checkbox" '
+								+ ((value=='1')? "checked" : '')
+								+ "/></td></tr>"
+					$('tbody').append(inner);
+        });
+
+        $('#c').click(function(){
+					var name = 'r';
+          //$('#msg').text($('td :input[name=r]').val()); // on
+          $('#msg').text($('td :input[name='+name+']').is(':checked') ? 1:0);
+					$('#f :input[name=r]').val(
+						$('td :input[name='+name+']').is(':checked') ? 1:0
+					);
         });
       });
       //-->
@@ -21,6 +41,12 @@
       -->
       <input type="radio" name="r" value="1" checked="checked"/><span>on</span>
       <input type="radio" name="r" value="0"/><span>off</span>
-      <button id="b" type="button">click</button>
+      <button id="b" type="button">add</button>
+      <button id="c" type="button">remove</button>
+		</form>
+		<table>
+			<tbody>
+			</tbody>
+		</table>
   </body>
 </html>
