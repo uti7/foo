@@ -1,0 +1,893 @@
+<?xml version="1.0" standalone="yes" encoding="Shift_JIS" ?>
+<package>
+<job id="main">
+<?job debug="true"?>
+<runtime>
+<description>
+print range of network address
+</description>
+<named
+  name="re"
+  helpstring="indicate whether print regular expression"
+  many="false"
+  required="false"
+/>
+<named
+  name="m"
+  helpstring="indicate whether print net mask"
+  many="false"
+  required="false"
+/>
+<named
+  name="s"
+  helpstring="print short regular expression for full range (0-255 is '[0-9]+')"
+  many="false"
+  required="false"
+/>
+<named
+  name="csv"
+  helpstring="input from specified csv file, to output short reg-exp, use with /re /s "
+  many="false"
+  required="false"
+/>
+<named
+  name="proxy"
+  helpstring="/proxy:192.168.0.123:8080"
+  many="false"
+  required="false"
+/><named
+  name="out"
+  helpstring="/out:out.txt"
+  many="false"
+  required="false"
+/>
+<unnamed
+  name="network-addr"
+  helpstring="ipaddr/mask (ex. 192.168.0.0/24) or from-to (ex. 192.168.0.0-192.168.0.127"
+  many="false"
+  required="true"
+/>
+<example>
+
+</example>
+</runtime>
+
+<script language="VBScript"><![CDATA[
+'
+' the reg-exp string {
+'
+Class wshRE
+    Sub Class_Initialize
+        Set re_ = New RegExp
+        Set m_ = Nothing
+        s_ = ""
+    End Sub
+
+    Sub Class_Terminate
+        Set re_ = Nothing
+        Set m_ = Nothing
+    End Sub
+
+    ' match, ope: "gi"
+    Function m(restr, ope)
+        re_.Pattern = restr
+        re_.IgnoreCase = (InStr(CStr(ope), "i") > 0)
+        re_.Global = (InStr(CStr(ope), "g") > 0)
+
+        Set m_ = re_.Execute(s_)
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            m = False
+        Else
+            m = (m_.Count > 0)
+        End If
+    End Function
+
+    ' set and match
+    Function sm(restr, src, ope)
+        s_ = src
+        sm = (m(restr, CStr(ope)))
+    End Function
+
+    ' match count
+    Property Get mc()
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            mc = 0: Exit Property
+        End If
+        mc = m_.Count
+    End Property
+
+    ' match index of str which 0 origin
+    Property Get mi(n) 'n : zero start
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            mi = -1: Exit Property
+        End If
+        If m_.Count - 1 < n Then
+            mi = -1: Exit Property
+        End If
+        mi = m_(n).FirstIndex
+    End Property
+
+    ' match length of str
+    Property Get ml(n) 'n : zero start
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            ml = -1: Exit Property
+        End If
+        If m_.Count - 1 < n Then
+            ml = -1: Exit Property
+        End If
+        ml = m_(n).Length
+    End Property
+
+    ' match value of str
+    Property Get mv(n) 'n : zero start
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            mv = "": Exit Property
+        End If
+        If m_.Count - 1 < n Then
+            mv = "": Exit Property
+        End If
+        mv = m_(n).Value
+    End Property
+
+    ' sub match count
+    Property Get sc(n)
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            sc = -1: Exit Property
+        End If
+        If m_.Count - 1 < n Then
+            sc = -1: Exit Property
+        End If
+        sc = m_(n).SubMatches.Count
+    End Property
+
+    ' sub match value
+    Property Get sv(n, ns)
+        If TypeName(m_) = "Nothing" Or TypeName(m_) = "Empty" Then
+            sv = "": Exit Property
+        End If
+        If m_.Count - 1 < n Then
+            sv = "": Exit Property
+        End If
+        If m_(n).SubMatches.Count - 1 < ns Then
+            sv = "": Exit Property
+        End If
+        sv = m_(n).SubMatches(ns)
+    End Property
+
+    ' sub, ope: "gi"
+    Function s(restr, replstr, ope)
+        re_.Pattern = restr
+        re_.IgnoreCase = (InStr(CStr(ope), "i") > 0)
+        re_.Global = (InStr(CStr(ope), "g") > 0)
+
+        Set m_ = re_.Execute(s_)    'to update propery
+
+        s = re_.Replace(s_, replstr)
+    End Function
+
+    ' sub myself, ope: "gi"
+    Function ss(restr, replstr, ope)
+        re_.Pattern = restr
+        re_.IgnoreCase = (InStr(CStr(ope), "i") > 0)
+        re_.Global = (InStr(CStr(ope), "g") > 0)
+
+        Set m_ = re_.Execute(s_)    'to update propery
+
+        s_ = re_.Replace(s_, replstr)
+        ss = (m_.Count > 0)
+    End Function
+
+    Public Default Property Get defme_()
+        defme_ = s_
+    End Property
+
+    Private re_ ' reg exp
+    Private m_  ' matches
+    Public s_  ' target string
+End Class
+' } the reg-exp string
+]]></script>
+<object id="h2b"   progid="Scripting.Dictionary" />
+<object id="d2bc"  progid="Scripting.Dictionary" />
+<object id="fso"   progid="Scripting.FileSystemObject" />
+<object id="sh"  progid="WScript.Shell" />
+
+<script language="JScript"><![CDATA[
+
+function trim(inStr) {
+  if(!inStr) return "";
+  return String(inStr).replace(/(^[\s\t　]*)|([\s\t　]*$)/g,"");
+}
+
+function getWhoisInfo(remote_addr, res) {
+  // WHOIS HTML解析
+  var net_addr = "";
+  var net_name = "";
+  var auth = "";
+  var nic_db = "";
+  var type = "unknown";
+  var its = fso.OpenTextFile(res, 1, false);
+  var ll, ii;
+	var isBeganInfo = false;
+
+  while(!its.AtEndOfStream){
+    ll = its.ReadLine();
+    ll = trim(ll.replace(/<\/?[^>]+>/g, ""))
+    ll = ll.replace(/[ \t　]+/g," ");
+
+//WScript.Echo("LINE: " + ll);
+		if(!isBeganInfo){
+			if(/^\[Querying.*\]/.test(ll) > 0){
+				nic_db = "";
+				continue;
+			}
+			if(/^\[whois.*\]/.test(ll) > 0){
+				nic_db = ll.replace(/^\[(.*)\]/g, "$1");
+//WScript.Echo("SET: " + nic_db);
+				continue;
+			}
+			if(ll == ""){
+				isBeganInfo = true;
+				continue;
+			}
+      continue;
+		}
+
+    ii = ll.split(" ")
+    if(nic_db == "whois.nic.ad.jp"){
+      if(/^a\./.test(ii[0])){
+        var i = 2;
+      	if(/^Number/.test(ii[2])){	// in case, a. [Network Number]
+					i = 3;
+				}
+        for(; i<ii.length; i++){
+          net_addr = net_addr + " " + ii[i];
+        }
+        net_addr = trim(net_addr);
+        continue;
+      }
+      if(ii[0] == "b."){
+        net_name = ii[ii.length-1];
+        continue;
+      }
+      if(ii[0] == "f."){
+        for(i=2; i<ii.length; i++){
+          auth = auth + " " + ii[i];
+        }
+        auth = trim(auth);
+        break;
+      }
+      continue;
+    }
+
+    var restr;
+
+    if(nic_db == "whois.apnic.net" || nic_db == "whois.ripe.net"){
+      if(ii[0] == "inetnum:"){
+        /*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        */
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        net_addr = ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "netname:"){
+        /*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        net_name = $0;
+        */
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        net_name = ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "descr:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        auth = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        auth = auth + " " + ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "country:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        auth = auth " " $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        auth = auth + " " + ll.replace(restr, "");
+        break;
+      }
+      continue;
+    }
+
+    if(nic_db == "whois.lacnic.net"){
+      if(ii[0] == "inetnum:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        net_addr = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        net_addr = ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "ownerid:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        net_name = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        net_name = ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "owner:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        if(auth == ""){
+          auth = $0;
+        }else{
+          auth = auth " " $0;
+        }
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        auth = auth + " " + ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "country:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        auth = auth " " $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        auth = auth + " " + ll.replace(restr, "");
+        break;
+      }
+      continue;
+    }
+
+    if(nic_db == "whois.nida.or.kr" || nic_db == "whois.nic.or.kr"){
+      if(ii[0] == "IPv4" && ii[1] == "Address" && ii[2] == ":"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*" $2 "[ \t]*" $3 "[ \t]", "");
+        gsub("[ \t]*$", "");
+        net_addr = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*" + ii[1] + "[\\s\\t]*" + ii[2] + "[\\s\\t]*", "ig");
+        net_addr = ll.replace(restr, "");
+        continue;
+      }
+      if(net_name == "" && (ii[0] == "Service" || ii[0] == "Network") && ii[1] == "Name" && ii[2] == ":"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*" $2 "[ \t]*" $3 "[ \t]", "");
+        gsub("[ \t]*$", "");
+        net_name = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*" + ii[1] + "[\\s\\t]*" + ii[2] + "[\\s\\t]*", "ig");
+        net_name = ll.replace(restr, "");
+        continue;
+      }
+      if(auth == "" && ii[0] == "Org" && ii[1] == "Name" && ii[2] == ":"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*" $2 "[ \t]*" $3 "[ \t]", "");
+        gsub("[ \t]*$", "");
+        auth = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*" + ii[1] + "[\\s\\t]*" + ii[2] + "[\\s\\t]*", "ig");
+        auth = ll.replace(restr, "");
+        continue;
+      }
+      continue;
+    }
+
+    var type;
+    if(nic_db == "whois.arin.net"){
+      if(ii[0] == "OrgName:"){
+	    // # type: 1
+	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        auth = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        auth = ll.replace(restr, "");
+        type=1;
+        continue;
+      }
+      if(ii[0] == "NetRange:" || ii[0] == "CIDR:"){
+	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        net_addr = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        net_addr = ll.replace(restr, "");
+        continue;
+      }
+      if(ii[0] == "NetName:"){
+      	/*
+        gsub("^[ \t]*" $1 "[ \t]*", "");
+        gsub("[ \t]*$", "");
+        net_name = $0;
+	*/
+        restr = new RegExp("^[\\s\\t]*" + ii[0] + "[\\s\\t]*", "ig");
+        net_name = ll.replace(restr, "");
+        continue;
+      }
+
+	  // # type: 2
+      if(auth == ""
+		&& /[(]?NET-[0-9]*-[0-9]*-[0-9]*-[0-9]*/.test(ii[ii.length-1])){ //)
+        for(i=0; i < ii.length-2; i++){
+            auth = auth + " " + ii[i];
+        }
+        auth = trim(auth);
+        net_name = ii[ii.length-3];
+        type=2;
+        continue;
+      }
+      if(type == 2 && auth != "" && /[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\s-\s[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/.test(ll)){
+        /*
+        net_addr = $0;
+        sub("^[ \t]*", "", net_addr);
+        sub("[ \t]*$", "", net_addr);
+	      */
+	      net_addr = trim(ll);
+        break;
+      }
+      continue;
+    }
+    if(nic_db == ""){
+      WScript.Echo("iprange:", remote_addr + ":" + nic_db + ": unexpected nic_db");
+    }
+  }
+
+  its.Close();
+
+  if(net_addr == "")
+    net_addr = remote_addr + "/32";
+
+  // WScript.Echo(remote_addr + "," + net_addr + "," + net_name + "," + auth);
+  return(net_addr + "," + net_name + "," + auth);
+}
+
+]]></script>
+
+<script language="VBScript"><![CDATA[
+Option Explicit
+	Dim a, re, netaddr, spectype, i
+	Set a = WScript.Arguments
+	If a.Unnamed.Count = 0 then
+    If Not a.Named.Exists("csv") Then
+      a.ShowUsage
+      WScript.Quit 2
+    End If
+	End If
+
+  Call init
+	Set netaddr = New wshRE
+
+  Dim its, ots, sss, istr, prts
+
+  If a.Named.Exists("out") then
+    ' ファイルへ出力する場合
+    Set prts = fso.OpenTextFile(a.Named.Item("out"), 2, True)
+  Else
+    Set prts = Nothing
+  End If
+
+  If Not a.Named.Exists("csv") Then
+
+    For i = 0 To a.Unnamed.Count-1
+      netaddr.s_ = netaddr.s_ & a.Unnamed(i)
+    Next
+
+    If netaddr.m("^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$", Empty) Then
+      Dim whoisInfo, buf
+    '  *** ＷＨＯＩＳ取得後出力
+      whoisInfo = doWhois(netaddr)
+      buf = Split(whoisInfo, ",")
+      If buf(0) <> "" Then
+        netaddr.s_ = buf(0)
+        Call iprangeMain(netaddr)
+        If prts Is Nothing Then
+          WScript.Echo whoisInfo
+        Else
+          prts.WriteLine "Description:" & whoisInfo
+        End If
+      Else
+        Err.Raise 1, "iprange", netaddr.s_ & ": network info get failed."
+      End If
+
+    Else
+      '  *** 通常出力
+      Call iprangeMain(netaddr)
+    End If
+
+
+  Else
+    '  *** CSV出力
+    Set its = fso.OpenTextFile(a.Named.Item("csv"), 1, False)
+    Set ots = fso.OpenTextFile(fso.GetFileName(a.Named.Item("csv")) & ".re", 2, True)
+msgbox fso.GetFileName(a.Named.Item("csv"))
+    Do While its.AtEndOfStream <> True
+      istr = its.ReadLine
+      sss = Split(istr, ",")
+      netaddr.s_ = sss(0)
+
+			msgbox netaddr.s_ & ":" & istr
+			dim aaa: aaa = iprangeMain(netaddr)
+			if true then
+				msgbox  aaa
+				exit do
+			end if
+      ots.WriteLine  aaa & "," & istr
+    Loop
+
+    its.Close
+    ots.Close
+  End If
+
+  If Not prts Is Nothing Then
+    prts.Close
+  End If
+  Set netaddr = Nothing
+	WScript.Quit 0
+'----- end of scriptmain
+
+Sub init()
+	' make hex2bit table
+	h2b.Add "0", "0000"
+	h2b.Add "1", "0001"
+	h2b.Add "2", "0010"
+	h2b.Add "3", "0011"
+	h2b.Add "4", "0100"
+	h2b.Add "5", "0101"
+	h2b.Add "6", "0110"
+	h2b.Add "7", "1110"
+	h2b.Add "8", "1000"
+	h2b.Add "9", "1001"
+	h2b.Add "A", "1010"
+	h2b.Add "B", "1011"
+	h2b.Add "C", "1100"
+	h2b.Add "D", "1101"
+	h2b.Add "E", "1110"
+	h2b.Add "F", "1111"
+
+	'ネットマスク10進表記をビット数にするテーブル
+	d2bc.Add "0"  , 0
+	d2bc.Add "128", 1
+	d2bc.Add "192", 2
+	d2bc.Add "224", 3
+	d2bc.Add "240", 4
+	d2bc.Add "248", 5
+	d2bc.Add "252", 6
+	d2bc.Add "254", 7
+	d2bc.Add "255", 8
+
+End Sub
+
+Function iprangeMain(nettaddr)
+
+   'CIDR表記のIPが４個ない場合は0を補完する
+	If netaddr.m("^([0-9]+)\.([0-9]+)/([0-9]+)", Empty) Then
+    netaddr.ss "/", ".0.0/" , Empty ' ２個時
+	ElseIf netaddr.m("^([0-9]+)\.([0-9]+)\.([0-9]+)/([0-9]+)", Empty) Then
+    netaddr.ss "/", ".0/" , Empty   '３個時
+  End If
+
+
+	If netaddr.m("([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/([0-9]+)", Empty) Then
+    spectype = "ip/mask"
+  ElseIf netaddr.m("([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\s*-\s*([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)", Empty) Then
+    spectype = "from-to"
+  End If
+
+  If IsEmpty(spectype) Then
+		a.ShowUsage
+    If Not prts Is Nothing Then
+      prts.Close
+    End If
+		WScript.Quit 2
+	End If
+
+	Dim mask_left
+	ReDim minip(3)  'ｆｒｏｍ（最小）アドレス
+	ReDim maxip(3)  'ｔｏ（最大）アドレス
+
+  Select Case spectype
+  Case "ip/mask"
+    mask_left = netaddr.sv(0, 4)
+    i = 0
+    'マスクがフルのオクテットを固定値としてセット
+    Do While mask_left >= 8
+      minip(i) = CInt(netaddr.sv(0, i))
+      maxip(i) = CInt(netaddr.sv(0, i))
+
+      mask_left = mask_left - 8
+      i = i + 1
+    Loop
+
+    'マスクが途中で終わるオクテットの最小値と最大値を求める
+    Dim mask_bits, addr_bits, j
+    For i = i To 3
+      If mask_left > 0 then
+        addr_bits = dec2bits(netaddr.sv(0, i))
+        mask_bits = mask2bits(mask_left)
+        minip(i) = min_octet(addr_bits, mask_bits)
+        maxip(i) = max_octet(addr_bits, mask_bits)
+        mask_left = 0
+      Else
+        minip(i) = 0
+        maxip(i) = 255
+      End If
+    Next
+  Case "from-to"
+    'なにもせず表示させる
+      For i = 0 To 3
+        minip(i) = CInt(netaddr.sv(0, i))
+        maxip(i) = CInt(netaddr.sv(0, i+4))
+      Next
+
+      ' 2007-01-11 ｆｒｏｍとｔｏが逆転している場合入れ替え
+      ' 2007-01-11 不要
+'    Dim lf, lt
+'    lf = CDbl(netaddr.sv(0, 0) * CDbl(2^24)) _
+'       + CDbl(netaddr.sv(0, 1) * CDbl(2^16)) _
+'            + netaddr.sv(0, 2) * 2^8 _
+'            + netaddr.sv(0, 3)
+'    lt = CDbl(netaddr.sv(0, 4) * CDbl(2^24)) _
+'       + CDbl(netaddr.sv(0, 5) * CDbl(2^16)) _
+'            + netaddr.sv(0, 6) * 2^8 _
+'            + netaddr.sv(0, 7)
+'    If lf > lt Then
+'      For i = 0 To 3
+'        minip(i) = CInt(netaddr.sv(0, i+4))
+'        maxip(i) = CInt(netaddr.sv(0, i))
+'      Next
+'    Else
+'      For i = 0 To 3
+'        minip(i) = CInt(netaddr.sv(0, i))
+'        maxip(i) = CInt(netaddr.sv(0, i+4))
+'      Next
+'    End If
+  End Select
+
+  '文字列化
+	Dim minout, maxout
+	For i = 0 To 3
+		minout = minout & minip(i) & "."
+		maxout = maxout & maxip(i) & "."
+	Next
+	
+  '出力
+  If Not a.Named.Exists("csv") Then
+    If prts Is Nothing Then
+      WScript.Echo Left(minout, Len(minout)-1) & " - " & Left(maxout, Len(maxout)-1)
+    Else
+      prts.WriteLine "Range:" & Left(minout, Len(minout)-1) & " - " & Left(maxout, Len(maxout)-1)
+    End If
+
+    'ネットマスク出力
+    If a.Named.Exists("m") Then
+    Dim maskstr, m, nbits
+      For i = 0 To 3
+        m = make_maskstr(minip(i), maxip(i))
+        maskstr = maskstr & m & "."
+        nbits = nbits + CInt(d2bc(CStr(m)))
+      Next
+      If prts Is Nothing Then
+        WScript.Echo Left(maskstr, Len(maskstr)-1)
+        WScript.Echo "/" & nbits
+      Else
+        prts.Write  "CIDR:" & Left(maskstr, Len(maskstr)-1)
+        prts.WriteLine "/" & nbits
+      End If
+    End If
+
+    '正規表現文字生成
+    Dim restr
+    If a.Named.Exists("re") Then
+      For i = 0 To 3
+        restr = restr & make_restr(minip(i), maxip(i)) & "\."
+      Next
+      If prts Is Nothing Then
+        WScript.Echo Left(restr, Len(restr)-2)
+      Else
+        prts.WriteLine "RegExp:" & Left(restr, Len(restr)-2)
+      End If
+    End If
+
+  Else
+    '（csv出力用）正規表現文字戻す
+      For i = 0 To 3
+        restr = restr & make_restr(minip(i), maxip(i)) & "\."
+      Next
+      iprangeMain = "(" & Left(restr, Len(restr)-2) & ")"
+  End If
+
+End Function
+'---------- end of main
+
+Function dec2bits(dec)
+  '０－２５５範囲の数値を受け取り、そのビット表現を返す
+	Dim h
+	h = Right("00" & Hex(dec), 2)
+	dec2bits = h2b(Left(h, 1))
+	dec2bits = dec2bits & h2b(Right(h, 1))
+End Function
+
+Function mask2bits(m)
+  'マスクビット数0-32を受け取り,そのビット表現を返す
+	mask2bits = Left(String(m, "1") + "00000000", 8)
+End Function
+
+Function min_octet(a, m)
+  'アドレスの一部のオクテットａおよびマスクビットを元にａの最小値を返す
+	Dim i, dec
+	For i = 1 To 8
+		dec = dec + (((Mid(a,i,1) = Mid(m,i,1)) * (Mid(m,i,1) = "1"))  * 2^(8-i))
+	Next
+	min_octet = dec
+End Function
+
+Function max_octet(a, m)
+  'アドレスの一部のオクテットａおよびマスクビットを元にａの最大値を返す
+	Dim i, dec
+	For i = 1 To 8
+		dec = dec + Abs((((Mid(a,i,1)="1") * (Mid(m,i,1)="1")) + (Mid(m,i,1) = "0"))  * 2^(8-i))
+	Next
+	max_octet = dec
+End Function
+
+Function make_restr(f, t )
+  '0-255の任意範囲ｆ～ｔまでにマッチする正規表現文字列を生成して返す
+  Dim str
+  '範囲が一桁で収まっている場合。例 1-7
+  ' [1-7]
+  '範囲が二桁で収まっている場合：例 8-22
+  ' ([8-9]|1[0-9]|2[0-2])
+  '範囲が３桁になる場合：例 4-254
+  ' ([4-9]|[1-9][0-9]|1[0-9][0-9]|2([0-4][0-9])|(5[0-4]))
+
+  If f = t Then '同じ場合は終了
+    make_restr = f
+    Exit Function
+  End If
+
+  If a.Named.Exists("s") And f = 0 And t = 255 Then
+    'ｓオプションがあり、範囲が全部（０から２５５）の場合、簡略出力
+    make_restr = "[0-9]+"
+    Exit Function
+  End If
+
+  str = "("
+  ' (1)一桁値用を作成
+  If f < 10 Then
+    '一桁がある
+    If t < 10 then
+      '一桁しかない場合は終了
+        ' 2007-01-11 str先頭の括弧が閉じないバグ
+        'str = str & "[" & f & "-" & t & "]" 'ｆからｔまで
+        'make_restr = str
+      make_restr = "[" & f & "-" & t & "]" 'ｆからｔまで
+      Exit Function
+    Else
+      '二桁以上ある
+      str = str & "[" & f & "-" & "9]" '「ｆから９まで」を作成
+    End If
+  End If
+
+  ' (2)２桁値用を作成
+  If str <> "(" And Right(str, 1) <> "|" Then str = str & "|"
+  
+
+
+    'ｆを2桁の開始値に修正
+    If f < 10 Then f = 10 
+
+  If f < 100 then
+    '二桁がある
+    str = str & getTwoDigitsRE("", f, t)
+
+  End If
+
+  If t > 99 Then
+    '(3)３桁値用を作成
+      If str <> "(" And Right(str, 1) <> "|" Then str = str & "|"
+    'ｆを3桁の開始値に修正
+    If f < 100 Then f = 100
+
+    If f >= 100 then
+      '3桁がある
+      If f < 200 then
+        '１００台がある
+
+        Dim t100  '１００台のｔを求める
+        If t > 199 Then
+          t100 = 99
+        Else
+          t100 = t-100
+        End If
+        str = str & getTwoDigitsRE("1", f-100, t100)
+      End If
+
+      ' 200台あればｆをその開始値にして作成
+      If f < 200 Then  f = 200
+      If t > 199 Then
+        If str <> "(" And Right(str, 1) <> "|" Then str = str & "|"
+
+        str = str & getTwoDigitsRE("2", f-200, t-200)
+      End If
+    End If
+  End If
+  If str <> "(" Then str = str & ")"
+  make_restr = str
+End Function
+
+Function getTwoDigitsRE(prefix100, f, t)
+    Dim str
+    '二桁分作成用
+    '二桁台に半端ある場合は
+    str = str & prefix100 & Int(f/10) & "[" & (f Mod 10) & "-"  '前部の半端 用ＲＥを作成
+    If Int(f/10) = Int(t/10) Then
+      'ｆとｔの１０の位が同じ場合は終了
+      str = str & (t Mod 10) & "]"
+      getTwoDigitsRE = str
+      Exit Function
+    Else
+      str = str & "9]"
+    End If
+
+    '１０の位の一桁部が、完全→［０－９］でよいパターンを作成
+    If str <> "(" And Right(str, 1) <> "|" Then str = str & "|"
+    
+    If t > 100 Then
+      'ｔが３桁なので2桁ＲＥは９９まで作成する場合
+      str = str & prefix100 & "[" & Int(f/10)+1 & "-9][0-9]"
+    Else
+      '後部に半端がある
+      If (Int(f/10)+1) = Int(t/10) Then
+        '完全部なし
+      Else
+        str = str & prefix100 & "[" & Int(f/10)+1 & "-" & Int(t/10)-1 & "][0-9]"  '完全部
+      End If
+      If str <> "(" And Right(str, 1) <> "|" Then str = str & "|"
+      str = str & prefix100 & Int(t/10) &  "[0-" & (t Mod 10) & "]"  '後部の半端部
+      getTwoDigitsRE = str
+      Exit Function
+    End If
+    getTwoDigitsRE = str
+End Function
+
+Function make_maskstr(f, t )
+	'ネットマスク文字を 255.255.255.0 のような形式で返す
+	
+	make_maskstr = (CByte(f) Or (Not CByte(t)))
+End Function
+
+Function doWhois(addr)
+  'IPアドレスのwhois情報をjwhoisで問い合わせる
+	Const whoisCmd ="c:\progra~2\gnuwin32\bin\jwhois"
+	Dim res: res = getTmpDir() & "\whois.log"
+  sh.Run "cmd /c " & whoisCmd & " " & addr.s_ & " > " & res, 2, True
+
+  doWhois = getWhoisInfo(addr.s_, res)
+
+End Function
+
+Function getTmpDir()
+  ' 2008-03-18 FIXME：config.xmlを見ず、決め打ち
+  getTmpDir = sh.ExpandEnvironmentStrings("%TEMP%") _
+    & "\coldspa\_tmp"
+End Function
+]]></script>
+</job>
+</package>
