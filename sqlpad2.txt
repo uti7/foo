@@ -1,165 +1,214 @@
+Attribute VB_Name = "Module1"
+'Attribute VB_Name = "Module1"
 Option Explicit
 
-Sub execSQL()
-    Attribute execSQL.VB_ProcData.VB_Invoke_Func = "r\n14"
+Dim isStopped As Boolean
+Sub doSQL()
+Attribute doSQL.VB_ProcData.VB_Invoke_Func = "r\n14"
+    Call execSQL
+End Sub
 
-    Dim con As New ADODB.Connection
-    Dim connectionString As String
+Sub execSQL(Optional query = "")
+Attribute execSQL.VB_ProcData.VB_Invoke_Func = "r\n14"
 
-    Dim sDBSever As String
-    Dim sDBName As String
-    Dim sLoginID As String
-    Dim sPassWD As String
+Dim con As New ADODB.Connection
+Dim connectionString As String
 
-    sDBSever = "192.168.0.88"
-    sDBName = "aaa"
-    sLoginID = "bbb"
-    sPassWD = "ccc"
+Dim sDBSever As String
+Dim sDBName As String
+Dim sLoginID As String
+Dim sPassWD As String
+
+sDBSever = "192.168.0.88"
+sDBName = "aaa"
+sLoginID = "bbb"
+sPassWD = "ccc"
 
 
-    '
-    'connectionString = "Provider=Sqloledb"
-    'connectionString = "Driver={SQL Server};"
-    '& "Persist Security Info=True" _
-    '
-    ' ODBC
-    connectionString = "Provider=MSDASQL; DSN=PostgreSQL35W;DATABASE=dbname;SERVER=localhost;PORT=5432;UID=dbuser;;SSLmode=disable"
+'
+'connectionString = "Provider=Sqloledb"
+'connectionString = "Driver={SQL Server};"
+'& "Persist Security Info=True" _
+'
+connectionString = "Provider=MSDASQL; DSN=PostgreSQL35W2;DATABASE=dbname;SERVER=localhost;PORT=5432;UID=postgres;;SSLmode=disable"
 
-    ' OLEDB
-    '#If False Then
-    'con.Provider = "SQLOLEDB"
-    '
-    'connectionString = "" _
-    '& "Driver={SQL Server}" _
-    '& ";Data Source=" & sDBSever _
-    '& ";Initial Catalog=" & sDBName _
-    '& ";Connect Timeout=15" _
-    '& ";User Id=" & sLoginID _
-    '& ";Password=" & sPassWD
-    '#End If
+'#If False Then
+'con.Provider = "SQLOLEDB"
+'
+'connectionString = "" _
+'& "Driver={SQL Server}" _
+'& ";Data Source=" & sDBSever _
+'& ";Initial Catalog=" & sDBName _
+'& ";Connect Timeout=15" _
+'& ";User Id=" & sLoginID _
+'& ";Password=" & sPassWD
+'#End If
 
-    On Error GoTo Err_DBConnectOpen
+On Error GoTo Err_DBConnectOpen
 
-    'SQL RecordSET
-    Dim q As String
+
+isStopped = False
+
+'SQL RecordSET
+Dim q As String
+If query = "" Then
     q = getQueryStr()
-    If q = "" Then
-        Exit Sub
-    End If
+Else
+    q = query
+End If
 
-    Dim isOutCurrentRow As Boolean
-    If InStr(1, q, "@") = 1 Then
-        q = Replace(q, "@", "", 1, 1)
-        isOutCurrentRow = True
-    End If
+If q = "" Then
+    Exit Sub
+End If
 
-    '
-    con.Open connectionString
+Dim isOutCurrentRow As Boolean
+If InStr(1, q, "@") = 1 Then
+    q = Replace(q, "@", "", 1, 1)
+    isOutCurrentRow = True
+End If
+If InStr(1, q, "----") > 0 Then
+    q = Mid(q, 1, InStr(1, q, "----") - 1)
+End If
 
-    Dim rs, i, j, n, sc
-    Set rs = con.Execute(q)
+'
+con.Open connectionString
 
-    '
-    'rs.MoveFirst
 
-    If isOutCurrentRow Then
-        i = ActiveCell.Row
-        sc = ActiveCell.Column - 1
-    Else
-        i = 1
-        sc = 0
-    End If
 
-    i1st = i
+Dim rs, i, j, n, sc, affected, i1st
+Set rs = con.Execute(q, affected)
 
-    n = rs.Fields.Count
-    If n > 0 Then
-        Do Until rs.EOF = True
-            For j = 1 To n
-                If i = i1st Then
-                    ActiveSheet.Cells(i, sc + j) = rs.Fields(j - 1).Name
-                End If
-                
-                ActiveSheet.Cells(i + 1, sc + j) = rs.Fields(j - 1).Value
-            Next
-            rs.MoveNext
-            i = i + 1
-            If i > 10000 Then
-                MsgBox "too many records, stopped at 10,000 "
-                Exit Do
+'
+'rs.MoveFirst
+
+If isOutCurrentRow Then
+    i = ActiveCell.Row
+    sc = ActiveCell.Column - 1
+Else
+    i = 1
+    sc = 0
+End If
+
+i1st = i
+
+n = rs.Fields.Count
+If n > 0 Then
+
+    Do Until rs.EOF = True
+        For j = 1 To n
+            If i = i1st Then
+                ActiveSheet.Cells(i, sc + j) = rs.Fields(j - 1).Name
             End If
-            DoEvents
-        Loop
+            
+            ActiveSheet.Cells(i + 1, sc + j) = rs.Fields(j - 1).Value
+        Next
+        rs.MoveNext
+        i = i + 1
+        If i > 10000 Then
+            MsgBox "too many records, stopped at 10,000 "
+            Exit Do
+        End If
+        DoEvents
+
+    Loop
+End If
+
+
+'
+con.Close
+Set con = Nothing
+
+i = i + 1
+
+If isOutCurrentRow Then
+    ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+    ActiveSheet.Cells(i + 1, sc + 1).Select
+    ActiveSheet.Activate
+    If isStopped Then
+        MsgBox "stopped."
     End If
+    Exit Sub
+End If
 
-    '
-    con.Close
-    Set con = Nothing
+i1st = i
+Do While isStopped = False And Not IsEmpty(ActiveSheet.Cells(i, 1).Value)
+'    For j = 1 To n
+'        ' end , below cleared
+'        ActiveSheet.Cells(i, j).Clear
+'
+'    Next
 
-    i = i + 1
-
-    If isOutCurrentRow Then
-        ActiveSheet.Cells(i, sc + 1) = "END"
-        ActiveSheet.Cells(i + 1, sc + 1).Select
-        ActiveSheet.Activate
-        Exit Sub
-    End If
-
-
-    Do While ActiveSheet.Cells(i, 1) <> ""
-    For j = 1 To n
-        ' end , below cleared
-        ActiveSheet.Cells(i, j) = ""
-    Next
     DoEvents
     i = i + 1
-    Loop
+Loop
+Range(Cells(i1st, 1), Cells(i, n)).Select
+Selection.Clear
+Selection.NumberFormatLocal = "@"
 
-    i = 1
-    Do While ActiveSheet.Cells(i, 1) <> ""
-        DoEvents
-        i = i + 1
-    Loop
-    ActiveSheet.Cells(i, 1) = "END"
-    ActiveSheet.Cells(i + 1, 1).Select
-    ActiveSheet.Activate
-    'Sheets("Sheet1").Range("A1").Select
+i = 1
+Do While isStopped = False And Not IsEmpty(ActiveSheet.Cells(i, 1).Value)
+    DoEvents
 
-    If Not ActiveSheet.AutoFilterMode Then
-        '
-        ActiveSheet.Range("A1").AutoFilter
-    Else
-        '
-        'Sheets("Sheet1").Range("A1").AutoFilterMode = False
-        ActiveSheet.Range("A1").AutoFilter ' remove
-        ActiveSheet.Range("A1").AutoFilter ' set
-    End If
+    i = i + 1
+Loop
 
-    ActiveSheet.Activate
-    'MsgBox ("done.")
+If isStopped Then
+    MsgBox "stopped."
+End If
+'i = i + 1
+ActiveSheet.Cells(i, 1) = "END: " & affected & " affected."
+ActiveSheet.Cells(i + 1, 1).Select
+ActiveSheet.Activate
+'Sheets("Sheet1").Range("A1").Select
 
-    Exit Sub
-
+If Not ActiveSheet.AutoFilterMode Then
     '
-Err_DBConnectOpen:
-    MsgBox Err.Description
+    ActiveSheet.Range("A1").AutoFilter
+Else
+    '
+    'Sheets("Sheet1").Range("A1").AutoFilterMode = False
+    ActiveSheet.Range("A1").AutoFilter ' remove
+    ActiveSheet.Range("A1").AutoFilter ' set
+End If
 
-    'Connection
-    If con.State <> ADODB.adStateClosed Then
-        con.Close
-    End If
-    Set con = Nothing
+
+
+ActiveSheet.Activate
+
+'MsgBox ("done.")
+
+Exit Sub
+
+'
+Err_DBConnectOpen:
+MsgBox Err.Description
+
+'Connection
+If con.State <> ADODB.adStateClosed Then
+    con.Close
+End If
+Set con = Nothing
 
 End Sub
 
 Function getQueryStr() As String
-    If TypeName(Selection) <> "TextBox" Then
-        MsgBox "there's no activate textbox shape."
+    Dim tb
+    If ActiveSheet.Shapes.Count = 1 And ActiveSheet.Shapes(1).Type = msoTextBox Then
+        Set tb = ActiveSheet.Shapes(1)
+       getQueryStr = tb.TextFrame.Characters.Text
+    ElseIf TypeName(Selection) <> "TextBox" Then
+        MsgBox "has no activate textbox shape."
         Exit Function
+    Else
+        Set tb = Selection
+        getQueryStr = tb.Text
     End If
-    getQueryStr = Selection.Characters.Text
+    
 End Function
 
-
+Sub StopExecution()
+Attribute StopExecution.VB_ProcData.VB_Invoke_Func = "q\n14"
+    isStopped = True
+End Sub
 
 
