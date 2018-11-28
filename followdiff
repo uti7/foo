@@ -1,0 +1,13 @@
+#/bin/sh
+midsh="/tmp/followdiff.$$"
+trap "rm -f $midsh" 0
+
+file="$1"
+git log --name-status "$file"|awk -v file="$file" '/^commit/{if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
+c = "git diff " a " " b " -- " file;\
+print "echo ::::::::::";
+print "printf \"" $0 ": hit ENTER to continue.\"";
+print "read k";
+print c;
+}' >"$midsh"
+[ -f "$midsh" ] && sh "$midsh"
