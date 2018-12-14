@@ -94,7 +94,7 @@ i1st = i
 n = rs.Fields.Count
 If n > 0 Then
 
-    Do Until rs.EOF = True
+    Do Until rs.EOF = True Or isStopped
         For j = 1 To n
             If i = i1st Then
                 ActiveSheet.Cells(i, sc + j) = rs.Fields(j - 1).Name
@@ -120,57 +120,62 @@ Set con = Nothing
 
 i = i + 1
 
-If isOutCurrentRow Then
-    ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
-    ActiveSheet.Cells(i + 1, sc + 1).Select
-    ActiveSheet.Activate
-    If isStopped Then
-        MsgBox "stopped."
-    End If
-    Exit Sub
-End If
-
-i1st = i
-Do While isStopped = False And Not IsEmpty(ActiveSheet.Cells(i, 1).Value)
-'    For j = 1 To n
-'        ' end , below cleared
-'        ActiveSheet.Cells(i, j).Clear
+'If isOutCurrentRow Then
+'    ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+'    ActiveSheet.Cells(i + 1, sc + 1).Select
+'    ActiveSheet.Activate
+'    If isStopped Then
+'        MsgBox "stopped."
+'        Exit Sub
+'    End If
 '
-'    Next
+'End If
 
-    DoEvents
-    i = i + 1
-Loop
-Range(Cells(i1st, 1), Cells(i, n)).Select
-Selection.Clear
-Selection.NumberFormatLocal = "@"
-
-i = 1
-Do While isStopped = False And Not IsEmpty(ActiveSheet.Cells(i, 1).Value)
-    DoEvents
-
-    i = i + 1
-Loop
-
-If isStopped Then
-    MsgBox "stopped."
-End If
+' below cells cleard
 'i = i + 1
-ActiveSheet.Cells(i, 1) = "END: " & affected & " affected."
-ActiveSheet.Cells(i + 1, 1).Select
-ActiveSheet.Activate
-'Sheets("Sheet1").Range("A1").Select
+If n > 0 Then
+    Dim clear1st: clear1st = i
+    Do While isStopped = False And Not IsEmpty(ActiveSheet.Cells(i, sc + 1).Value)
+        DoEvents
+        i = i + 1
+    Loop
+    Range(Cells(clear1st, 1), Cells(i, n)).Select
+    Selection.Clear
+    Selection.NumberFormatLocal = "@"
+    
+'    If Not isOutCurrentRow Then
+        i = i1st
+        Do While isStopped = False And Not IsEmpty(ActiveSheet.Cells(i, sc + 1).Value)
+            DoEvents
+        
+            i = i + 1
+        Loop
+        If isStopped Then
+            MsgBox "stopped."
+        End If
+'    End If
+    
 
+
+
+End If
+
+ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+
+
+ActiveSheet.Cells(i + 1, sc + 1).Select
+
+On Error Resume Next
 If Not ActiveSheet.AutoFilterMode Then
     '
-    ActiveSheet.Range("A1").AutoFilter
+    ActiveSheet.Cells(i1st, sc).AutoFilter
 Else
     '
     'Sheets("Sheet1").Range("A1").AutoFilterMode = False
-    ActiveSheet.Range("A1").AutoFilter ' remove
-    ActiveSheet.Range("A1").AutoFilter ' set
+    ActiveSheet.Cells(i1st, sc + 1).AutoFilter ' remove
+    ActiveSheet.Cells(i1st, sc + 1).AutoFilter ' set
 End If
-
+On Error GoTo 0
 
 
 ActiveSheet.Activate
@@ -181,7 +186,7 @@ Exit Sub
 
 '
 Err_DBConnectOpen:
-MsgBox Err.Description
+MsgBox Err.Number & ": " & Err.Description
 
 'Connection
 If con.State <> ADODB.adStateClosed Then
