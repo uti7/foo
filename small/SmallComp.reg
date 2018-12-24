@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\CLSID\{B1DC22CC-3F4E-42B4-92F8-1445DE855BF3}]
+@="Small Object"
+
+[HKEY_CLASSES_ROOT\CLSID\{B1DC22CC-3F4E-42B4-92F8-1445DE855BF3}\InprocServer32]
+@="C:\\windows\\syswow64\\SmallComp.dll"
+"ThreadingModel"="Apartment"
+
+[HKEY_CLASSES_ROOT\CLSID\{B1DC22CC-3F4E-42B4-92F8-1445DE855BF3}\ProgID]
+@="SmallLib.SmallObject"
+
+[HKEY_CLASSES_ROOT\SmallLib.SmallObject]
+@="Small Object"
+
+[HKEY_CLASSES_ROOT\SmallLib.SmallObject\CLSID]
+@="{B1DC22CC-3F4E-42B4-92F8-1445DE855BF3}"
