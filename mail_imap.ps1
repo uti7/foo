@@ -107,15 +107,19 @@ function imapConnect($accdef, [ref] $resp) {
   return $true
 }
 
-function imapDisconnect() {
+function imapDisconnect([switch] $is_quiet = $false) {
     if($Global:mail.imap -eq $null){
-      Write-Host -ForegroundColor Yellow "not connected."
+      if(!$is_quiet){
+        Write-Host -ForegroundColor Yellow "not connected."
+      }
     }elseif($Global:mail.imap.Connected){
       [void] $Global:mail.imap.Close
       $Global:mail.imap = $null
-      Write-Host -ForegroundColor Green "disconnected."
+      Write-Host -ForegroundColor Green ($Global:mail.cia.id + ": disconnected.")
     }else{
-      Write-Host -ForegroundColor Yellow "already disconnected."
+      if(!$is_quiet){
+        Write-Host -ForegroundColor Yellow "already disconnected."
+      }
     }
     $Global:mail.cia = $null
     $Global:mail.i = -1
@@ -307,7 +311,8 @@ function viewMail
   Param(
     [int]     $i,
     [string]  $mime = "",
-    [switch]  $is_forcibly = $true
+    [switch]  $is_forcibly = $true,
+    [switch]  $is_silent = $false
   )
   if(!(retrieve)){return}
   if(!$Global:mail.list){
@@ -325,10 +330,15 @@ function viewMail
     return
   }
   $Global:mail.i = $i
-  Get-Content ($extdir + "\header.txt")|Select-String "^(Subject|From|Date):"|Write-Host -BackgroundColor DarkGreen -ForegroundColor Yellow
-  Get-Content ($extdir + "\body.txt") |Set-Variable b
-  $b -split "\r\n" |Set-Variable bb
-  _more_ $b
+  if($is_silent){
+    Get-Content ($extdir + "\body.txt") |Set-Variable b
+    return $b
+  }else{
+    Get-Content ($extdir + "\header.txt")|Select-String "^(Subject|From|Date):"|Write-Host -BackgroundColor DarkGreen -ForegroundColor Yellow
+    Get-Content ($extdir + "\body.txt") |Set-Variable b
+    #$b -split "\r\n" |Set-Variable bb
+    _more_ $b
+  }
 }
 
 function invokeURL
@@ -344,14 +354,21 @@ function invokeURL
 	}
 }
 
-function template
+function showAccounts()
 {
+  $Global:mail.accxml.selectNodes("/accounts/account-def")|?{$_.imap -ne $null}|%{
+    if($_.id -eq $Global:mail.cia.id){
+      Write-Host -NoNewLine "*"
+    }
+    "`t" + $_.id
+  }
+}
+function showTemplate {
 	$accdef = '<account-def id="IDENT" imap="imap.gmail.com:993" pop="pop.gmail.com:995" user="recent:USER" smtp="smtp.gmail.com:465" addr="USER@gmail.com" smtpauth_user="USER" smtpauth_pwd="" popbeforesmtp="no" ssl="yes" ></account-def>'
 	$accdef
 }
 
-function retrieve($is_viewbody = $false)
-{
+function retrieve($is_viewbody = $false){
     $ret = $true
     $is_reconnect = $false
     while($true){
@@ -436,8 +453,7 @@ function _left_($datum, $max){
   return $datum.toString().SubString(0, ([int]($max - $l -lt 0) * $max) + ([int]($max - $l -ge 0) * $l))
 }
 
-function _more_([array]$list, $fg = "White")
-{
+function _more_([array]$list, $fg = "White"){
   #more does not works also `Out-Host -Paging', dammit!
   $i = 0
   $n = $Global:mail.config.paging_body
@@ -670,8 +686,7 @@ function extractMail3($src, $parent, $folName, $mime,
   return $extid
 }
 
-function readMail($src, $field, [ref]$resp)
-{
+function readMail($src, $field, [ref]$resp){
 # $src: TKMP.Net.MailData_Imap ならそれを読む（オンライン用）
 #       String ならメールファイルパス＝DL済みを読む
 # $field "読むヘッダフィールド(大文字小文字区別なし）,
@@ -864,8 +879,7 @@ function readMail($src, $field, [ref]$resp)
   return $ret
 }
 
-function _findAlternativePart($parts, $save_dest)
-{
+function _findAlternativePart($parts, $save_dest){
   # PartCollectionをくだりaltテキストを$save_destへ出力
   # htmlメールなどを添付ファイル化する
   $ret = ""
@@ -896,8 +910,7 @@ function _findAlternativePart($parts, $save_dest)
   return $ret
 }
 
-function charset2enc($charset)
-{
+function charset2enc($charset){
 	# charset 表記を .netエンコーディング表記に変換する（一致しないものある）
 	# メールのcharset指定と.Net名が異なる場合例外になる
 	# c.f.）http://www.atmarkit.co.jp/ait/articles/0304/11/news004.html
@@ -911,8 +924,7 @@ function charset2enc($charset)
 }
 
 function saveByStreamWriter($str, $path, $isAppend = $false,
-    $enc = [System.Text.Encoding]::Default )
-{
+    $enc = [System.Text.Encoding]::Default ){
   $sw = New-Object System.IO.StreamWriter($path, $isAppend, $enc)
   $sw.Write($str)
   $sw.Close()
@@ -988,7 +1000,8 @@ function _TEXT{
 <#
   the main command
 #>
-function mail{
+function mail
+{
   Param(
     [string]  $connect,
     [switch]  $disconnect,
@@ -998,17 +1011,21 @@ function mail{
     [switch]  $header,
     [switch]  $_delete,
     [switch]  $info,
+    [int]     $invoke,
     [int]     $seek,
     [switch]  $deleteReset,
     [int]     $view = $Global:mail.i,
     [int]     $exprore,
     [object]  $search,
+    [switch]  $show_accounts,
+    [switch]  $show_template,
     [switch]  $clean,
     [switch]  $init
   )
 
   try{
     if($connect -ne ""){
+      imapDisconnect -is_quiet
       $Global:mail.cia = $Global:mail.accxml.selectSingleNode( `
           "/accounts/account-def[@id='$connect']")
       if(!$Global:mail.cia){
@@ -1042,6 +1059,9 @@ function mail{
         return
       }
       Write-Host -ForegroundColor Green ($Global:mail.cia.addr + ": new " + $Global:mail.mbox.RecentCount + " mail(s).")
+    }elseif($invoke){
+      $b = (viewMail -i $Global:mail.i -mime "" -is_silent)
+      invokeURL $b $invoke
     }elseif($list){
       listMail
     }elseif($seek){
@@ -1050,6 +1070,10 @@ function mail{
      exproreMail $exprore
     }elseif($search){
       searchMail $search
+    }elseif($show_accounts){
+      showAccounts
+    }elseif($show_template){
+      showTemplate
 
     # last
     }elseif($view){
