@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 17-Sep-2018.
+" Last Change: 10-Jan-2019.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -76,7 +76,7 @@ endif
 "
 if has('win32')
   " Windows用
-  set guifont=MS_Gothic:h9:cSHIFTJIS
+  set guifont=MS_Gothic:h9
   "set guifont=MS_Mincho:h12:cSHIFTJIS
   " 行間隔の設定
   set linespace=1
@@ -298,3 +298,4 @@ nnoremap <C-]> g<C-]>
 
 "set shell=c:\windows\system32\WindowsPowerShell\v1.0\powershell.exe
 "set shellcmdflag=
+:set noundofile
