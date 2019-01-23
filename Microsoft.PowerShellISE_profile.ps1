@@ -35,14 +35,22 @@ function invokeCom([string] $member, [array] $args){
 	return $ret
 }
 
-Function tob64([string] $ipath, [string] $opath)
+Function tob64([string] $ipath, [string] $opath = "")
 {
 $b = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($ipath))
+if($opath -ne ""){
 $ret = [System.IO.File]::WriteAllText($opath, $b, [System.Text.Encoding]::Default)
  return $ret
+}else{
+return $b
 }
-Function fromb64([string] $ipath, [string] $opath)
+}
+Function fromb64([string]$istr = "", [string] $ipath = "", [string] $opath)
 {
+if($ipath -ne ""){
 $b = [System.IO.File]::ReadAllText($ipath)
+}else{
+    $b = $istr
+}
 $ret = [System.IO.File]::WriteAllBytes($opath, [Convert]::FromBase64String($b))
 }
