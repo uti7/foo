@@ -4,16 +4,36 @@ header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
 header("Cache-Control: no-store, no-cache, must-revalidate");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
-?><html><body>
+?><html><head><style>
+table tr:nth-child(even) {
+background: #F9F9F9;
+}
+table tr:nth-child(odd) {
+background: #F0FAE2;
+}
+td.text-right {
+	text-align: right;
+}
+td.item-no {
+	color: #000000;
+}
+</style></head><body>
 <?php
-print "<table><tbody>";
+$myname = basename(__FILE__);
+?>
+<table><caption><?=$myname?></caption><thead><tr><th>No.</th><th>Size</th><th colspan="3">Date</th><th>Name</th></tr></thead>
+<tbody>
+<?php
 unset($outstr);
-$cmd = "find . -type f -exec ls -l {} \; | awk '{for(i=1;i<=NF;i++){ if(i==1){ printf(\"<tr>\"); } if(i==NF){ printf(\"<td><a href='%s'>%s</a></td></tr>\",\$i,\$i); }else{ printf(\"<td>%s</td>\",\$i);}}}'";
+$cmd = <<< EOC
+find . -type f -print | xargs ls -lh | grep -v $myname | awk 'BEGIN{no=1}match(\$NF,/^\.\/\./)==0{printf("<tr><td class=\"text-right item-no\">%d</td>",no);for(i=5;i<=NF;i++){class_spec="";if(i>=5&&i<=7){class_spec=" class=\"text-right\"";}if(i==NF){dsp_name=\$i;sub(/^\.\//,"",dsp_name);printf("<td><a href=\"%s\">%s</a></td></tr>",\$i,dsp_name);}else{v=\$i;printf("<td%s>%s</td>",class_spec,v);}}no++}'
+EOC;
 
-//print $cmd;
 exec($cmd, $outstr, $status);
 foreach($outstr as $s){
   print $s;
 }
-print "</tbody></table>";
-?></body></html>
+?>
+</tbody></table>
+<?php //print "<pre>".htmlspecialchars($cmd)."</pre>"; ?>
+</body></html>

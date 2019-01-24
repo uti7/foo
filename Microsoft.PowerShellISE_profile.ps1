@@ -1,15 +1,16 @@
-#Requires -Version 3.0 
-#C:\Users\__YOUR_ACCOUNT__\Documents\WindowsPowerShell\Microsoft.PowerShellISE_profile.ps1
+cd ~
 
 Function ll($p){
-  Get-ChildItem -Path $p | Sort-Object LastWriteTime
+  Get-ChildItem -Path $p | Sort-Object -Property LastWriteTime
 }
+set-alias l ll
 
-function foo {cd c:\foo}
-function multiline { foo;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' bar.ahk }
+function coldspa {cd c:\cast\proj\coldspa\v3}
+function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' coldspa3.ahk }
 function vi($files){
-c:\cast\app\gvim64\gvim.exe $files
-} 
+$files_str =@();(resolve-path $files) | % { $files_str+= $_.Path } ;
+& "c:\cast\app\gvim64\gvim.exe" $files_str;
+"["+$files_str+"]" }
 
 # same as operator that -split
 # to use .ps1 file command line args who other shell (e.g. .bat file, bash prompt)
@@ -28,21 +29,50 @@ Function str2arr([string] $s, [string] $delim = "\s+", [int] $max = 0)
     return $a
 }
 
-function invokeCom([string] $member, [array] $args){
-	$c = New-Object -Comobject Fubar.COM
+function invCsCom([string] $member, [array] $args){
+	$c = New-Object -Comobject ColdSpa.COM
 	$ret = $c.getType().InvokeMember($member,
 		[Reflection.BindingFlags]::InvokeMethod, $null, $c, $args)
 	return $ret
 }
 
-Function tob64([string] $ipath, [string] $opath)
+Function tob64()
 {
-$b = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($ipath))
-$ret = [System.IO.File]::WriteAllText($opath, $b, [System.Text.Encoding]::Default)
- return $ret
+  Param(
+    [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in,
+    [string]$opath = ""
+  )
+  if($in.GetType().Name -eq "FileInfo"){
+    $a = [System.IO.File]::ReadAllBytes($in.FullName)
+  }else{
+    $a = $in
+  }
+  $b = [Convert]::ToBase64String([Byte[]][System.Text.Encoding]::Default.GetBytes($a))
+
+  if($opath -ne ""){
+    $ret = [System.IO.File]::WriteAllText($opath, $b, [System.Text.Encoding]::Default)
+  }else{
+    $ret = $b
+  }
+  return $ret
 }
-Function fromb64([string] $ipath, [string] $opath)
+
+Function fromb64()
 {
-$b = [System.IO.File]::ReadAllText($ipath)
-$ret = [System.IO.File]::WriteAllBytes($opath, [Convert]::FromBase64String($b))
+  Param(
+    [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in,
+    [string]$opath = ""
+  )
+  if($in.GetType().Name -eq "FileInfo"){
+    $b = [System.IO.File]::ReadAllText($in)
+  }else{
+    $b = $in
+  }
+  $a = [Convert]::FromBase64String($b)
+  if($opath -ne ""){
+    $ret = [System.IO.File]::WriteAllBytes($opath, $a)
+  }else{
+    $ret = [System.Text.Encoding]::Default.GetString($a)
+  }
+  return $ret
 }
