@@ -13,6 +13,7 @@ set smartcase
 set tabstop=2
 set shiftwidth=2
 set expandtab
+set errorfile=.eee0
 
 map <F1> :files<CR>
 map <F2> :bprev<CR>

@@ -1,4 +1,4 @@
-#mmu!/bin/bash -f
+#!/bin/bash -f
 set -f
 #IFS=$'\n'
 function usage {
@@ -158,7 +158,7 @@ is_not_vi=2
 #default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
 
 ## for -P 
-prune_spec="-name .git -prune -o -name .git -o -name .svn -o -name tags -o -name ptags -o -name errors.err -o"
+prune_spec="-name .git -prune -o -name .git -o -name .svn -o -name tags -o -name ptags -o -name errors.err -o -name .eee[0-2] -o"
 
 EOT
 }
@@ -166,18 +166,28 @@ EOT
 
 function is_ancestor_vim
 {
-  # $1: my pud
+  # $1: my pid
   # $2: vim command (e.g. /usr/bin/vim or simply, vim)
   my_pid=$1
   target_cmd=$2
 
-  # if necessary, setting as follows
-  ps_cmd="ps -ef"
-  pid_column=2
-  ppid_column=3
-  cmd_column=6
+  # if necessary, change follows
+  case `uname` in
+  Linux)
+    ps_cmd="ps -ef"
+    pid_column=2
+    ppid_column=3
+    cmd_column=8
+    ;;
+  *)
+    ps_cmd="ps -ef"
+    pid_column=2
+    ppid_column=3
+    cmd_column=6
+    ;;
+  esac 
 
-  $ps_cmd | awk -v pid_column=$pid_column \
+  eval "$ps_cmd" | awk -v pid_column=$pid_column \
     -v ppid_column=$ppid_column \
     -v cmd_column=$cmd_column \
     -v my_pid="$my_pid" \
@@ -185,6 +195,7 @@ function is_ancestor_vim
   'function get_parent(pid){ \
 #print "DEBUG: pid=" pid; \
     split(plist[pid], item, ","); \
+#print "DEBUG: item[1]=" item[1]; \
     return item[1]; \
   }\
   { plist[$pid_column] = sprintf("%d,%s", $ppid_column, $cmd_column); } \
@@ -221,6 +232,7 @@ refrep=refrep
 name_opt="-name"
 type_opt="f"
 pattern_opt="E"
+errors_err_prefix=".eee"
 
 if [ ! -r "$HOME/.${myname}rc" ]; then
   mkrc
@@ -349,7 +361,15 @@ else
 fi
 
 is_ancestor_vim $$ $vi
-[ $? -eq 0 ] && is_vim_child=1 && is_not_vi=1
+if [ $? -eq 0 ]; then
+  is_vim_child=1
+  is_not_vi=1
+  errorfile="${errors_err_prefix}0"
+  if [ -f "$errorfile" ]; then
+      mv -f "${errors_err_prefix}1" "${errors_err_prefix}2" 2>/dev/null
+      mv -f "${errors_err_prefix}0" "${errors_err_prefix}1" 2>/dev/null
+  fi
+fi
 
 #
 # 1st filtering for ${reg_exp[0]} by find (and grep)
@@ -501,7 +521,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
       if [ ${is_vim_child:-0} -eq 1 ]; then
-        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee errors.err
+        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile"
       else
         $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched
       fi
