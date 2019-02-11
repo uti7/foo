@@ -21,21 +21,30 @@ td.text-right {
 td.item-no {
 	color: #000000;
 }
+.folder:before {
+  margin: 0 10px 0 0;
+  content: " ";
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAABnRSTlMAQABgAICTOhfYAAAAV0lEQVRYhe3OAQ2AMBAEwXrCAFKQUhvvFg2k1/QTZrMCZtzPbPU4LgACAjoJuj5WVb1AO0yroLgpAMqaMqDFgICAgICAgICAgICAgICAMqAOAwEB/Q70AjAur4we4qe8AAAAAElFTkSuQmCC");    
+  background-size: contain;
+  vertical-align: middle;
+}
 </style></head><body>
 <?php
 $myname = basename(__FILE__);
+//$topdir = ".";
 $topdir = "data";
 ?>
-<table class="container"><caption>Files</caption>
+<div class="container">
+<table><caption>Files</caption>
 <!--<thead><tr><th>No.</th><th>Size</th><th colspan="3">Date</th><th>Name</th></tr></thead>-->
 <tbody>
 <?php
 unset($outstr);
-/*
-find . -type f -print | xargs ls -lh | grep -v $myname | awk 'BEGIN{no=1}match(\$NF,/^\.\/\./)==0{printf("<tr><td class=\"text-right item-no\">%d</td>",no);for(i=5;i<=NF;i++){class_spec="";if(i>=5&&i<=7){class_spec=" class=\"text-right\"";}if(i==NF){dsp_name=\$i;sub(/^\.\//,"",dsp_name);printf("<td><a href=\"%s\">%s</a></td></tr>",\$i,dsp_name);}else{v=\$i;printf("<td%s>%s</td>",class_spec,v);}}no++}'
-*/
 $cmd = <<< EOC
-for d in `find $topdir -type d -print`; do ls -lhd \$d && find \$d  -maxdepth 1 -mindepth 1 -type f -exec ls -lhd {} \; ;done \
+for d in `find $topdir -name .git -prune -o -type d -print`; do ls -lhd \$d && find \$d  -maxdepth 1 -mindepth 1 -type f -exec ls -lhd {} \; ;done \
 | awk -v file_indent=4 -v file_ncols=5 'BEGIN{\
   #print "<tr><td>$topdir</td></tr>";\
 }\
@@ -47,11 +56,15 @@ match(\$1,"^d")>0{\
   print "<!--" NR "-->";\
   print "<tr>";\
   n = split(f, d, "/");\
-  nofspan = n;\
-  dir_indent_td = "<td colspan=\"" nofspan "\"></td>";
-  print dir_indent_td;\
-  print "<td>" d[n] "</td>";
-  remain = file_ncols + nofspan + 1;\
+	if(n > 1){\
+		nofspan = n-1;\
+		dir_indent_td = "<td colspan=\"" nofspan "\"></td>";
+		print dir_indent_td;\
+	}else{\
+		nofspan = 0;\
+	}\
+  print "<td class=\"folder\">" d[n] "</td>";
+  remain = file_indent + file_ncols - nofspan - 1;\
   print "<td colspan=\"" remain "\"</td>";\
   print "</tr>";
   next;\
@@ -92,4 +105,5 @@ foreach($outstr as $s){
 ?>
 </tbody></table>
 <?php //print "<pre>".htmlspecialchars($cmd)."</pre>"; ?>
+</div>
 </body></html>
