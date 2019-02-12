@@ -65,12 +65,12 @@ match(\$1,"^d")>0{\
 	}\
   print "<td class=\"folder\">" d[n] "</td>";
   remain = file_indent + file_ncols - nofspan - 1;\
-  print "<td colspan=\"" remain "\"</td>";\
+  print "<td colspan=\"" remain "\"></td>";\
   print "</tr>";
   next;\
 }\
 NF>=9{\
-  print "<tr><td colspan=\"" file_indent "\"</td>";\
+  print "<tr><td colspan=\"" file_indent "\"></td>";\
   f = "";\
   for(i=5;i<=NF;i++){\
     class_spec="";\

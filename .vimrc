@@ -44,3 +44,5 @@ set complete=.,w,b,u,t
 
 set tags=./tags;,tags,ptags
 cmap dvd vert diffsplit 
+set nu
+set errorformat=%f:%l:%m
