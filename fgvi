@@ -533,9 +533,14 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     x=$?
   else
     x=1
+		[ ${is_vim_child:-0} -eq 1 ] && rm -f "$errorfile"
     for f in $matched
     do
-      echo $f
+			if [ ${is_vim_child:-0} -eq 0 ];then
+				echo $f
+			else
+				echo "$f:1:no grep"|tee -a "$errorfile"
+			fi
       x=0
     done
   fi
