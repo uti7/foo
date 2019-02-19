@@ -26,8 +26,8 @@ map <F8> :cp<CR>
 map <F9> :cn<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
-noremap <C-L> :cc<CR>
-cmap fj !fgvi 
+noremap <C-H> :cc<CR>
+cnoremap fj !fj 
 
 map gC	"+y
 map gX	"+x
