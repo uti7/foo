@@ -372,11 +372,11 @@ is_ancestor_vim $$ $vi
 if [ $? -eq 0 ]; then
   is_vim_child=1
   is_not_vi=1
-  errorfile="${errors_err_prefix}0"
-  if [ -f "$errorfile" ]; then
-      mv -f "${errors_err_prefix}1" "${errors_err_prefix}2" 2>/dev/null
-      mv -f "${errors_err_prefix}0" "${errors_err_prefix}1" 2>/dev/null
-  fi
+fi
+errorfile="${errors_err_prefix}0"
+if [ -f "$errorfile" ]; then
+    mv -f "${errors_err_prefix}1" "${errors_err_prefix}2" 2>/dev/null
+    mv -f "${errors_err_prefix}0" "${errors_err_prefix}1" 2>/dev/null
 fi
 
 #
@@ -528,11 +528,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
-      if [ ${is_vim_child:-0} -eq 1 ]; then
-        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile"
-      else
-        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched
-      fi
+      $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile"
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
@@ -541,14 +537,10 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     x=$?
   else
     x=1
-		[ ${is_vim_child:-0} -eq 1 ] && rm -f "$errorfile"
+		rm -f "$errorfile"
     for f in $matched
     do
-			if [ ${is_vim_child:-0} -eq 0 ];then
-				echo $f
-			else
-				echo "$f:1:no grep"|tee -a "$errorfile"
-			fi
+      echo "$f:1:no grep"|tee -a "$errorfile"
       x=0
     done
   fi
@@ -562,9 +554,9 @@ fi
 
 if [ ${is_not_vi:-0} -eq 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
-    exec $vi "+/$re4vi/" $matched
+    exec $vi "+/$re4vi/" -c :cf $matched
   else
-    exec $vi $matched
+    exec $vi -c :cf $matched
   fi
 fi
 exit $x
