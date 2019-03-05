@@ -13,8 +13,9 @@ set smartcase
 set tabstop=2
 set shiftwidth=2
 set expandtab
+set laststatus=2 " always show file name
 set errorfile=.eee0
-set keywordprg=fgvi\ -a
+set keywordprg=fj\ -a
 
 map <F1> :files<CR>
 map <F2> :bprev<CR>
