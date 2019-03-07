@@ -21,10 +21,13 @@ map <F1> :files<CR>
 map <F2> :bprev<CR>
 map <F3> :bnext<CR>
 map <F4> :bdel<CR>
-map <F5> a<C-R>=strftime("%Y-%m-%d")<CR><Esc>
+map <F5> a<C-R>=strftime("%Y-%m-%d")<CR><ESC>
 imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
 map <F8> :cp<CR>
 map <F9> :cn<CR>
+map \0 :cf .eee0<CR>
+map \1 :cf .eee1<CR>
+map \2 :cf .eee2<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
@@ -37,7 +40,7 @@ imap gV	<ESC>"+gPa
 
 set lcs=tab:>.,eol:$,trail:_,extends:\
 
-" tag duplicatin behavior = list choice
+" tag duplication behavior = list choice
 nnoremap <C-]> g<C-]>
 
 " C-P completion range

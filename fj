@@ -60,6 +60,21 @@ note:
 file:
                  \$HOME/.${myname}rc : the preferences. it will automaticaly
                  generated when ${myname} exec for the 1st time.
+
+                .vimrc:
+                  " ----- quickfix relative, etc..
+                  set laststatus=2 " always show file name
+                  set errorfile=.eee0
+                  set errorformat=%f:%l:%m
+                  set keywordprg=fj\\ -a
+                  map \\0 :cf .eee0<CR>
+                  map \\1 :cf .eee1<CR>
+                  map \\2 :cf .eee2<CR>
+                  noremap <C-K> :cp<CR>
+                  noremap <C-J> :cn<CR>
+                  noremap <C-H> :cc<CR>
+                  cnoremap fj !fj 
+                  " ----- 
 examples:
 
      $ $myname PATTERN foo\\*.xml
