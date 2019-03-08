@@ -17,7 +17,8 @@ set laststatus=2 " always show file name
 set errorfile=.eee0
 set keywordprg=fj\ -a
 
-map <F1> :files<CR>
+nmap <F1> :files<CR>
+cmap <F1> files<CR>
 map <F2> :bprev<CR>
 map <F3> :bnext<CR>
 map <F4> :bdel<CR>
