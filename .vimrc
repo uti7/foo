@@ -29,6 +29,7 @@ map <F9> :cn<CR>
 map \0 :cf .eee0<CR>
 map \1 :cf .eee1<CR>
 map \2 :cf .eee2<CR>
+nnoremap \h :e ~/.fjhist<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>

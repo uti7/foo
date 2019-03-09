@@ -58,8 +58,12 @@ note:
                  however, -L specified never grep
 
 file:
-                 \$HOME/.${myname}rc : the preferences. it will automaticaly
-                 generated when ${myname} exec for the 1st time.
+                 \$HOME/.${myname}rc:
+                 the preferences. it will automaticaly generated when
+                 ${myname} exec for the 1st time.
+
+                 \$HOME/.${myname}hist:
+                 the history that cmd line args
 
                 .vimrc:
                   " ----- quickfix relative, etc..
@@ -70,6 +74,7 @@ file:
                   map \\0 :cf .eee0<CR>
                   map \\1 :cf .eee1<CR>
                   map \\2 :cf .eee2<CR>
+                  nnomap \\h :e ~/.fjhist<CR>
                   noremap <C-K> :cp<CR>
                   noremap <C-J> :cn<CR>
                   noremap <C-H> :cc<CR>
@@ -152,6 +157,20 @@ function refrep
   return $?
 }
 
+function savehist
+{
+  [ "$*" = "" ] && return
+
+  histfile="$HOME/.${myname}hist"
+  trap "rm -f $histfile.$$" 0
+  if [ -f "$histfile" ]; then
+    awk -v args="$*" '{if($0 != args){print $0;}} END{print args;}' "$histfile" >"$histfile.$$"
+  else
+    echo "$*" >"$histfile.$$"
+  fi
+  [ -f "$histfile.$$" ] && mv -f "$histfile.$$" "$histfile"
+}
+
 function mkrc
 {
   cat << EOT >"$HOME/.${myname}rc"
@@ -180,7 +199,7 @@ is_not_vi=2
 #default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
 
 ## for -P 
-prune_spec="-name .git -prune -o -name .svn -prune -o -name tags -prune -o -name ptags -prune -o -name errors.err -prune -o -name .eee[0-2] -prune -o"
+prune_spec="-name .git -prune -o -name .svn -prune -o -name tags -prune -o -name ptags -prune -o -name errors.err -prune -o -name .eee[0-2] -prune -o -name .fjhist -prune -o"
 
 EOT
 }
@@ -263,6 +282,8 @@ fi
 
 opt=` getopt -q -o a:d:De:hnNFiIclLp:P:sv:V:txz -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
+
+savehist $*
 
 eval set -- "$opt"
 while [ 0 ]
@@ -439,7 +460,7 @@ if [ ${is_not_grep:-0} -eq 0 ]; then
       done
     fi
     re4vi="${reg_exp[0]}"
-    [ $pattern_opt = "E" ] && re4vi=`echo "$re4vi"|sed -e 's#\([()?+|]\)#\\\\\1#g'`
+    [ $pattern_opt = "E" ] && re4vi=`echo "$re4vi"|sed -e 's#\([()?+|]\)#\\\\\1#g' -e 's#\\\\b#\\\\<#' -e 's#\\\\b#\\\\>#'`
     re4grep="${reg_exp[0]}"
   elif [ "${invert_opt[0]}" = "for_must_path" ]; then
     # path filtering
@@ -516,7 +537,7 @@ fi
     fi
 
     if [ -z "${invert_opt[$i]}" ]; then
-      r=`echo "${reg_exp[$i]}" |sed -e 's#\([()?+|]\)#\\\\\1#g'`
+      r=`echo "${reg_exp[$i]}" |sed -e 's#\([()?+|]\)#\\\\\1#g'  -e 's#\\\\b#\\\\<#' -e 's#\\\\b#\\\\>#'`
       if [ -n "$re4vi" ]; then
         re4vi="$re4vi\|$r"
       else
@@ -552,7 +573,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     x=$?
   else
     x=1
-		rm -f "$errorfile"
+    rm -f "$errorfile"
     for f in $matched
     do
       echo "$f:1:no grep"|tee -a "$errorfile"
