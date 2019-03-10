@@ -19,13 +19,13 @@ usage:
   -d DIR       : a search-path, givens to find(1). if omited, then \`.'
   -h           : show this usage.
   -i           : ignore case, its applied the FILE as well as the PATTERN
-  -I           : reset ignore case that spec in the .${myname}rc, however FILE has no effect
+  -I           : reset ignore-case where specified in .${myname}rc, however FILE has no effect
   -c           : complete matching for FILE, default: partial matching
   -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
   -D           : find target is only directory, and no grep forcely.
   -n           : no vim(1), only output like grep
   -N           : ask whether open by vim
-  -e CMD       : execute CMD instead of vim
+  -e CMD       : execute CMD instead vim
   -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
   -p PATTERN   : filtering for every path
   -v PATTERN   : invert matching for file content which NOT condition.
@@ -78,7 +78,7 @@ file:
                   noremap <C-K> :cp<CR>
                   noremap <C-J> :cn<CR>
                   noremap <C-H> :cc<CR>
-                  cnoremap fj !fj 
+                  nnoremap !fj :!fj 
                   " ----- 
 examples:
 
@@ -160,13 +160,13 @@ function refrep
 function savehist
 {
   [ "$*" = "" ] && return
-
+  args=`echo "$*"|sed -e 's/\\\\/\\\\\\\\/g'`
   histfile="$HOME/.${myname}hist"
   trap "rm -f $histfile.$$" 0
   if [ -f "$histfile" ]; then
-    awk -v args="$*" '{if($0 != args){print $0;}} END{print args;}' "$histfile" >"$histfile.$$"
+    awk -v args="$args" '{if($0 != args){print $0;}} END{print args;}' "$histfile" >"$histfile.$$"
   else
-    echo "$*" >"$histfile.$$"
+    echo "$args" >"$histfile.$$"
   fi
   [ -f "$histfile.$$" ] && mv -f "$histfile.$$" "$histfile"
 }

@@ -33,7 +33,7 @@ nnoremap \h :e ~/.fjhist<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
-cnoremap fj !fj 
+nnoremap !fj :!fj 
 
 map gC	"+y
 map gX	"+x
