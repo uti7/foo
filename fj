@@ -2,7 +2,7 @@
 set -f
 #IFS=$'\n'
 function usage {
-  cat << EOT | less
+  cat << EOT | less -e
 name:
   $myname - file traverser
 
@@ -564,7 +564,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
-      $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile"
+      $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
@@ -576,7 +576,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     rm -f "$errorfile"
     for f in $matched
     do
-      echo "$f:1:no grep"|tee -a "$errorfile"
+      echo "$f:1:no grep"|tee -a "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
       x=0
     done
   fi
