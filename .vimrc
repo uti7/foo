@@ -34,6 +34,7 @@ noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
 nnoremap !fj :!fj 
+autocmd BufEnter *.fjhist setlocal autoread
 
 map gC	"+y
 map gX	"+x

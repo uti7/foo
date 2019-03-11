@@ -79,6 +79,7 @@ file:
                   noremap <C-J> :cn<CR>
                   noremap <C-H> :cc<CR>
                   nnoremap !fj :!fj 
+                  autocmd BufEnter *.fjhist setlocal autoread
                   " ----- 
 examples:
 
