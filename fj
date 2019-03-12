@@ -27,6 +27,7 @@ usage:
   -N           : ask whether open by vim
   -e CMD       : execute CMD instead vim
   -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
+  -A PATTERN   : same as -a, evaluates to '\<PATTERN\>'
   -p PATTERN   : filtering for every path
   -v PATTERN   : invert matching for file content which NOT condition.
                  use it following one or more \`-a PATTERN'
@@ -281,7 +282,7 @@ if [ ! -r "$HOME/.${myname}rc" ]; then
 fi
 . "$HOME/.${myname}rc"
 
-opt=` getopt -q -o a:d:De:hnNFiIclLp:P:sv:V:txz -- "$@"`
+opt=` getopt -q -o a:A:d:De:hnNFiIclLp:P:sv:V:txz -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 savehist $*
@@ -292,6 +293,11 @@ do
     case $1 in
     -a)
       reg_exp[${#reg_exp[@]}]="$2"
+      invert_opt[${#invert_opt[@]}]=""
+      shift 2
+      ;;
+    -A)
+      reg_exp[${#reg_exp[@]}]="\\<$2\\>"
       invert_opt[${#invert_opt[@]}]=""
       shift 2
       ;;
