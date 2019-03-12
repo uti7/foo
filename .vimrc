@@ -15,7 +15,7 @@ set shiftwidth=2
 set expandtab
 set laststatus=2 " always show file name
 set errorfile=.eee0
-set keywordprg=fj\ -a
+set keywordprg=fj\ -A
 
 nmap <F1> :files<CR>
 cmap <F1> files<CR>
@@ -26,6 +26,7 @@ map <F5> a<C-R>=strftime("%Y-%m-%d")<CR><ESC>
 imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
 map <F8> :cp<CR>
 map <F9> :cn<CR>
+map \^ :cf .eee0<CR>
 map \0 :cf .eee0<CR>
 map \1 :cf .eee1<CR>
 map \2 :cf .eee2<CR>
