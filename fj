@@ -580,12 +580,12 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     x=$?
   else
     x=1
-    rm -f "$errorfile"
+    #rm -f "$errorfile"
     for f in $matched
     do
-      echo "$f:1:no grep"|tee -a "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
+      echo "$f:1:no grep"
       x=0
-    done
+    done | tee -a "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
   fi
   if [ ${is_not_vi:-0} -eq 2 ]; then
     echo -n "will open as $vi, ok?(enter [y]es or else):"
