@@ -71,7 +71,7 @@ file:
                   set laststatus=2 " always show file name
                   set errorfile=.eee0
                   set errorformat=%f:%l:%m
-                  set keywordprg=fj\\ -a
+                  set keywordprg=fj\\ -A
                   map \\0 :cf .eee0<CR>
                   map \\1 :cf .eee1<CR>
                   map \\2 :cf .eee2<CR>
@@ -82,6 +82,26 @@ file:
                   nnoremap !fj :!fj 
                   autocmd BufEnter *.fjhist setlocal autoread
                   " ----- 
+
+                \$VIMRUNTIME/filetype.vim:
+                  " ----- fj history file
+                  au BufNewFile,BufRead .fjhist		setf fjhist
+                  " ----- 
+
+                \$VIMRUNTIME/ftplugin/fjhist.vim:
+                  if exists('b:did_ftplugin')
+                    finish
+                  endif
+                  let b:did_ftplugin=1
+
+                  nnoremap <buffer> <LocalLeader>f :call <SID>FireFj()<CR>
+                  function! <SID>FireFj() abort
+                    exec '!fj ' . getline(".")
+                    if filereadable(&errorfile)
+                      cf
+                    endif
+                  endfunction
+
 examples:
 
      $ $myname PATTERN foo\\*.xml
