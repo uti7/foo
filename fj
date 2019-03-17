@@ -152,12 +152,12 @@ function zrefrep
 function refrep
 {
   if [ -z "$default_precedent" ]; then
-    #precedent='(class|function)\\s+\\w+' # no available exec on awk 3.x
-    precedent='(class|function)[ \\t]+\\w+'
+    precedent='(\\<class\\>|\\<function\\>)[ \\t]+\\w+'
   else
     precedent="$default_precedent"
   fi
   re=$1
+  re=`echo "$re"|sed -e 's/\\\\/\\\\\\\\/g'`
   shift
   files=$*
   [ -n "$ignore_case_opt" ] && ic=1
@@ -218,7 +218,9 @@ is_not_vi=2
 #default_file_spec="* .[a-zA-Z]*"
 
 ## for -x
-#default_precedent='(class|function|CREATE TABLE)[ \\t]+\\w+'
+# gawk RE that string-const, so \\\\ (back-slash twice)
+default_precedent='(\\\\<class\\\\>|\\\\<function\\\\>|\\\\<CREATE\\\\>.+\\\\<TABLE\\\\>).+\\\\w+'
+
 
 ## for -P 
 prune_spec="-name .git -prune -o -name .svn -prune -o -name tags -prune -o -name ptags -prune -o -name errors.err -prune -o -name .eee[0-2] -prune -o -name .fjhist -prune -o"
@@ -595,7 +597,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
-      $refrep "$re4grep" $matched
+      $refrep "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
     fi
     x=$?
   else
