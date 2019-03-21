@@ -9,7 +9,7 @@ function coldspa {cd c:\cast\proj\coldspa\v3}
 function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' coldspa3.ahk }
 function vi($files){
 $files_str =@();(resolve-path $files) | % { $files_str+= $_.Path } ;
-& "c:\cast\app\gvim64\gvim.exe" $files_str;
+& "c:\Apps\vim\gvim.exe" $files_str;
 "["+$files_str+"]" }
 
 # same as operator that -split
@@ -63,7 +63,8 @@ Function fromb64()
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in,
     [string]$opath = ""
   )
-  if($in.GetType().Name -eq "FileInfo"){
+  $f = (Resolve-Path $in)
+  if($f.GetType().Name -eq "PathInfo"){
     $b = [System.IO.File]::ReadAllText($in)
   }else{
     $b = $in
