@@ -5,9 +5,10 @@ trap "rm -f $midsh" 0
 file="$1"
 git log --name-status "$file"|awk -v file="$file" '/^commit/{if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
 c = "git diff " a " " b " -- " file;\
-print "echo ::::::::::";
-print "printf \"" $0 ": hit ENTER to continue.\"";
-print "read k";
+printf("echo ::::::::::\n");
+printf("printf \"" $0 ": hit ENTER to continue (or [q]uit).\"\n");
+printf("read k\n");
+printf("[ \"$k\" = \"q\" ] && exit 0\n");
 print c;
 }' >"$midsh"
 [ -f "$midsh" ] && sh "$midsh"
