@@ -1,0 +1,28 @@
+#!/bin/sh
+[ $# -eq 0 ] && echo "usage: ${0//*\//} {amt|awa} [pull]" && exit 2
+app="$1"
+[ "$2" = "pull" ] && is_git2local=1
+find -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f -print \
+|awk -v app="$app" -v is_git2local=${is_git2local:-0} 'BEGIN{
+		repodir="/home2/" app;
+		print "i=1";
+	}
+	{
+		gsub(/ /,"?");
+		printf("diff -q %s/%s %s\n",repodir,$0,$0);
+		printf("x=$?; [ \"$x\" -eq 1 ] && echo \"$i: ----------\" && echo \"$ vimdiff %s/%s %s\"",repodir,$0,$0);
+		if(is_git2local==0){
+			printf(" && echo \"$ cp %s %s/%s\"",$0,repodir,$0);
+		}else{
+			printf(" && echo \"$ cp %s/%s %s\"",repodir,$0,$0);
+		}
+		printf(" && i=$((i + 1)) && echo\n");
+
+		printf("[ \"$x\" -eq 2 ] && echo \"$i: ----------\"");
+		if(is_git2local==0){
+			printf(" && echo \"$ cp %s %s/%s\"",$0,repodir,$0);
+		}else{
+			printf(" && echo \"$ cp %s/%s %s\"",repodir,$0,$0);
+		}
+		printf(" && i=$((i + 1)) && echo\n");
+	}'
