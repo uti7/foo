@@ -244,6 +244,12 @@ function is_ancestor_vim
     ppid_column=3
     cmd_column=8
     ;;
+  MINGW*)
+    ps_cmd="ps -ef"
+    pid_column=2
+    ppid_column=3
+    cmd_column=6
+    ;;
   *)
     ps_cmd="ps -ef"
     pid_column=2
