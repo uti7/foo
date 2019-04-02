@@ -59,3 +59,10 @@ set tags=./tags;,tags,ptags
 cmap dvd vert diffsplit 
 set nu
 set errorformat=%f:%l:%m
+
+augroup MyGroup
+    autocmd!
+    autocmd BufRead,BufNewFile *.js setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
+    autocmd BufRead,BufNewFile *.php setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
+    autocmd BufRead,BufNewFile *.html setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
+augroup END
