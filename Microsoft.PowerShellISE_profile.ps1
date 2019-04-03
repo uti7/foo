@@ -63,8 +63,12 @@ Function fromb64()
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in,
     [string]$opath = ""
   )
-  $f = (Resolve-Path $in)
-  if($f.GetType().Name -eq "PathInfo"){
+
+  $f = $null
+  if(Test-Path $in){
+    $f = (Resolve-Path $in)
+  }
+  if($f -ne $null -and $f.GetType().Name -eq "PathInfo"){
     $b = [System.IO.File]::ReadAllText($in)
   }else{
     $b = $in
