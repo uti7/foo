@@ -75,7 +75,7 @@ file:
                   map \\0 :cf .eee0<CR>
                   map \\1 :cf .eee1<CR>
                   map \\2 :cf .eee2<CR>
-                  nnomap \\h :e ~/.fjhist<CR>
+                  nnomap \\h :e ~/.fjhist<Bar>$<CR>
                   noremap <C-K> :cp<CR>
                   noremap <C-J> :cn<CR>
                   noremap <C-H> :cc<CR>

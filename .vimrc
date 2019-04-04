@@ -30,7 +30,7 @@ map \^ :cf .eee0<CR>
 map \0 :cf .eee0<CR>
 map \1 :cf .eee1<CR>
 map \2 :cf .eee2<CR>
-nnoremap \h :e ~/.fjhist<CR>
+nnoremap \h :e ~/.fjhist<Bar>$<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
@@ -59,10 +59,11 @@ set tags=./tags;,tags,ptags
 cmap dvd vert diffsplit 
 set nu
 set errorformat=%f:%l:%m
+set redrawtime=3000
 
 augroup MyGroup
     autocmd!
     autocmd BufRead,BufNewFile *.js setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
     autocmd BufRead,BufNewFile *.php setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
-    autocmd BufRead,BufNewFile *.html setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
+    autocmd BufRead,BufNewFile *.html setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 foldmethod=indent
 augroup END
