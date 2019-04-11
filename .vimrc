@@ -26,6 +26,8 @@ map <F5> a<C-R>=strftime("%Y-%m-%d")<CR><ESC>
 imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
 map <F8> :cp<CR>
 map <F9> :cn<CR>
+nnoremap <F11> :tabprevious<CR>
+nnoremap <F12> :tabNext<CR>
 map \^ :cf .eee0<CR>
 map \0 :cf .eee0<CR>
 map \1 :cf .eee1<CR>
@@ -61,9 +63,31 @@ set nu
 set errorformat=%f:%l:%m
 set redrawtime=3000
 
+function! s:delete_hide_buffer()
+	let list = filter(range(1, bufnr("$")), "buflisted(v:val)")
+  let winlist = range(1, winnr("$"))
+  for num in list
+    let is_visible = 0
+    for w in winlist
+      if winbufnr(w) == num
+        let is_visible = 1
+        break
+      endif
+    endfor
+    if is_visible == 0
+      execute "bdel ".num
+    endif
+  endfor
+endfunction
+
+command! Hdelall :call s:delete_hide_buffer()
+
+inoremap LLL log_message('debug',__FILE__.':'.__LINE__.': '.__CLASS__.'->'.__METHOD__.'():'<CR>.preg_replace('/\r?\n/', '', var_export(<CR>$foo<CR>,true)));<ESC>
+
 augroup MyGroup
     autocmd!
     autocmd BufRead,BufNewFile *.js setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
     autocmd BufRead,BufNewFile *.php setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4
     autocmd BufRead,BufNewFile *.html setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 foldmethod=indent
+    autocmd BufRead,BufNewFile *.sql setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 foldmethod=indent
 augroup END
