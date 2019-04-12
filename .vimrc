@@ -82,6 +82,15 @@ endfunction
 
 command! Hdelall :call s:delete_hide_buffer()
 
+function! s:fj_L_for_keyword()
+  exec '!fj -i -L ' . expand("<cword>")
+  if filereadable(&errorfile)
+    cf
+  endif
+endfunction
+command! Fjl4kw :call s:fj_L_for_keyword()
+nnoremap <C-@> :Fjl4kw<CR>
+
 inoremap LLL log_message('debug',__FILE__.':'.__LINE__.': '.__CLASS__.'->'.__METHOD__.'():'<CR>.preg_replace('/\r?\n/', '', var_export(<CR>$foo<CR>,true)));<ESC>
 
 augroup MyGroup
