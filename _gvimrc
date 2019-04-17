@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 11-Apr-2019.
+" Last Change: 18-Apr-2019.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -315,7 +315,7 @@ function! s:delete_hide_buffer()
       execute "bdel ".num
     endif
   endfor
-222
+endfunction
 
 command! Hdelall :call s:delete_hide_buffer()
 
