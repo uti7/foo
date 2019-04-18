@@ -11,6 +11,10 @@ alias bc="bc -q"
 #alias vi="jvim"
 alias vi="vim"
 alias now="date +'%Y%m%d%H%M%S'"
+alias tmux='rm -rf /tmp/tmux* && tmux'
+
+startcmd=start # cygstart
+gvim="/cygdrive/c/cast/app/gvim64/gvim.exe"
 
 export EDITOR=vim
 export LANG=ja_JP.utf8
@@ -35,7 +39,7 @@ function gvim {
       opt+=" $f"
     fi
   done
-  cygstart /cygdrive/c/cast/app/gvim64/gvim.exe $opt $files
+  $gvim $opt $files &
 }
 function jwhois {
 /cygdrive/c/progra~2/GnuWin32/bin/jwhois $*
@@ -43,3 +47,4 @@ function jwhois {
 function dig {
 /cygdrive/c/progra~1/ISC\ BIND\ 9/bin/dig $*
 }
+[ `cygpath -w /` = 'C:\msys64\' -a -r $HOME/.mybashrc_git ] && . $HOME/.mybashrc_git
