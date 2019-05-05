@@ -4,15 +4,23 @@
 ; #InstallMouseHook
 Menu, TRAY, Add, &view, RESTORE_GUI
 Menu, TRAY, Default, &view
+SysGet, SM_CXSCREEN, 0
+SysGet, SM_CYSCREEN, 1
+SysGet, SM_CXSIZEFRAME, 32
+SysGet, SM_CYSIZEFRAME, 33
+SysGet, SM_CYSMCAPTION, 51
+x := SM_CXSCREEN - SM_CXSIZEFRAME - 240
+y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40
+
 max := 10 * 1000
 Gui, Add, Progress, x0 y0 w240 h14 Range0-%max% CBlue v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
 Gui, +ToolWindow
-Gui, Show, h40 w240, %A_ScriptName%
+Gui, Show, h40 w240 x%x% y%y%, %A_ScriptName%
 Gui, Minimize
 
 is_set_once := FALSE
-SetTimer, showIdle, 1000
+SetTimer, onTimer, 1000
 
 Return,
 
@@ -20,7 +28,7 @@ RESTORE_GUI:
 	Gui, Restore
 	Return,
 
-showIdle(){
+onTimer(){
 	global max, _pbar, is_set_once
 	cur := A_TimeIdle
 	s := cur "/" max
