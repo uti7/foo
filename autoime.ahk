@@ -12,7 +12,9 @@ SysGet, SM_CYSMCAPTION, 51
 x := SM_CXSCREEN - SM_CXSIZEFRAME - 200
 y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40
 
-max := 5 * 1000
+timer_interval := 1000
+total := 0
+max := 5 * timer_interval
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
 Gui, +ToolWindow
@@ -29,10 +31,13 @@ RESTORE_GUI:
 	Return,
 
 onTimer(){
-	global max, _pbar, is_set_once
+	global max, _pbar, is_set_once, timer_interval, total
 	idle := A_TimeIdle
-	s := idle "/" max
+	s := idle "/" max ":" total
 	cur := Mod(idle, max)
+  If(max - cur <= timer_interval){
+    cur := max
+  }
 
 	colorI := Round(idle/ max)
 	SetFormat, Integer, H
@@ -67,6 +72,7 @@ OutputDebug, %A_ThisFunc%: C%cR%%cG%%cB%
 	SB_SetText(s)
 	If(idle > max){
 		If(!is_set_once){
+      total++
 			WinGet, wh, List, , , A_ScriptName,
 			OutputDebug, % A_ThisFunc ":" wh
 			Loop, %wh%
