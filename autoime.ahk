@@ -17,6 +17,7 @@ total := 0
 max := 5 * timer_interval
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
+SB_SetParts(30, 60)
 Gui, +ToolWindow
 Gui, Show, h40 w200 x%x% y%y%, %A_ScriptName%
 Gui, Minimize
@@ -39,9 +40,14 @@ onTimer(){
     cur := max
   }
 
-	colorI := Round(idle/ max)
+	colorI := Round(Mod(A_TickCount / 1000, 768))
+  s .= "   " colorI
+  SB_SetText(idle , 1, 1)
+  SB_SetText("/" max ":" total, 2, 1)
+  SB_SetText(colorI, 3, 1)
+
 	SetFormat, Integer, H
-	If(colorI > 768){
+	If(colorI >= 768){
 		cR := 255
 		cG := 255
 		cB := 255
@@ -69,7 +75,6 @@ onTimer(){
 OutputDebug, %A_ThisFunc%: C%cR%%cG%%cB%
 	GuiControl, +C%cR%%cG%%cB%, _pbar
 	GuiControl, Text, _pbar, %cur%
-	SB_SetText(s)
 	If(idle > max){
 		If(!is_set_once){
       total++
