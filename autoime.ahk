@@ -17,7 +17,7 @@ total := 0
 max := 5 * timer_interval
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
-SB_SetParts(30, 60)
+SB_SetParts(60, 60)
 Gui, +ToolWindow
 Gui, Show, h40 w200 x%x% y%y%, %A_ScriptName%
 Gui, Minimize
@@ -34,46 +34,21 @@ RESTORE_GUI:
 onTimer(){
 	global max, _pbar, is_set_once, timer_interval, total
 	idle := A_TimeIdle
-	s := idle "/" max ":" total
 	cur := Mod(idle, max)
   If(max - cur <= timer_interval){
     cur := max
   }
 
-	colorI := Round(Mod(A_TickCount / 1000, 768))
-  s .= "   " colorI
+	SetFormat, Integer, H
+	colorI :="000000" regexreplace(Mod(Round(A_TickCount/1000),0xffffff),"^0x","")
+	StringRight, colorI, colorI, 6
+	SetFormat, Integer, D
+
   SB_SetText(idle , 1, 1)
   SB_SetText("/" max ":" total, 2, 1)
   SB_SetText(colorI, 3, 1)
 
-	SetFormat, Integer, H
-	If(colorI >= 768){
-		cR := 255
-		cG := 255
-		cB := 255
-	}Else If(colorI > 512){
-		cR := 255
-		cG := 255
-		cB := Mod(colorI, 256)
-	}Else If(colorI > 256){
-		cR := 255
-		cG := Mod(colorI, 256)
-		cB := 0
-	}Else{
-		cR := Mod(colorI, 256)
-		cG := 0
-		cB := 0
-	}
-	SetFormat, Integer, D
-	cR := "00" RegExReplace(cR, "^0x", "")
-	cG := "00" RegExReplace(cG, "^0x", "")
-	cB := "00" RegExReplace(cB, "^0x", "")
-	StringRight, cR, cR, 2
-	StringRight, cG, cG, 2
-	StringRight, cB, cB, 2
-
-OutputDebug, %A_ThisFunc%: C%cR%%cG%%cB%
-	GuiControl, +C%cR%%cG%%cB%, _pbar
+	GuiControl, +C%colorI%, _pbar
 	GuiControl, Text, _pbar, %cur%
 	If(idle > max){
 		If(!is_set_once){
