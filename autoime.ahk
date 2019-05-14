@@ -6,15 +6,16 @@ Menu, TRAY, Add, &view, RESTORE_GUI
 Menu, TRAY, Default, &view
 SysGet, SM_CXSCREEN, 0
 SysGet, SM_CYSCREEN, 1
+SysGet, SM_CYCAPTION, 4
 SysGet, SM_CXSIZEFRAME, 32
 SysGet, SM_CYSIZEFRAME, 33
 SysGet, SM_CYSMCAPTION, 51
 x := SM_CXSCREEN - SM_CXSIZEFRAME - 200
-y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40
+y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40 - 36
 
 timer_interval := 1000
 total := 0
-max := 5 * timer_interval
+max := 4 * timer_interval
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
 SB_SetParts(60, 60)
