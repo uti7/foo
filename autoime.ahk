@@ -2,6 +2,13 @@
 #NoEnv
 #SingleInstance force
 ; #InstallMouseHook
+
+/*
+vkF0sc03A::
+  Send, {Return}
+  Return,
+*/
+
 Menu, TRAY, Add, &view, RESTORE_GUI
 Menu, TRAY, Default, &view
 SysGet, SM_CXSCREEN, 0
