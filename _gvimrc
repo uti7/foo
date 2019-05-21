@@ -201,7 +201,7 @@ map <C-F9> :tn<CR>
 map <C-K> :cp<CR>
 map <C-J> :cn<CR>
 map <C-H> :cc<CR>
-nnoremap <Leader>^ :cf &errorfile
+nnoremap <Leader>^ :cf<CR>
 cmap  :pwd<CR>
 map  :n%<CR>
 "map  JAa
@@ -264,7 +264,7 @@ function! Fj(argstr)
 	let s:cmdline = '!powershell -f ' . $vim . '\fj.ps1 ' . a:argstr
 	exec s:cmdline
 endfunction
-cnoremap FJ call Fj("-p 
+nnoremap !fj :call Fj("-p 
 
 
 let g:netrw_localcopycmd='copy' " avoid netrw notice
