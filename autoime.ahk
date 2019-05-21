@@ -22,7 +22,7 @@ y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40 - 36
 
 timer_interval := 1000
 total := 0
-max := 4 * timer_interval
+max := 3 * timer_interval
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
 SB_SetParts(60, 60)
@@ -37,6 +37,7 @@ Return,
 
 RESTORE_GUI:
 	Gui, Restore
+  WinActivate, ahk_class AutoHotkeyGUI
 	Return,
 
 onTimer(){
@@ -103,6 +104,10 @@ IME_SET(setSts, WinTitle="", hWnd = 0)
 GuiEscape:
 GuiClose:
   ExitApp, 0
+
+NumLock::
+  Send, {BS}
+  Return,
 
 #IfWinActive, ahk_class AutoHotkeyGUI
 #F9::
