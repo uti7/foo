@@ -1,7 +1,7 @@
 ﻿#Requires -Version 3.0
 if($PSVersionTable.PSVersion.Major -lt 3){
   $PSVersionTable
-  Write-Host -ForegroundColor red "FATAL: no available."
+  Write-Host -ForegroundColor red "FATAL: requires PSVersion 3.0 or later."
   exit
 }
 Set-Location $PSScriptRoot
@@ -52,7 +52,12 @@ function init() {
       paging_body = 20;
   };
   $Global:mail += @{
-    js = New-Object -ComObject ScriptControl;
+    <#
+      NOTE: no available on x64
+      use [System.Uri]::EscapeDataString() instead
+
+      js = New-Object -ComObject ScriptControl;
+    #>
     accxml = [xml](Get-Content $Global:mail.config.acc_path);
     passxml = $null;
     imap = $null;
@@ -61,8 +66,8 @@ function init() {
     i = -1;
     deletion = @{};
   }
-  $Global:mail.js.Language = "JScript"
-  $Global:mail.js.AddCode("function encode(s){return encodeURIComponent(s);}")
+  # $Global:mail.js.Language = "JScript"
+  # $Global:mail.js.AddCode("function encode(s){return encodeURIComponent(s);}")
   if(!(Test-Path $Global:mail.config.tmpdir_)){
     New-Item $Global:mail.config.tmpdir_ -ItemType Directory
   }
@@ -196,6 +201,9 @@ function doDelete
 }
 
 function searchMail($key){
+    <#
+      > mail -search (_AND (_SUBJECT 'xxx') (_FROM 'yyy'))
+    #>
     if(!(retrieve)){return}
     $mails = $Global:mail.mbox.SearchMailData($key)
     if($mails.Count -gt 0){
@@ -570,7 +578,8 @@ function extractMail3($src, $parent, $folName, $mime,
   # get uidx and full path
   if([string]$src.GetType() -eq "TKMP.Net.MailData_Imap"){
     # ahkからのときはこっちはありえない
-    $id = $Global:mail.js.CodeObject.encode($src.UID)
+    # $id = $Global:mail.js.CodeObject.encode($src.UID)
+    $id = [System.Uri]::EscapeDataString($src.UID)
     $path = ($Global:mail.config.workdir_ + "\$id")
   }elseif($src -like '*\*'){
     # 2009-11-30 LVイベントによってはLog、_resultsでfileが渡される、何もしない
@@ -847,7 +856,8 @@ function readMail($src, $field, [ref]$resp){
           if([string]$src.GetType() -eq "TKMP.Net.MailData_Imap"){
             # オンラインなら受信フォルダのパス
             $path = $Global:mail.config.workdir_ + "\"
-            $path += $Global:mail.js.CodeObject.encode($src.UID)
+            #$path += $Global:mail.js.CodeObject.encode($src.UID)
+            $path += [System.Uri]::EscapeDataString($src.UID)
             
           }else{
             # オフラインならそのパス
