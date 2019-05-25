@@ -74,10 +74,17 @@ Function fromb64()
     $b = $in
   }
   $a = [Convert]::FromBase64String($b)
+  $a = [System.Text.Encoding]::Default.GetString($a)
+
   if($opath -ne ""){
-    $ret = [System.IO.File]::WriteAllBytes($opath, $a)
+    $b = $a -split ' '
+     $c = [byte[]]@()
+    $b | % {
+      $c += [byte]$_
+    }
+    $ret = [System.IO.File]::WriteAllBytes($opath, $c)
   }else{
-    $ret = [System.Text.Encoding]::Default.GetString($a)
+    $ret = $a
   }
   return $ret
 }
