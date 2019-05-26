@@ -42,8 +42,13 @@ Function tob64()
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in,
     [string]$opath = ""
   )
-  if($in.GetType().Name -eq "FileInfo"){
-    $a = [System.IO.File]::ReadAllBytes($in.FullName)
+
+  $f = $null
+  if(Test-Path $in){
+    $f = (Resolve-Path $in)
+  }
+  if($f -ne $null -and $f.GetType().Name -eq "PathInfo"){
+    $a = [System.IO.File]::ReadAllBytes($f.Path)
   }else{
     $a = $in
   }
@@ -65,26 +70,30 @@ Function fromb64()
   )
 
   $f = $null
-  if(Test-Path $in){
-    $f = (Resolve-Path $in)
-  }
-  if($f -ne $null -and $f.GetType().Name -eq "PathInfo"){
-    $b = [System.IO.File]::ReadAllText($in)
-  }else{
+  try{
+    if(Test-Path $in){
+        $f = (Resolve-Path $in)
+        $b = [System.IO.File]::ReadAllText($f.Path)
+    }else{
+        $b = $in
+    } 
+  }catch [Exception]{
     $b = $in
   }
   $a = [Convert]::FromBase64String($b)
-  $a = [System.Text.Encoding]::Default.GetString($a)
+ 
 
   if($opath -ne ""){
-    $b = $a -split ' '
-     $c = [byte[]]@()
-    $b | % {
-      $c += [byte]$_
-    }
-    $ret = [System.IO.File]::WriteAllBytes($opath, $c)
+    <#
+        $b = $a -split ' '
+        $c = [byte[]]@()
+        $b | % {
+            $c += [byte]$_
+        }
+    #>
+    $ret = [System.IO.File]::WriteAllBytes($opath, $a)
   }else{
-    $ret = $a
+    $ret =[System.Text.Encoding]::Default.GetString($a)
   }
   return $ret
 }
