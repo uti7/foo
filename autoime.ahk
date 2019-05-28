@@ -4,10 +4,14 @@
 ; #InstallMouseHook
 
 /*
+; capslock pressed, then enter
 vkF0sc03A::
   Send, {Return}
   Return,
 */
+
+timer_interval := 1000
+max := 3 * timer_interval
 
 Menu, TRAY, Add, &view, RESTORE_GUI
 Menu, TRAY, Default, &view
@@ -20,9 +24,8 @@ SysGet, SM_CYSMCAPTION, 51
 x := SM_CXSCREEN - SM_CXSIZEFRAME - 200
 y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40 - 36
 
-timer_interval := 1000
 total := 0
-max := 3 * timer_interval
+
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
 Gui, Add, StatusBar, v_status_bar
 SB_SetParts(60, 60)
@@ -74,6 +77,7 @@ onTimer(){
 	}Else{
 		is_set_once := FALSE
 	}
+  
 }
 
 IME_SET(setSts, WinTitle="", hWnd = 0)

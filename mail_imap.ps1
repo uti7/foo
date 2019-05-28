@@ -10753,13 +10753,28 @@ function decodePass($accdef) {
     $pn.setAttribute("id", $accdef.id)
     [void] $Global:mail.passxml.documentElement.appendChild($pn)
 
-    $ret = invoke_small "DecodePass" ($accdef.pop, $accdef.user, $accdef.'#text')
-    $ret = $ret -replace "[\r\n]*$", ""
+    if($accdef.'#text' -ne $null){
+      $ret = invoke_small "DecodePass" ($accdef.pop, $accdef.user, $accdef.'#text')
+      $ret = $ret -replace "[\r\n]*$", ""
+    }else{
+      $ret = Read-Host -Prompt "password: " -AsSecureString
+      $ret = SecureString2PlainString $ret
+    }
     [void] $pn.appendChild($Global:mail.passxml.createTextNode($ret))
   }else{
     $ret = $pn.InnerText
   }
   return $ret
+}
+
+function SecureString2PlainString($SecureString){
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+    $PlainString = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($BSTR)
+
+    # $BSTRを削除
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+
+    return $PlainString
 }
 
 function init() {
@@ -10781,13 +10796,18 @@ function init() {
 
       js = New-Object -ComObject ScriptControl;
     #>
-    accxml = [xml](Get-Content $Global:mail.config.acc_path);
+    accxml = $null;
     passxml = $null;
     imap = $null;
     mbox = $null;
     cia = $null;
     i = -1;
     deletion = @{};
+  }
+  if(Test-Path $Global:mail.config.acc_path){
+    $Global:mail.accxml = [xml](Get-Content $Global:mail.config.acc_path);
+  }else{
+    Write-Host -ForegroundColor Yellow 'account.xml does not exists.`nto create, use "mail -show_template"'
   }
   # $Global:mail.js.Language = "JScript"
   # $Global:mail.js.AddCode("function encode(s){return encodeURIComponent(s);}")
