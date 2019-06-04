@@ -56,7 +56,9 @@ onTimer(){
 	StringRight, colorI, colorI, 6
 	SetFormat, Integer, D
 
-  SB_SetText(idle , 1, 1)
+  display_sec := idle/1000
+  display_sec := RegExReplace(display_sec, "\d{3}$", "")
+  SB_SetText(display_sec , 1, 1)
   SB_SetText("/" max ":" total, 2, 1)
   SB_SetText(colorI, 3, 1)
 
