@@ -25,9 +25,11 @@ x := SM_CXSCREEN - SM_CXSIZEFRAME - 200
 y := SM_CYSCREEN - SM_CYSIZEFRAME - SM_CYSMCAPTION - 40 - 36
 
 total := 0
+is_not_reset := FALSE
+start_tick := 0
 
 Gui, Add, Progress, x0 y0 w200 h14 Range0-%max% -Smooth v_pbar , 0
-Gui, Add, StatusBar, v_status_bar
+Gui, Add, StatusBar, v_status_bar g_SB_CLICK
 SB_SetParts(60, 60)
 Gui, +ToolWindow
 Gui, Show, h40 w200 x%x% y%y%, %A_ScriptName%
@@ -38,13 +40,25 @@ SetTimer, onTimer, 1000
 
 Return,
 
+_SB_CLICK:
+  If(is_not_reset){
+    is_not_reset := FALSE
+    onTimer()
+  }Else{
+    is_not_reset := TRUE
+    start_tick := A_TickCount
+    SB_SetText(0.000 , 1, 1)
+    SB_SetText("continue mode", 3, 1)
+  }
+  Return,
+
 RESTORE_GUI:
 	Gui, Restore
   WinActivate, ahk_class AutoHotkeyGUI
 	Return,
 
 onTimer(){
-	global max, _pbar, is_set_once, timer_interval, total
+	global max, _pbar, is_set_once, timer_interval, total, is_not_reset, start_tick
 	idle := A_TimeIdle
 	cur := Mod(idle, max)
   If(max - cur <= timer_interval){
@@ -56,11 +70,20 @@ onTimer(){
 	StringRight, colorI, colorI, 6
 	SetFormat, Integer, D
 
-  display_sec := idle/1000
+  If(!is_not_reset){
+    display_sec := idle/1000
+  }Else{
+    display_sec := (A_TickCount - start_tick) / 1000
+  }
   display_sec := RegExReplace(display_sec, "\d{3}$", "")
+
   SB_SetText(display_sec , 1, 1)
   SB_SetText("/" max ":" total, 2, 1)
-  SB_SetText(colorI, 3, 1)
+  If(!is_not_reset){
+    SB_SetText(colorI, 3, 1)
+  }Else{
+    SB_SetText("continue mode", 3, 1)
+  }
 
 	GuiControl, +C%colorI%, _pbar
 	GuiControl, Text, _pbar, %cur%
@@ -79,7 +102,6 @@ onTimer(){
 	}Else{
 		is_set_once := FALSE
 	}
-  
 }
 
 IME_SET(setSts, WinTitle="", hWnd = 0)
