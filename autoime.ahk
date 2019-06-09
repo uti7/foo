@@ -36,19 +36,37 @@ Gui, Show, h40 w200 x%x% y%y%, %A_ScriptName%
 Gui, Minimize
 
 is_set_once := FALSE
-SetTimer, onTimer, 1000
+SetTimer, ON_TIMER, %timer_interval%
 
 Return,
 
+#z::
+  Gosub, RESTORE_GUI
+  Gosub, _SB_CLICK
+  Return,
+
 _SB_CLICK:
   If(is_not_reset){
+    ; stop
+    SetTimer, ON_TIMER, Off
     is_not_reset := FALSE
-    onTimer()
+    timer_interval := 1000
+    max := 3 * timer_interval
+    Gosub, ON_TIMER
+    SetTimer, ON_TIMER, %timer_interval%
+    WinActivate ahk_exe chrome.exe
   }Else{
+    ; start
+    reach_times := 0
+    SetTimer, ON_TIMER, Off
+    WinActivate ahk_class ConsoleWindowClass
     is_not_reset := TRUE
     start_tick := A_TickCount
     SB_SetText(0.000 , 1, 1)
-    SB_SetText("continue mode", 3, 1)
+    SB_SetText("timer mode", 3, 1)
+    timer_interval := 100
+    max := 600 * timer_interval
+    SetTimer, ON_TIMER, %timer_interval%
   }
   Return,
 
@@ -57,12 +75,21 @@ RESTORE_GUI:
   WinActivate, ahk_class AutoHotkeyGUI
 	Return,
 
+ON_TIMER:
+  onTimer()
+  Return,
+
 onTimer(){
-	global max, _pbar, is_set_once, timer_interval, total, is_not_reset, start_tick
-	idle := A_TimeIdle
-	cur := Mod(idle, max)
+	global max, _pbar, is_set_once, timer_interval, total, is_not_reset, start_tick, reach_times
+  If(!is_not_reset){
+    idle := A_TimeIdle
+    cur := Mod(idle, max)
+  }Else{
+    cur := Mod((A_TickCount - start_tick), max)
+  }
   If(max - cur <= timer_interval){
     cur := max
+    reach_times++
   }
 
 	SetFormat, Integer, H
@@ -73,34 +100,37 @@ onTimer(){
   If(!is_not_reset){
     display_sec := idle/1000
   }Else{
-    display_sec := (A_TickCount - start_tick) / 1000
+    display_sec := cur / 1000
   }
   display_sec := RegExReplace(display_sec, "\d{3}$", "")
 
   SB_SetText(display_sec , 1, 1)
-  SB_SetText("/" max ":" total, 2, 1)
   If(!is_not_reset){
     SB_SetText(colorI, 3, 1)
+    SB_SetText("/" max ":" total, 2, 1)
   }Else{
-    SB_SetText("continue mode", 3, 1)
+    SB_SetText("timer mode", 3, 1)
+    SB_SetText("/" max ":" reach_times, 2, 1)
   }
 
-	GuiControl, +C%colorI%, _pbar
+	GuiControl, +C%colorI% Range0-%max%, _pbar
 	GuiControl, Text, _pbar, %cur%
-	If(idle > max){
-		If(!is_set_once){
-      total++
-			WinGet, wh, List, , , A_ScriptName,
-			OutputDebug, % A_ThisFunc ":" wh
-			Loop, %wh%
-			{
-				hWnd := wh%A_Index%
-				IME_SET(0, "", hWnd)
-			}
-			is_set_once := TRUE
-		}
-	}Else{
-		is_set_once := FALSE
+	If(!is_not_reset){
+    If(idle > max){
+      If(!is_set_once){
+        total++
+        WinGet, wh, List, , , A_ScriptName,
+        OutputDebug, % A_ThisFunc ":" wh
+        Loop, %wh%
+        {
+          hWnd := wh%A_Index%
+          IME_SET(0, "", hWnd)
+        }
+        is_set_once := TRUE
+      }
+    }Else{
+      is_set_once := FALSE
+    }
 	}
 }
 
