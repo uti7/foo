@@ -3,12 +3,21 @@ midsh="/tmp/followdiff.$$"
 trap "rm -f $midsh" 0
 
 file="$1"
-git log --name-status "$file"|awk -v file="$file" '/^commit/{if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
+git log --name-status "$file"|awk -v file="$file" 'BEGIN{echolog="echo \"----------\"\n";shstr="";}\
+{ echolog = sprintf("%secho \"%s\"\n", echolog, $0); }\
+/^commit/{\
+if(shstr != ""){\
+  print echolog;\
+  print shstr;\
+  shstr = "";\
+  echolog="echo \"----------\"\n";
+}
+if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
 c = "git diff " a " " b " -- " file;\
-printf("echo ::::::::::\n");
-printf("printf \"" $0 ": hit ENTER to continue (or [q]uit).\"\n");
-printf("read k\n");
-printf("[ \"$k\" = \"q\" ] && exit 0\n");
-print c;
+shstr=sprintf("echo ::::::::::");
+shstr=sprintf("%s\nprintf \"" $0 ": hit ENTER to continue (or [q]uit).\"", shstr);
+shstr=sprintf("%s\nread k", shstr);
+shstr=sprintf("%s\n[ \"$k\" = \"q\" ] && exit 0", shstr);
+shstr=sprintf("%s\n%s\n", shstr, c);
 }' >"$midsh"
 [ -f "$midsh" ] && sh "$midsh"

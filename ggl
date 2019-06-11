@@ -1,3 +1,3 @@
 #!/usr/bin/sh
-k=`echo "$*"|sed -e 's/ 	/%20/g'`
+k=`echo "$*"|sed -e 's/[ 	]/%20/g'`
 exec w3m "http://www.google.com/search?ie=UTF-8&hl=ja&source=hp&biw=&bih=&q=$k&btnG=Google+%8C%9F%8D%F5&gbv=1"
