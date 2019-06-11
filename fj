@@ -313,7 +313,7 @@ refrep=refrep
 name_opt="-name"
 type_opt="f"
 pattern_opt="E"
-errors_err_prefix=".eee"
+errors_err_prefix="/tmp/.eee"
 
 if [ ! -r "$HOME/.${myname}rc" ]; then
   mkrc
