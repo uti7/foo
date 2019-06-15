@@ -1,3 +1,6 @@
+filetype off
+filetype plugin indent on
+
 set nobackup
 set backupdir=>/tmp,. " backup directory
 set directory=>/tmp,. " swap directory
@@ -13,8 +16,10 @@ set smartcase
 set tabstop=2
 set shiftwidth=2
 set expandtab
+
+set ruler " show line-number,column-number
 set laststatus=2 " always show file name
-set errorfile=.eee0
+set errorfile=/tmp/.eee0
 set keywordprg=fj\ -A
 
 nmap <F1> :files<CR>
@@ -24,14 +29,16 @@ map <F3> :bnext<CR>
 map <F4> :bdel<CR>
 map <F5> a<C-R>=strftime("%Y-%m-%d")<CR><ESC>
 imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
-map <F8> :cp<CR>
-map <F9> :cn<CR>
+nnoremap <F8> :cp<CR>
+nnoremap <F9> :cn<CR>
+nnoremap <C-F8> :tp<CR>
+nnoremap <C-F9> :tn<CR>
 nnoremap <F11> :tabprevious<CR>
 nnoremap <F12> :tabNext<CR>
-map \^ :cf .eee0<CR>
-map \0 :cf .eee0<CR>
-map \1 :cf .eee1<CR>
-map \2 :cf .eee2<CR>
+map <Leader>^ :cf /tmp/.eee0<CR>
+map <Leader>0 :cf /tmp/.eee0<CR>
+map <Leader>1 :cf /tmp/.eee1<CR>
+map <Leader>2 :cf /tmp/.eee2<CR>
 nnoremap \h :e ~/.fjhist<Bar>$<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
@@ -100,3 +107,7 @@ augroup MyGroup
     autocmd BufRead,BufNewFile *.html setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 foldmethod=indent
     autocmd BufRead,BufNewFile *.sql setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 foldmethod=indent
 augroup END
+
+vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>
+
+filetype plugin indent on
