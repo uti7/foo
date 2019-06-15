@@ -322,4 +322,4 @@ function! s:delete_hide_buffer()
 endfunction
 
 command! Hdelall :call s:delete_hide_buffer()
-
+imap <C-V> a<ESC>"+gPxa
