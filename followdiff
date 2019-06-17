@@ -7,17 +7,25 @@ git log --name-status "$file"|awk -v file="$file" 'BEGIN{echolog="echo \"-------
 { echolog = sprintf("%secho \"%s\"\n", echolog, $0); }\
 /^commit/{\
 if(shstr != ""){\
-  print echolog;\
+  print "# NR: " NR;\
   print shstr;\
   shstr = "";\
-  echolog="echo \"----------\"\n";
-}
+}\
 if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
 c = "git diff " a " " b " -- " file;\
-shstr=sprintf("echo ::::::::::");
+shstr=sprintf("%s", echolog);
+shstr=sprintf("%s\necho ::::::::::", shstr);
 shstr=sprintf("%s\nprintf \"" $0 ": hit ENTER to continue (or [q]uit).\"", shstr);
 shstr=sprintf("%s\nread k", shstr);
 shstr=sprintf("%s\n[ \"$k\" = \"q\" ] && exit 0", shstr);
 shstr=sprintf("%s\n%s\n", shstr, c);
+echolog="echo \"----------\"\n";
+}\
+END{\
+if(shstr != ""){\
+  print "# END NR: " NR;\
+  print shstr;\
+  shstr = "";\
+}\
 }' >"$midsh"
 [ -f "$midsh" ] && sh "$midsh"
