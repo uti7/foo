@@ -1,9 +1,20 @@
 #/bin/sh
+
+[ $# -eq 0 ] && printf "usage: followdiff [-s] file\n\t-s: do git show instead" && exit 2
+
 midsh="/tmp/followdiff.$$"
 trap "rm -f $midsh" 0
 
+case "$1" in
+-s)
+  is_show=1
+  shift
+  ;;
+*) is_show=0
+esac
+
 file="$1"
-git log --name-status "$file"|awk -v file="$file" 'BEGIN{echolog="echo \"----------\"\n";shstr="";}\
+git log --name-status "$file"|awk -v is_show=${is_show:-0} -v file="$file" 'BEGIN{echolog="echo \"----------\"\n";shstr="";}\
 { echolog = sprintf("%secho \"%s\"\n", echolog, $0); }\
 /^commit/{\
 if(shstr != ""){\
@@ -11,8 +22,12 @@ if(shstr != ""){\
   print shstr;\
   shstr = "";\
 }\
-if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
-c = "git diff " a " " b " -- " file;\
+if(is_show==0){\
+  if(a ==""){a=$2;b=""}else{b=a;a=$2;}\
+  c = "git diff " a " " b " -- " file;\
+}else{\
+  c = "git show " $2 " -- " file;\
+}\
 shstr=sprintf("%s", echolog);
 shstr=sprintf("%s\necho ::::::::::", shstr);
 shstr=sprintf("%s\nprintf \"" $0 ": hit ENTER to continue (or [q]uit).\"", shstr);
