@@ -1,18 +1,28 @@
 #Requires -Version 3.0
 
-# usage:
-#   this.ps1 -pattern @(.....) -in file
-#   "123"|this.ps1 -pattern @(.....)
+# purpose:
+#   binary pattern search
 #
-# pattern:
+# usage:
+#   this.ps1 -pattern @(.....) [-in file]
+#
+# pattern and result:
+#   e.g.) > "123" | this.ps1 -pattern @(.....)
+#
 #   @(0x31,50)
-#       -> 00000000:  49 50
-#   @(@('x','^3'),@('d', '^5'))
+#       -> 00000000:  49(0x31) 50(0x32)
+#
+#   @(@('x','^3'),@('d','^5'))
 #       -> 00000000:  0x31 50
 #          00000001:  0x32 51
-#   @(@('x','^3'),@('d', '^5'))
+#
 #   @('n',@('d', '^5'))
+#       -> 00000001:  50
+#          00000002:  51
+#
 #   @('n',@('.', 2))  # /.{2}/
+#       -> 00000000:  49(0x31) 50(0x32)
+#          00000001:  50(0x32) 51(0x33)
 #
 Param(
   [Parameter(Mandatory=$true)]$pattern,
@@ -81,7 +91,7 @@ while($i -le $a.Length){
       $n = $i + $_[1] - 1
       $c += $_[1]
       $a[$i..$n]| % {
-        $m += ("{0}" -f $_)
+        $m += [string]$a[$i] + ('(0x' + ("{0:x2}" -f $a[$i]) + ')')
         $i++
       }
       continue
