@@ -97,9 +97,15 @@ while($i -le $a.Length){
       continue
     }
     default {
-      if($_ -eq 'n'){
+      if($_ -ceq 'n'){
         #  no operation
         continue
+      }elseif($_ -ceq 'N'){
+        # output newline
+        $c++
+        $m += "`r`n"
+        continue
+#$i++
       }
       throw ($_ + ": pattern unexpected.")
     }
