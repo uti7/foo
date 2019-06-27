@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 [ $# -eq 0 ] && echo "usage: ${0//*\//} {dir_of_a} [rev]]" && exit 2
 dir_a="$1"
 [ "$2" = "rev" ] && is_reverse=1
