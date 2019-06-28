@@ -27,7 +27,8 @@
 Param(
   [Parameter(Mandatory=$true)]$pattern,
   [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in
-)$myname = Split-Path $MyInvocation.MyCommand.Path -Leaf
+)
+$myname = Split-Path $MyInvocation.MyCommand.Path -Leaf
 
 
 Set-PSDebug -strict
