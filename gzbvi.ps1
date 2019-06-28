@@ -33,8 +33,8 @@ if(!($format -cmatch '-v')){
 
 try{
     $path = (Resolve-Path $file).Path
-    $extracted = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + ".x"
-    $dumped = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + ".txt"
+    $extracted = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + '.x'
+    $dumped = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + '.txt'
 
     $i = New-Object System.IO.FileStream(($path),[System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
     $g = New-Object System.IO.Compression.GZipStream($i,[System.IO.Compression.CompressionMode]::Decompress)
@@ -55,7 +55,7 @@ try{
     $stderr = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + ".stderr"
 
     $q = 'y'
-    $proc = Start-Process -Wait -PassThru -FilePath $btta -ArgumentList "$format $extracted" -RedirectStandardOutput $dumped -RedirectStandardError $stderr
+    $proc = Start-Process -WindowStyle Minimized -Wait -PassThru -FilePath $btta -ArgumentList "$format `"$extracted`"" -RedirectStandardOutput $dumped -RedirectStandardError $stderr
     if((Test-Path $stderr) -and (Get-ChildItem $stderr).Length -gt 0){
       Get-Content $stderr
       if($proc.ExitCode -eq 2){
@@ -66,12 +66,12 @@ try{
 
     while($q -eq 'y'){
       (Get-Item $dumped).Attributes = 'Normal'
-      Start-Process -Wait -FilePath $editor -ArgumentList $dumped
-      if(!((Get-Item .\test.cmd.txt).Attributes -contains 'Archive')){
+      Start-Process -Wait -FilePath $editor -ArgumentList "`"$dumped`""
+      if(!((Get-Item $dumped).Attributes -contains 'Archive')){
         Write-Host -ForegroundColor Yellow "has no chenged."
         break
       }
-      $proc = Start-Process -Wait -PassThru -FilePath $ttba -ArgumentList "$dumped $extracted" -RedirectStandardError $stderr
+      $proc = Start-Process -WindowStyle Minimized -Wait -PassThru -FilePath $ttba -ArgumentList "`"$dumped`" `"$extracted`"" -RedirectStandardError $stderr
       if((Test-Path $stderr) -and (Get-ChildItem $stderr).Length -gt 0){
         Write-Host -ForegroundColor Red (Get-Content $stderr)
         Write-Host -ForegroundColor Magenta "some error has occurred."
