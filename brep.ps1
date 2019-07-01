@@ -46,8 +46,8 @@ $i = 0
 $ms = @()
 while($i -le $a.Length){
   $is_unmatched = $false
-  $m = @()
-  $m += ("{0:x8}" -f $i)  # offset for print
+  $m = @{ first = 0; last = 0; vals = @() }
+  $m.first= $i # offset for print
   $j = $i + 1 # next test position
   $c = 0 # number of pattern item
   switch($pattern){
@@ -55,7 +55,8 @@ while($i -le $a.Length){
     {
       $c++
       if($a[$i] -eq $_){
-        $m += [string]$a[$i] + ('(0x' + ("{0:x2}" -f $a[$i]) + ')')
+        $m.vals += [string]$a[$i] + ('(0x' + ("{0:x2}" -f $a[$i]) + ')')
+        $m.last  = $i
         $i++
         continue
       }else{
@@ -67,7 +68,8 @@ while($i -le $a.Length){
     {
       $c++
       if(("{0:x2}" -f $a[$i]) -match $_[1]){
-        $m += '0x' + ("{0:x2}" -f $a[$i])
+        $m.vals += '0x' + ("{0:x2}" -f $a[$i])
+        $m.last  = $i
         $i++
         continue
       }else{
@@ -79,7 +81,8 @@ while($i -le $a.Length){
     {
       $c++
       if(("{0}" -f $a[$i]) -match $_[1]){
-        $m += ("{0}" -f $a[$i])
+        $m.vals += ("{0}" -f $a[$i])
+        $m.last  = $i
         $i++
         continue
       }else{
@@ -92,7 +95,8 @@ while($i -le $a.Length){
       $n = $i + $_[1] - 1
       $c += $_[1]
       $a[$i..$n]| % {
-        $m += [string]$a[$i] + ('(0x' + ("{0:x2}" -f $a[$i]) + ')')
+        $m.vals += [string]$a[$i] + ('(0x' + ("{0:x2}" -f $a[$i]) + ')')
+        $m.last  = $i
         $i++
       }
       continue
@@ -104,23 +108,22 @@ while($i -le $a.Length){
       }elseif($_ -ceq 'N'){
         # output newline
         $c++
-        $m += "`r`n"
+        $m.vals += "`r`n"
         continue
 #$i++
       }
       throw ($_ + ": pattern unexpected.")
     }
   }
-  if(!$is_unmatched -and ($m.Length - 1) -eq $c){
+  if(!$is_unmatched -and ($m.vals.Length) -eq $c){
     $ms += ,$m
   }
   $i = $j
 }
 $ms | % {
   $m = $_
-  Write-Host -ForegroundColor Yellow -NoNewline ($m[0] + ':')
-  $m[0] = $null
-  $m | % {
+  Write-Host -ForegroundColor Yellow -NoNewline (("{0:x8}" -f $m.first) + ':')
+  $m.vals | % {
     Write-Host -NoNewline (' ' + $_)
   }
   Write-Host
