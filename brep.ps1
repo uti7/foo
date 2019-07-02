@@ -174,9 +174,9 @@ if($completed){
   $past = 0
   $ms | % {
     if($_.first -gt $past){
-      Write-Host -NoNewline -ForegroundColor Green ("-1R0x{0:x8}" -f $_.first)
+      Write-Host -NoNewline -ForegroundColor Green ("-1R0x{0:x8} " -f $_.first)
     }
-    Write-Host -NoNewline -ForegroundColor Green $completed
+    Write-Host -NoNewline -ForegroundColor Green ($completed + ' ')
     $past = $_.last
   }
   if($_.last -lt $a.Length -1 ){
