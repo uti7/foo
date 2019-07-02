@@ -58,7 +58,7 @@ try{
     $proc = Start-Process -WindowStyle Minimized -Wait -PassThru -FilePath $btta -ArgumentList "$format `"$extracted`"" -RedirectStandardOutput $dumped -RedirectStandardError $stderr
     if((Test-Path $stderr) -and (Get-ChildItem $stderr).Length -gt 0){
       Get-Content $stderr
-      if($proc.ExitCode -eq 2){
+      if($proc.ExitCode -eq 2 -or $proc.ExitCode -eq 3){
         $q = 'n'
       }
       Remove-Item $stderr
