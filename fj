@@ -264,13 +264,13 @@ function is_ancestor_vim
     ps_cmd="ps -ef"
     pid_column=2
     ppid_column=3
-    cmd_column=6
+    cmd_column="6,7"
     ;;
   esac 
 
   eval "$ps_cmd" | awk -v pid_column=$pid_column \
     -v ppid_column=$ppid_column \
-    -v cmd_column=$cmd_column \
+    -v cmd_column="$cmd_column" \
     -v my_pid="$my_pid" \
     -v target_cmd="$target_cmd" \
   'function get_parent(pid){ \
@@ -279,7 +279,13 @@ function is_ancestor_vim
 #print "DEBUG: item[1]=" item[1]; \
     return item[1]; \
   }\
-  { plist[$pid_column] = sprintf("%d,%s", $ppid_column, $cmd_column); } \
+  BEGIN {print "cmd_column=" cmd_column; split(cmd_column, cols, ","); }\
+  {\
+    for(i in cols){\
+#print "DEBUG: entry i=[" i "]: " $ppid_column "-" $cols[i]; \
+      plist[$pid_column] = sprintf("%d,%s", $ppid_column, $cols[i]);\
+    }\
+  }\
   END{ \
     lookup_pid = my_pid; \
 #print "DEBUG: lookup_pid=" lookup_pid; \
