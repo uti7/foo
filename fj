@@ -282,8 +282,10 @@ function is_ancestor_vim
   BEGIN { split(cmd_column, cols, ","); }\
   {\
     for(i in cols){\
-#print "DEBUG: entry i=[" i "]: " $ppid_column "-" $cols[i]; \
-      plist[$pid_column] = sprintf("%d,%s", $ppid_column, $cols[i]);\
+      if($cols[i]!=""){\
+#print "DEBUG: entry pid=[" $pid_column "]: " $ppid_column "-" $cols[i]; \
+        plist[$pid_column] = sprintf("%d,%s", $ppid_column, $cols[i]);\
+      }\
     }\
   }\
   END{ \
