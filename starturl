@@ -1,0 +1,18 @@
+#!/usr/bin/sh
+#echo "URL: $*"
+#read yn
+#[ "$yn" != y ] && exit 1
+u=`echo "$*"|awk 'BEGIN{u="";}{
+gsub(/[ \t]/,"%20");
+gsub(/\\\\-/,"-");
+gsub(/\\\\+/,"");
+u=sprintf("%s%s",u,$0);
+}END{
+if(match(u,/^file:\/\//)>0){
+	sub(/^file:\/\//,"",u);
+	conv2dos = sprintf("cygpath -d \"%s\"", u);
+	conv2dos |getline u;
+	close(conv2dos);
+}
+print u;}'`
+start $u
