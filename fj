@@ -32,7 +32,7 @@ usage:
   -v PATTERN   : invert matching for file content which NOT condition.
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert filtering for every path
-  -P PRUNEDIR  : find -name PRUNEDIR prune 
+  -P PRUNEDIR  : specified to find option that \`-name PRUNEDIR -prune -o'
   -F           : PATTERN as fixed strings (behave like fgrep(1))
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in

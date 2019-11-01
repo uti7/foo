@@ -1,33 +1,87 @@
-#!/bin/bash
-[ $# -eq 0 ] && echo "usage: ${0//*\//} {dir_of_a} [rev]]" && exit 2
+#!/bin/bash -f
+set -f
+self=${0//*\//}
+function usage {
+  cat << EOT
+usage:  cd dir_of_b && $self [OPTION] dir_of_a | sh
+
+OPTION:
+  -N NOTFILE  : specified to find option that \`-not -name NOTFILE'
+  -P PRUNEDIR : specified to find option that \`-name PRUNEDIR -prune -o'
+  -r          : reverse a and b , only effective in cp direction
+  -v          : output only vimdiff
+  -c          : output only cp
+EOT
+}
+
+is_vimdiff=1
+is_cp=1
+
+opt=`getopt -q -o cN:P:rv -- "$@"`
+[ $? -ne 0 ] && usage && exit 2
+
+eval set -- "$opt"
+while [ 0 ]
+do
+    case $1 in
+    -c) is_vimdiff=0; shift;;
+    -N)
+      not_spec="$not_spec -not -name $2"
+      shift 2
+      ;;
+    -P)
+      prune_spec="$prune_spec -name $2 -prune -o"
+      shift 2
+      ;;
+    -r) is_reverse=1; shift;;
+    -v) is_cp=0; shift;;
+    --) shift; break;;
+    *)  usage; exit 2;;
+    esac
+done
+[ $# -eq 0 ] && usage && exit 2
+
 dir_a="$1"
-[ "$2" = "rev" ] && is_reverse=1
+
   #-prune -o -name \*.js \
-find \
-  -name \*.csv \
-  -prune -o -name dist -prune -o -name node_modules -prune -o -name semantic -prune -o \
-  -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f -print \
-|awk -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} 'BEGIN{
+  #-exec sh /tmp/is_text {} \; -name \*.csv \
+
+find . $prune_spec \
+  -name \*.orig -prune -o \
+  -name \*.pdb -prune -o \
+  -name \*.vcxproj -prune -o \
+  -name \*.vcxproj.user -prune -o \
+  -name \*.vcproj -prune -o \
+  -name \*.tlog -prune -o \
+  -name \*.log -prune -o \
+  -name \*.obj -prune -o \
+  -name \*.exe -prune -o \
+  -name dist -prune -o -name node_modules -prune -o -name semantic -prune -o \
+  -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f $not_spec -print \
+|awk -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
+  -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} 'BEGIN{
 		print "i=1";
 	}
 	{
 #		gsub(/ /,"\\ ");
-    a=sprintf("%1c%s/%s%1c",0x27,dir_a,$0,0x27);
-    b=sprintf("%1c%s%1c",0x27,$0,0x27);
-		printf("diff -q %s %s\n",a,b);
-		printf("x=$?; [ \"$x\" -eq 1 ] && echo \"$i: ----------\" && echo \"$ vimdiff %s %s\"",a,b);
+    a=sprintf("%1c%s/%s%1c",39,dir_a,$0,39);
+    b=sprintf("%1c%s%1c",39,$0,39);
+		printf("diff -q %s %s 1>/dev/null 2>&1\n",a,b);
+    printf("x=$?; [ \"$x\" -eq 1 ] && echo \"# $i: ---------- has difference -----\"");
 		if(is_reverse==0){
-			printf(" && echo \"$ cp %s %s\"",b,a);
+      if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",b,a);
+      if(is_cp==1)      printf(" && echo \"cp %s %s\"",b,a);
 		}else{
-			printf(" && echo \"$ cp %s %s\"",a,b);
+      if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",a,b);
+      if(is_cp==1)      printf(" && echo \"cp %s %s\"",a,b);
 		}
 		printf(" && i=$((i + 1)) && echo\n");
 
-		printf("[ \"$x\" -eq 2 ] && echo \"$i: ----------\"");
+		printf("[ \"$x\" -eq 2 ] && echo \"# $i: ---------- does not exist on one side -----\"");
 		if(is_reverse==0){
-			printf(" && echo \"$ cp %s %s\"",b,a);
+      printf(" && echo \"cp %s %s\"",b,a);
 		}else{
-			printf(" && echo \"$ cp %s %s\"",a,b);
+      printf(" && echo \"cp %s %s\"",a,b);
 		}
 		printf(" && i=$((i + 1)) && echo\n");
 	}'
