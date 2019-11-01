@@ -30,7 +30,8 @@
 Param(
   [Parameter(Mandatory=$true)]$pattern,
   [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$in,
-  [Parameter()]$enc = [System.Text.Encoding]::UTF8
+  [Parameter()]$enc = [System.Text.Encoding]::UTF8,
+  [Parameter()][switch]$gzip = $false
 )
 $myname = Split-Path $MyInvocation.MyCommand.Path -Leaf
 
@@ -41,6 +42,26 @@ if(Test-Path $in){
   $f = (Resolve-Path $in)
 }
 if($f -ne $null -and $f.GetType().Name -eq "PathInfo"){
+  if($gzip -eq $true){
+    $extracted = $env:TEMP + '\' + (Get-ChildItem $f.Path).BaseName + '.x'
+
+    $i = New-Object System.IO.FileStream(($f.Path),[System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
+    $g = New-Object System.IO.Compression.GZipStream($i,[System.IO.Compression.CompressionMode]::Decompress)
+    $o = New-Object System.IO.FileStream(($extracted),[System.IO.FileMode]::Create)
+    $b = New-Object System.Byte[] 8192
+
+    $n = $b.Length
+    while($n -eq $b.Length){
+        $n = $g.Read($b, 0, $b.Length)
+        if($n){
+            $o.Write($b,0,$n)
+        }
+    }
+    $i.Dispose()
+    $g.Dispose()
+    $o.Dispose()
+    $f = (Resolve-Path $extracted)
+  }
   $a = [System.IO.File]::ReadAllBytes($f.Path)
 }else{
   $a = [System.Text.Encoding]::ASCII.GetBytes($in)
