@@ -11,6 +11,12 @@ OPTION:
   -r          : reverse a and b , only effective in cp direction
   -v          : output only vimdiff
   -c          : output only cp
+
+example:
+  $ cd ~/foo
+  $ $self -c -N config.php -N database.php /var/www/html/foo | sh | tee /tmp/aaa
+  $ sh -x /tmp/aaa
+
 EOT
 }
 
