@@ -22,7 +22,8 @@ Param(
 
     [ValidateNotNullOrEmpty()]
     [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})] 
-    $ttba = "$HOME\bin\ttba.exe",
+    #$ttba = "$HOME\bin\ttba.exe",
+    $ttba = "D:\cygwin\home\ga\tb\x64\Release\ttba.exe",
 
     [string] $format = '-v -c0x16 -k 97'
 )
@@ -76,9 +77,11 @@ try{
         Write-Host -ForegroundColor Red (Get-Content $stderr)
         Write-Host -ForegroundColor Magenta "some error has occurred."
         Remove-Item $stderr
-        $q = Read-Host "edit again? (y or else):"
+        $q = Read-Host "edit again? ([y]es, [i]gnore or else(process no continued))"
         if($q -eq 'y'){
           continue
+        }elseif($q -eq 'i'){
+          # fall 
         }else{
           break
         }
@@ -92,7 +95,10 @@ try{
         $i.Dispose()
         $g.Dispose()
         $o.Dispose()
+        Write-Host -ForegroundColor Green "gz done."
         break
+      }else{
+        Write-Host -ForegroundColor Yellow "gz skipped."
       }
     }
 }catch [Exception]{
