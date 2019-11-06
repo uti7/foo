@@ -66,9 +66,10 @@ set complete=.,w,b,u,t
 
 set tags=./tags;,tags,ptags
 cmap dvd vert diffsplit 
+cmap bfo bro filter  ol<Left><Left><Left>
 set nu
 set errorformat=%f:%l:%m
-set redrawtime=3000
+set redrawtime=5000
 
 function! s:delete_hide_buffer()
 	let list = filter(range(1, bufnr("$")), "buflisted(v:val)")
@@ -96,7 +97,16 @@ function! s:fj_L_for_keyword()
   endif
 endfunction
 command! Fjl4kw :call s:fj_L_for_keyword()
-nnoremap <C-@> :Fjl4kw<CR>
+"nnoremap <C-@> :Fjl4kw<CR>
+
+function! s:fj_A_for_keyword_angular()
+  exec '!fj -i ' . expand("<cword>") . ' .html .css .ts'
+  if filereadable(&errorfile)
+    cf
+  endif
+endfunction
+command! Fja4kwAngular :call s:fj_A_for_keyword_angular()
+nnoremap <C-@> :Fja4kwAngular<CR>
 
 inoremap LLL log_message('debug',__FILE__.':'.__LINE__.': '.__CLASS__.'->'.__METHOD__.'():'<CR>.preg_replace('/\r?\n/', '', var_export(<CR>$foo<CR>,true)));<ESC>
 
