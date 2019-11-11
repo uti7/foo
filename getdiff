@@ -11,6 +11,7 @@ OPTION:
   -r          : reverse a and b , only effective in cp direction
   -v          : output only vimdiff
   -c          : output only cp
+  -f          : output full path what dir_of_b (not specified, then output \`.')
 
 example:
   $ cd ~/foo
@@ -22,8 +23,9 @@ EOT
 
 is_vimdiff=1
 is_cp=1
+dir_b=.
 
-opt=`getopt -q -o cN:P:rv -- "$@"`
+opt=`getopt -q -o cfN:P:rv -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -31,6 +33,7 @@ while [ 0 ]
 do
     case $1 in
     -c) is_vimdiff=0; shift;;
+    -f) dir_b="$PWD"; shift;;
     -N)
       not_spec="$not_spec -not -name $2"
       shift 2
@@ -64,14 +67,22 @@ find . $prune_spec \
   -name \*.exe -prune -o \
   -name dist -prune -o -name node_modules -prune -o -name semantic -prune -o \
   -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f $not_spec -print \
-|awk -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
+|awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
   -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} 'BEGIN{
 		print "i=1";
 	}
 	{
 #		gsub(/ /,"\\ ");
-    a=sprintf("%1c%s/%s%1c",39,dir_a,$0,39);
-    b=sprintf("%1c%s%1c",39,$0,39);
+    b=$0;
+    if(match(dir_b,/^\//)>0){
+      sub(/^\./, dir_b, b);
+    }
+    a=$0;
+print "#DEBUG:before path=" a;
+    sub(/^\./,dir_a,a);
+print "#DEBUG:after path=" a;
+    a=sprintf("%1c%s%1c",39,a,39);
+    b=sprintf("%1c%s%1c",39,b,39);
 		printf("diff -q %s %s 1>/dev/null 2>&1\n",a,b);
     printf("x=$?; [ \"$x\" -eq 1 ] && echo \"# $i: ---------- has difference -----\"");
 		if(is_reverse==0){
