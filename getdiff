@@ -83,7 +83,7 @@ print "#DEBUG:before path=" a;
 print "#DEBUG:after path=" a;
     a=sprintf("%1c%s%1c",39,a,39);
     b=sprintf("%1c%s%1c",39,b,39);
-		printf("diff -q %s %s 1>/dev/null 2>&1\n",a,b);
+		printf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
     printf("x=$?; [ \"$x\" -eq 1 ] && echo \"# $i: ---------- has difference -----\"");
 		if(is_reverse==0){
       if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",b,a);
