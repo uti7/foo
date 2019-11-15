@@ -74,36 +74,35 @@ find . $prune_spec \
   -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f $not_spec -print \
 |awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
   -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} 'BEGIN{
-		print "i=1";
-	}
-	{
-#		gsub(/ /,"\\ ");
-    b=$0;
-    if(match(dir_b,/^\//)>0){
-      sub(/^\./, dir_b, b);
+        print "i=1";
     }
-    a=$0;
-print "#DEBUG:before path=" a;
-    sub(/^\./,dir_a,a);
-print "#DEBUG:after path=" a;
-    a=sprintf("%1c%s%1c",39,a,39);
-    b=sprintf("%1c%s%1c",39,b,39);
-		printf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
-    printf("x=$?; [ \"$x\" -eq 1 ] && echo \"# $i: ---------- has difference -----\"");
-		if(is_reverse==0){
-      if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",b,a);
-      if(is_cp==1)      printf(" && echo \"cp %s %s\"",b,a);
-		}else{
-      if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",a,b);
-      if(is_cp==1)      printf(" && echo \"cp %s %s\"",a,b);
-		}
-		printf(" && i=$((i + 1)) && echo\n");
-
-		printf("[ \"$x\" -eq 2 ] && echo \"# $i: ---------- does not exist on one side -----\"");
-		if(is_reverse==0){
-      printf(" && echo \"cp %s %s\"",b,a);
-		}else{
-      printf(" && echo \"cp %s %s\"",a,b);
-		}
-		printf(" && i=$((i + 1)) && echo\n");
-	}'
+    {
+#       gsub(/ /,"\\ ");
+        b=$0;
+        if(match(dir_b,/^\//)>0){
+            sub(/^\./, dir_b, b);
+        }
+        a=$0;
+        print "#DEBUG:before path=" a;
+        sub(/^\./,dir_a,a);
+        print "#DEBUG:after path=" a;
+        a=sprintf("%1c%s%1c",39,a,39);
+        b=sprintf("%1c%s%1c",39,b,39);
+        printf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
+        printf("x=$?; [ \"$x\" -eq 1 ] && echo \"# $i: ---------- has difference -----\"");
+        if(is_reverse==0){
+            if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",b,a);
+            if(is_cp==1)      printf(" && echo \"cp %s %s\"",b,a);
+        }else{
+            if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",a,b);
+            if(is_cp==1)      printf(" && echo \"cp %s %s\"",a,b);
+        }
+        if(is_vimdiff==1) printf("\n[ \"$x\" -eq 1 ] && echo %1cecho -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3 || [ \"$x\" -eq 1 ] && echo%1c\n", 39,39);
+        printf("[ \"$x\" -eq 2 ] && echo \"# $i: ---------- does not exist on one side -----\"");
+        if(is_reverse==0){
+            printf(" && echo \"cp %s %s\"",b,a);
+        }else{
+            printf(" && echo \"cp %s %s\"",a,b);
+        }
+        printf("\n[ \"$x\" -ne 0 ] && echo && i=$((i + 1))\n");
+    }'
