@@ -3,7 +3,7 @@ set -f
 self=${0//*\//}
 function usage {
   cat << EOT
-usage:  cd dir_of_b && $self [OPTION] dir_of_a | sh
+usage:  cd dir_b && $self [OPTION] dir_a | sh
 
 OPTION:
   -N NOTFILE  : specified to find option that \`-not -name NOTFILE'
@@ -11,7 +11,7 @@ OPTION:
   -r          : reverse a and b , only effective in cp direction
   -v          : output only vimdiff
   -c          : output only cp
-  -f          : output full path what dir_of_b (not specified, then output \`.')
+  -f          : output full path what dir_a & b (not specified, then output as is)
 
 example:
   $ cd ~/foo
@@ -33,7 +33,7 @@ while [ 0 ]
 do
     case $1 in
     -c) is_vimdiff=0; shift;;
-    -f) dir_b="$PWD"; shift;;
+    -f) is_out_fullpath=1; shift;;
     -N)
       not_spec="$not_spec -not -name $2"
       shift 2
@@ -50,7 +50,12 @@ do
 done
 [ $# -eq 0 ] && usage && exit 2
 
-dir_a="$1"
+dir_a=`echo -n "$1"|sed -e 's|/$||'`
+
+if [ ${is_out_fullpath:-0} ]; then
+  dir_a=$(cd "$dir_a" && pwd)
+  dir_b="$PWD"
+fi
 
   #-prune -o -name \*.js \
   #-exec sh /tmp/is_text {} \; -name \*.csv \
