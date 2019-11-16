@@ -5,14 +5,13 @@ function usage {
   cat << EOT
 
 synopsis:
-  find current direcory (dir_b) files
-  diff for every file and another directory (dir_a)
-  print a command line what vimdiff dir_b_file dir_a_file, also cp ...
+  1) [find] current direcory files
+  2) [diff] from another directory for every files
+  3) [echo] a command line for different file that \`vimdiff dir_b_file dir_a_file', also \`cp ...'
 
 usage:  $self [OPTION] DIR_A
 
-DIR_A:
-        destination (DIR_B is current directory)
+DIR_A:  destination (DIR_B is current directory)
 
 OPTION:
   -N NOTFILE  : specified to find option that \`-not -name NOTFILE'
@@ -61,7 +60,7 @@ done
 
 dir_a=`echo -n "$1"|sed -e 's|/$||'`
 
-if [ ${is_out_fullpath:-0} ]; then
+if [ ${is_out_fullpath:-0} -eq 1 ]; then
   dir_a=$(cd "$dir_a" && pwd)
   dir_b="$PWD"
 fi
@@ -126,4 +125,8 @@ find . $prune_spec \
         if(x!=0){
           i++;
         }
-    }'
+    }
+    END{
+        if(is_vimdiff==1 && is_cp==0) printf("echo \"%s\"\n","done.");
+    }
+    '
