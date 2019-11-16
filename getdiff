@@ -3,19 +3,28 @@ set -f
 self=${0//*\//}
 function usage {
   cat << EOT
-usage:  cd dir_b && $self [OPTION] dir_a | sh
+
+synopsis:
+  find current direcory (dir_b) files
+  diff for every file and another directory (dir_a)
+  print a command line what vimdiff dir_b_file dir_a_file, also cp ...
+
+usage:  $self [OPTION] DIR_A
+
+DIR_A:
+        destination (DIR_B is current directory)
 
 OPTION:
   -N NOTFILE  : specified to find option that \`-not -name NOTFILE'
   -P PRUNEDIR : specified to find option that \`-name PRUNEDIR -prune -o'
-  -r          : reverse a and b , only effective in cp direction
-  -v          : output only vimdiff
-  -c          : output only cp
-  -f          : output full path what dir_a & b (not specified, then output as is)
+  -r          : output the command line that reverse A and B 
+  -v          : output only vimdiff command line
+  -c          : output only cp command line
+  -f          : output full path (default: as is)
 
 example:
   $ cd ~/foo
-  $ $self -c -N config.php -N database.php /var/www/html/foo | sh | tee /tmp/aaa
+  $ $self -c -N config.php -N database.php /var/www/html/foo | tee /tmp/aaa
   $ sh -x /tmp/aaa
 
 EOT
@@ -74,35 +83,47 @@ find . $prune_spec \
   -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f $not_spec -print \
 |awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
   -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} 'BEGIN{
-        print "i=1";
+        i=1;
     }
     {
-#       gsub(/ /,"\\ ");
         b=$0;
-        if(match(dir_b,/^\//)>0){
-            sub(/^\./, dir_b, b);
+        if(match(dir_b,/^\//)>0){ # full path spec
+            sub(/^\./, dir_b, b); # however, due to find output would begin with "."
         }
         a=$0;
-        print "#DEBUG:before path=" a;
-        sub(/^\./,dir_a,a);
-        print "#DEBUG:after path=" a;
+        sub(/^\./,dir_a,a); # thats the same
         a=sprintf("%1c%s%1c",39,a,39);
         b=sprintf("%1c%s%1c",39,b,39);
-        printf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
-        printf("x=$?; [ \"$x\" -eq 1 ] && echo \"# $i: ---------- has difference -----\"");
-        if(is_reverse==0){
-            if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",b,a);
-            if(is_cp==1)      printf(" && echo \"cp %s %s\"",b,a);
-        }else{
-            if(is_vimdiff==1) printf(" && echo \"vimdiff %s %s\"",a,b);
-            if(is_cp==1)      printf(" && echo \"cp %s %s\"",a,b);
+        if(is_reverse!=0){
+          is_reverse=a;a=b;b=is_reverse;
         }
-        if(is_vimdiff==1) printf("\n[ \"$x\" -eq 1 ] && echo %1cecho -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3 || [ \"$x\" -eq 1 ] && echo%1c\n", 39,39);
-        printf("[ \"$x\" -eq 2 ] && echo \"# $i: ---------- does not exist on one side -----\"");
-        if(is_reverse==0){
-            printf(" && echo \"cp %s %s\"",b,a);
-        }else{
-            printf(" && echo \"cp %s %s\"",a,b);
+        cmd=sprintf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
+        x=system(cmd);close(cmd);
+        if(x==1){
+          printf("# %d: ---------- has difference -----\n",i);
+          if(is_vimdiff==1){
+            cl=sprintf("vimdiff %s %s",b,a);
+            if(is_cp==0){
+              printf("echo \"%s\"\n",cl);
+              printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+            }
+            print cl;
+            if(is_cp==0){
+              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+            }
+          }
+          if(is_cp==1) printf("cp %s %s\n",b,a);
         }
-        printf("\n[ \"$x\" -ne 0 ] && echo && i=$((i + 1))\n");
+        if(x==2){
+          printf("# %d: ---------- does not exist on one side -----\n",i);
+          cl=sprintf("cp %s %s",b,a);
+          if(is_vimdiff==1 && is_cp==0){
+            printf("echo \"%s\"\n",cl);
+            printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+          }
+          print cl;
+        }
+        if(x!=0){
+          i++;
+        }
     }'
