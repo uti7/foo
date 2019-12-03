@@ -23,7 +23,7 @@ OPTION:
 
 example:
   $ cd ~/foo
-  $ $self -c -N config.php -N database.php /var/www/html/foo | tee /tmp/aaa
+  $ $self -c -N config.php -N database.php -N log4php_configurator.xml /var/www/html/foo | tee /tmp/aaa
   $ sh -x /tmp/aaa
 
 EOT
