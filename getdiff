@@ -104,12 +104,11 @@ find . $prune_spec \
             cl=sprintf("vimdiff %s %s",b,a);
             if(is_cp==0){
               printf("echo \"%s\"\n",cl);
-              printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+              printf("echo -n \"sure? ([y]es, [s]kip or else):\" && read q && case \"$q\" in y) %s;; s) echo \"...skipped\";; *) exit 3;; esac\n", cl);
             }
-            print cl;
-            if(is_cp==0){
-              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
-            }
+#            if(is_cp==0){
+#              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+#            }
           }
           if(is_cp==1) printf("cp %s %s\n",b,a);
         }
