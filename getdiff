@@ -105,6 +105,8 @@ find . $prune_spec \
             if(is_cp==0){
               printf("echo \"%s\"\n",cl);
               printf("echo -n \"sure? ([y]es, [s]kip or else):\" && read q && case \"$q\" in y) %s;; s) echo \"...skipped\";; *) exit 3;; esac\n", cl);
+            }else{
+              print cl;
             }
 #            if(is_cp==0){
 #              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
