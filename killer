@@ -18,6 +18,7 @@ exit(0);
 END{
 if(is_view == 1){ exit(0); }
 q="";
+if(length(pids)==0){ print n ": no such process."; exit(1); }
 for(pid in pids){
   if(pids[pid]!=""){
     print(pids[pid]);
