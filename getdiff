@@ -116,7 +116,8 @@ find . $prune_spec \
         }
         if(x==2){
           printf("# %d: ---------- does not exist on one side -----\n",i);
-          cl=sprintf("cp %s %s",b,a);
+          subdir_a = gensub(/^(.*\/)([^\/]+)$/, "\\1", "g", a);
+          cl=sprintf("mkdir -p %s && cp %s %s",subdir_a,b,a);
           if(is_vimdiff==1 && is_cp==0){
             printf("echo \"%s\"\n",cl);
             printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
