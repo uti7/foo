@@ -23,7 +23,7 @@ for(pid in pids){
   if(pids[pid]!=""){
     print(pids[pid]);
     if(q != "a"){
-      printf("kill? ([y]es, [s]kip, yes [a]ll or else):");
+      printf("kill? ([y]es, [s]kip, yes to [a]ll or else):");
       cmd="sh -c \"read q && echo \\$q\"";
       while((cmd|getline q) > 0){
         #q = $0;
