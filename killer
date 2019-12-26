@@ -1,24 +1,69 @@
-#/bin/sh
-[ $# -eq 0 ] && echo "usage: killer [-v] process-name" && exit 2
-[ "$1" = "-v" ] && is_view=1 && shift
-awk -v is_view=${is_view:-0} -v n="$*" 'BEGIN{
+#/bin/bash
+myname=${0//*\//}
+
+function usage {
+  cat << EOT
+name:
+  $myname - process killer by PATTERN
+
+usage:
+  $myname [-l] [-t TTY]  PATTERN
+  $myname [-h]
+
+  PATTERN   : a reg-exp for target that ps output. typically, specify proc-name
+  -l        : only show list
+  -t TTY    : filter by TTY, (e.g. \`-t pty3')
+EOT
+}
+
+opt=`getopt -q -o hlt: -- "$@"`
+[ $? -ne 0 ] && usage && exit 2
+
+eval set -- "$opt"
+while [ 0 ]
+do
+    case $1 in
+    -l) is_list_only=1; shift;;
+    -t) tty="$2"; shift 2;;
+    --) shift; break;;
+    *) usage; exit 2;;
+    esac
+done
+[ $# -eq 0 ] && usage && exit 2
+
+# ps output format depended
+pid_column=2
+tty_column=4
+
+awk -v pid_column="$pid_column" -v tty_column="$tty_column" -v tty="$tty" \
+-v is_list_only=${is_list_only:-0} -v n="$*" 'BEGIN{
 cmd = "ps -ef";
-while((cmd|getline) > 0){
-  if(match($0,n)>0){
-    if(is_view == 1){
+if(tty == ""){
+  tty_re=".";
+}
+else{
+  tty_re = "^" tty "$";
+}
+for(i=0; (cmd|getline) > 0; i++){
+  if(i == 0){ print $0; continue; }
+  if(match($0,n)>0 && match($tty_column, tty_re)>0){
+    if(is_list_only == 1){
+      print "# " $0;
+      print "kill " $pid_column;
+    }else{
       print $0;
-      print "kill " $2;
     }
-    pids[$2]=$0;
+    pids[$pid_column]=$0;
   }
 }
 close(cmd);
 exit(0);
 }
 END{
-if(is_view == 1){ exit(0); }
+if(is_list_only == 1){ exit(0); }
 q="";
 if(length(pids)==0){ print n ": no such process."; exit(1); }
+printf("-- \n\n");
 for(pid in pids){
   if(pids[pid]!=""){
     print(pids[pid]);
@@ -26,7 +71,6 @@ for(pid in pids){
       printf("kill? ([y]es, [s]kip, yes to [a]ll or else):");
       cmd="sh -c \"read q && echo \\$q\"";
       while((cmd|getline q) > 0){
-        #q = $0;
       }
       close(cmd);
     }
