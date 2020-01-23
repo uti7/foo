@@ -1,0 +1,27 @@
+#!/usr/bin/sh
+if [ $# -eq 0 ]; then
+  printf "ENTER PORT-NO:"
+  read port
+else
+  port=$1
+fi
+port=$((port + 0))
+[ $port -eq 0 ] && echo "ERROR: invalid port no." && exit 1
+
+while [ 0 ];do
+  ssh -p $port root@localhost
+  x=$?
+  if [ $x -ne 0 ]; then
+    echo -e '\033[35mssh has been fault, retrying...\033[0m'
+    q=y
+  else
+    echo -ne '\033[35mtry again? (y or else):\033[0m'
+    read q
+  fi
+  if [ "$q" = y ]; then
+    continue
+  else
+    break
+  fi
+done
+
