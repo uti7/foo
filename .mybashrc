@@ -13,7 +13,6 @@ alias vi="vim"
 alias now="date +'%Y%m%d%H%M%S'"
 alias tmux='rm -rf /tmp/tmux* && tmux'
 
-startcmd=start # cygstart
 gvim="/cygdrive/c/cast/app/gvim64/gvim.exe"
 
 export EDITOR=vim
@@ -24,6 +23,7 @@ export LANG=ja_JP.utf8
 
 export TEMP="/cygdrive/c/cast/tmp"
 export SCREENDIR="$TEMP/uscreens"
+export TMUX_TMPDIR="$TEMP/uscreens"
 export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
 export PATH=$HOME/bin:$HOME/foo:$PATH
 
