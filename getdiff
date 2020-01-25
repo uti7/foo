@@ -23,7 +23,7 @@ OPTION:
 
 example:
   $ cd ~/foo
-  $ $self -c -N config.php -N database.php /var/www/html/foo | tee /tmp/aaa
+  $ $self -c -N config.php -N database.php -N log4php_configurator.xml /var/www/html/foo | tee /tmp/aaa
   $ sh -x /tmp/aaa
 
 EOT
@@ -104,18 +104,21 @@ find . $prune_spec \
             cl=sprintf("vimdiff %s %s",b,a);
             if(is_cp==0){
               printf("echo \"%s\"\n",cl);
-              printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+              printf("echo -n \"sure? ([y]es, [s]kip or else):\" && read q && case \"$q\" in y) %s;; s) echo \"...skipped\";; *) exit 3;; esac\n", cl);
+            }else{
+              print cl;
             }
-            print cl;
-            if(is_cp==0){
-              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
-            }
+#            if(is_cp==0){
+#              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+#            }
           }
           if(is_cp==1) printf("cp %s %s\n",b,a);
         }
         if(x==2){
           printf("# %d: ---------- does not exist on one side -----\n",i);
-          cl=sprintf("cp %s %s",b,a);
+          #subdir_a = gensub(/^(.*\/)([^\/]+)$/, "\\1", "g", a); # for gawk
+          subdir_a = a; sub(/([^\/]+)$/, "", subdir_a); # for mawk (ubuntu)
+          cl=sprintf("mkdir -p %s%1c && cp %s %s",subdir_a,39,b,a);
           if(is_vimdiff==1 && is_cp==0){
             printf("echo \"%s\"\n",cl);
             printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");

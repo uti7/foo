@@ -1,0 +1,73 @@
+#!/bin/sh
+if [ $# -eq 0 ]; then
+  cat << EOF
+
+synopsis:
+    concat html which results of phpdoc
+
+usage:
+    this.sh DIR
+      DIR:  a directory, its phpdoc output
+
+example:
+    $ cd application
+    $ phpdoc -pp -d controllers,core -t /var/www/html/doc/controllers -o HTML:Smarty:PHP
+    $ cathtml /var/www/html/doc/controllers > c.html
+
+EOF
+  exit 2
+fi
+
+doc_top_dir=${1:-$PWD}
+echo $doc_top_dir|grep -q "/$"
+[ $? -ne 0 ] && doc_top_dir="$doc_top_dir/"
+r=`echo $doc_top_dir|sed -e 's/\//__/g'`
+top_page=index.html
+
+awk '/<html>/,/<\/head>/' "${doc_top_dir}$top_page"
+echo "<body>"
+
+files=`find $doc_top_dir \
+  -not -name $top_page  \
+  -not -name blank.html \
+  -not -name elementindex\*.html \
+  -not -name errors.html \
+  -not -name packages.html \
+  -name \*.html -print`
+files="$files ${doc_top_dir}elementindex.html"
+for f in $files; do
+  a=`echo $f|sed -e 's/[\/.]/__/g'`
+  awk '/<body>/,/<\/body>/' $f | sed -e 's/<a name="\([^"]\+\)"/<a name="'$a'__\1"/' -e 's/<body>/<a name="'$a'__top"><\/a>/' -e 's/<\/body>/<hr \/>/' -e 's/\.\.\/media/media/g' -e 's/\(<a href="[^"]\+"[^>]*\)>/\1\n>/g' \
+    |awk -v f=$f -v a=$a -v r=$r 'BEGIN{print "<!-- START: " f " -->";}
+    {
+#print "<!-- DEBUG: ALL=[" $0 "] -->";
+      if(match($0,/<a href="([^"]+)"/) > 0){
+        href=gensub(/^.*<a href="([^"]+)".*$/, "\\1", 1, $0);
+        if(href!="" && match(href, /^http:/) == 0){
+#print "<!-- DEBUG: HREF=[" href "] -->";
+          new_href = href;
+          if(match(new_href, /^#/) > 0){
+            gsub(/#/,"__", new_href);
+            new_href = "#" a  new_href;
+          }else{
+          if(match(new_href, /\.html$/) > 0){
+            gsub(/^\.\.\//,"", new_href);
+            gsub(/[\/.#]/,"__", new_href);
+            new_href = "#" r new_href "__top";
+          }else{
+            gsub(/^\.\.\//,"", new_href);
+            gsub(/[\/.#]/,"__", new_href);
+            new_href = "#" r new_href;
+          }
+          }
+#print "<!-- DEBUG: NEW_HREF=[" new_href "] -->";
+          gsub(/\$/, "\\$", href);  # anchor to variable
+          sub(href, new_href);
+        }
+      }
+      print $0;
+    }'
+  #break
+done
+echo "</body>"
+echo "</html>"
