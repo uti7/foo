@@ -216,8 +216,7 @@ cmap Vsp set columns=160<CR>:vsp
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 cmap FJ !powershell -f $vim\fj.ps1 -p 
 set tags=tags;,ctags,$temp/mono.doubt
-set grepprg=c:\cast\app\vim\grep.exe\ -n
-"set grepprg=findstr\ /r
+set grepprg=findstr\ /r
 " Chalice SETTINGS
 set runtimepath+=$VIM/chalice
 runtime plugin/chalice.vim
@@ -313,14 +312,14 @@ function! s:delete_hide_buffer()
 endfunction
 
 command! Hdelall :call s:delete_hide_buffer()
-imap <C-V> a<ESC>"+gPxa
+
 function! ChangeFontSize(zoom)
   let optval = split(&guifont, ':')
   let fsize = split(optval[1], 'h')
   let fsize[0] += a:zoom
   echo 'guifont=' . optval[0] . ':h' . fsize[0]
-  let &guifont= 'MS_Gothic:h' . fsize[0]
-  "setlocal guifont=optval[0] . ':h' . fsize[0]
+  "let &guifont= 'MS_Gothic:h' . fsize[0]
+  let &guifont=optval[0] . ':h' . fsize[0]
 endfunction
 noremap + :call ChangeFontSize(1)<CR>
 noremap - :call ChangeFontSize(-1)<CR>
