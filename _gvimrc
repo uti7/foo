@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 20-May-2019.
+" Last Change: 31-Jan-2020.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -201,7 +201,7 @@ map <C-F9> :tn<CR>
 map <C-K> :cp<CR>
 map <C-J> :cn<CR>
 map <C-H> :cc<CR>
-nnoremap <Leader>^ :cf<CR>
+nnoremap <Leader>^ :cf &errorfile
 cmap  :pwd<CR>
 map  :n%<CR>
 "map  JAa
@@ -217,6 +217,7 @@ cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 cmap FJ !powershell -f $vim\fj.ps1 -p 
 set tags=tags;,ctags,$temp/mono.doubt
 set grepprg=c:\cast\app\vim\grep.exe\ -n
+"set grepprg=findstr\ /r
 " Chalice SETTINGS
 set runtimepath+=$VIM/chalice
 runtime plugin/chalice.vim
@@ -227,7 +228,7 @@ set lcs=tab:>.,eol:$,trail:_,extends:\
 noremap K :silent !{program} <c-r><c-w><cr>
 
 " \s open as url which silent
-function! HandleURI()
+function! HandleURI(is_show_url)
   let s:uri = matchstr(getline("."), '[a-z]\+:\/\/[^	<>\[\]|,;:"]*')
   if s:uri == ""
     let s:uri = matchstr(getline("."), '\([a-z]:\\\|\\\\\)[^/*?	<>\[\]|,;:"]*')
@@ -238,33 +239,23 @@ function! HandleURI()
   endif
   let s:uri = substitute(s:uri, '%', '\\%', "g")
   let s:uri = substitute(s:uri, '\]$', '', "g")
-  echo s:uri
-  exec 'silent !powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
-endfunction
-map <Leader>s :call HandleURI()<CR>
-
-function! Test()
-  let s:uri = matchstr(getline("."), '[a-z]\+:\/\/[^	<>\[\]|,;:"]*')
-  if s:uri == ""
-    let s:uri = matchstr(getline("."), '\([a-z]:\\\|\\\\\)[^/*?	<>\[\]|,;:"]*')
-    if s:uri == ""
-      echo "No URI or path found in line."
-      return
-    endif
+  if a:is_show_url != 1
+    exec 'silent !powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
   endif
   let s:uri = substitute(s:uri, '%', '\\%', "g")
   let s:uri = substitute(s:uri, '\]$', '', "g")
   echo s:uri
 	"echo a:arg
 endfunction
-"map <Leader>t :call Test()<CR>
+map <Leader>s :call HandleURI(0)<CR>
+map <Leader>S :call HandleURI(1)<CR>
 
 function! Fj(argstr)
 	" at directory list buffer 
 	let s:cmdline = '!powershell -f ' . $vim . '\fj.ps1 ' . a:argstr
 	exec s:cmdline
 endfunction
-nnoremap !fj :call Fj("-p 
+cnoremap FJ call Fj("-p 
 
 
 let g:netrw_localcopycmd='copy' " avoid netrw notice
@@ -323,3 +314,17 @@ endfunction
 
 command! Hdelall :call s:delete_hide_buffer()
 imap <C-V> a<ESC>"+gPxa
+function! ChangeFontSize(zoom)
+  let optval = split(&guifont, ':')
+  let fsize = split(optval[1], 'h')
+  let fsize[0] += a:zoom
+  echo 'guifont=' . optval[0] . ':h' . fsize[0]
+  let &guifont= 'MS_Gothic:h' . fsize[0]
+  "setlocal guifont=optval[0] . ':h' . fsize[0]
+endfunction
+noremap + :call ChangeFontSize(1)<CR>
+noremap - :call ChangeFontSize(-1)<CR>
+command! ZI :call ChangeFontSize(1)
+command! ZO :call ChangeFontSize(1)
+
+vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>

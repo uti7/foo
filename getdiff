@@ -69,6 +69,7 @@ fi
   #-exec sh /tmp/is_text {} \; -name \*.csv \
 
 find . $prune_spec \
+  -not -name '~$*' \
   -name \*.orig -prune -o \
   -name \*.pdb -prune -o \
   -name \*.vcxproj -prune -o \
