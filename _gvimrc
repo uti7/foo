@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 31-Jan-2020.
+" Last Change: 15-Mar-2020.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -198,6 +198,8 @@ map <F8> :cp<CR>
 map <F9> :cn<CR>
 map <C-F8> :tp<CR>
 map <C-F9> :tn<CR>
+nnoremap <F11> :tabprevious<CR>
+nnoremap <F12> :tabNext<CR>
 map <C-K> :cp<CR>
 map <C-J> :cn<CR>
 map <C-H> :cc<CR>
