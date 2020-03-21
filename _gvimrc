@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 31-Jan-2020.
+" Last Change: 21-Mar-2020.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -76,8 +76,12 @@ endif
 "
 if has('win32')
   " Windows用
-  set guifont=MS_Gothic:h9
-  "set guifont=MS_Mincho:h12:cSHIFTJIS
+  "if &guifont == ''
+    set ambiwidth=double
+    "set guifont=Consolas:h10:cSHIFTJIS
+    set guifont=MS_Gothic:h9
+    "set guifont=MS_Mincho:h12:cSHIFTJIS
+  "endif
   " 行間隔の設定
   set linespace=1
 elseif has('mac')
@@ -198,6 +202,8 @@ map <F8> :cp<CR>
 map <F9> :cn<CR>
 map <C-F8> :tp<CR>
 map <C-F9> :tn<CR>
+nnoremap <F11> :tabprevious<CR>
+nnoremap <F12> :tabNext<CR>
 map <C-K> :cp<CR>
 map <C-J> :cn<CR>
 map <C-H> :cc<CR>
@@ -215,6 +221,8 @@ cmap dvd set columns=160<CR>:VDsplit
 cmap Vsp set columns=160<CR>:vsp 
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 cmap FJ !powershell -f $vim\fj.ps1 -p 
+cnoremap bro bro filter  ol<Left><Left><Left>
+
 set tags=tags;,ctags,$temp/mono.doubt
 set grepprg=findstr\ /r
 " Chalice SETTINGS

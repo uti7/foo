@@ -21,7 +21,7 @@ export LANG=ja_JP.utf8
 #export PAGER=/usr/local/bin/w3m\ -s
 #export PAGER=/usr/local/bin/w3m
 
-export TEMP="/cygdrive/c/cast/tmp"
+export TEMP="/tmp"
 export SCREENDIR="$TEMP/uscreens"
 export TMUX_TMPDIR="$TEMP/uscreens"
 export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
@@ -47,4 +47,4 @@ function jwhois {
 function dig {
 /cygdrive/c/progra~1/ISC\ BIND\ 9/bin/dig $*
 }
-[ `cygpath -w /` = 'C:\msys64\' -a -r $HOME/.mybashrc_git ] && . $HOME/.mybashrc_git
+[ `cygpath -w /` = 'C:\msys64\' -a -r $HOME/foo/.mybashrc_git ] && . $HOME/foo/.mybashrc_git
