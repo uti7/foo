@@ -1,0 +1,10 @@
+@exclude_file = qw(
+  ./aaa.pl
+);
+@exclude_dir = qw(
+  ./test
+);
+@exclude_ident = qw(
+  self
+);
+1;
