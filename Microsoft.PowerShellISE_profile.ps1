@@ -12,6 +12,26 @@ $files_str =@();(resolve-path $files) | % { $files_str+= $_.Path } ;
 & "c:\cast\app\gvim64\gvim.exe" $files_str;
 "["+$files_str+"]" }
 
+function gzbvi(){
+  
+  
+  if((Get-Location).Path -ne "C:\cast\gba"){
+    Set-Location c:\cast\gba
+    Write-Host -ForegroundColor Cyan (Get-Location)
+  }
+  c:\cast\app\bin\gzbvi.ps1 -file '.\0000 - FFTAdv2.sgm' -format '.\ffta.b2t'
+}
+
+function gzb2b(){
+  
+  
+  if((Get-Location).Path -ne "C:\cast\gba"){
+    Set-Location c:\cast\gba
+    Write-Host -ForegroundColor Cyan (Get-Location)
+  }
+  c:\cast\app\bin\gzb2b.ps1 -file '.\0000 - FFTAdv2.sgm' -override '.\ffta.b2b'
+}
+
 # same as operator that -split
 # to use .ps1 file command line args who other shell (e.g. .bat file, bash prompt)
 # > powershell.exe -f aaa.ps1 -f "*.html *.php"

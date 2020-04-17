@@ -1,10 +1,13 @@
 ﻿#Requires -Version 3.0
 
 # purpose:
-#   binary edit for gzip compressed file
+#   binary edit for gzip compressed file whitch vim used
 #
 # usage:
 #   this.ps1 -file file.gz [-format "....."]
+#
+# requirements:
+#   vim, ttba, btta
 #
 Param(
     [Parameter(Mandatory=$true)]
@@ -14,25 +17,31 @@ Param(
 
     [ValidateNotNullOrEmpty()]
     [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})] 
-    $editor = 'c:\Apps\vim\gvim.exe',
+    $editor = "C:\cast\app\gvim64\gvim.exe",
 
     [ValidateNotNullOrEmpty()]
     [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})] 
-    $btta = "$HOME\bin\btta.exe",
+    $btta = "C:\msys64\usr\local\bin\btta.exe",
+    #$btta = "C:\cast\app\bin\btta.exe",
 
     [ValidateNotNullOrEmpty()]
     [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})] 
-    #$ttba = "$HOME\bin\ttba.exe",
-    $ttba = "D:\cygwin\home\ga\tb\x64\Release\ttba.exe",
+    $ttba = "C:\msys64\usr\local\bin\ttba.exe",
+    #$ttba = "C:\cast\app\bin\ttba.exe",
+    #$ttba = "D:\cygwin\home\ga\tb\x64\Release\ttba.exe",
 
-    [string] $format = '-v -c0x16 -k 97'
+    [string] $format = ''
 )
 $path = $null
-if(!($format -cmatch '-v')){
-  $format = "$format -v"
-}
 
 try{
+    if($format -eq ''){
+      $format = '-v -c0x16 -k 97'
+      $format_path = "no format file"
+    }else{
+      $format_path = (Resolve-Path $format).Path
+      $format = "-f $format_path"
+    }
     $path = (Resolve-Path $file).Path
     $extracted = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + '.x'
     $dumped = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + '.txt'
@@ -56,7 +65,12 @@ try{
     $stderr = $env:TEMP + '\' + (Get-ChildItem $path).BaseName + ".stderr"
 
     $q = 'y'
-    $proc = Start-Process -WindowStyle Minimized -Wait -PassThru -FilePath $btta -ArgumentList "$format `"$extracted`"" -RedirectStandardOutput $dumped -RedirectStandardError $stderr
+
+    <# b2t #>
+    Measure-Command { $proc = Start-Process `
+      -WindowStyle Minimized -Wait -PassThru `
+      -FilePath $btta -ArgumentList "$format `"$extracted`"" `
+      -RedirectStandardOutput $dumped -RedirectStandardError $stderr }
     if((Test-Path $stderr) -and (Get-ChildItem $stderr).Length -gt 0){
       Get-Content $stderr
       if($proc.ExitCode -eq 2 -or $proc.ExitCode -eq 3){
@@ -66,13 +80,20 @@ try{
     }
 
     while($q -eq 'y'){
+
+      <# vim #>
       (Get-Item $dumped).Attributes = 'Normal'
-      Start-Process -Wait -FilePath $editor -ArgumentList "`"$dumped`""
+      Start-Process -Wait -FilePath $editor `
+        -ArgumentList "-c `"set columns=160 nowrap|vertical ba`" `"$dumped`" `"$format_path`""
       if(!((Get-Item $dumped).Attributes -contains 'Archive')){
         Write-Host -ForegroundColor Yellow "has no chenged."
         break
       }
-      $proc = Start-Process -WindowStyle Minimized -Wait -PassThru -FilePath $ttba -ArgumentList "`"$dumped`" `"$extracted`"" -RedirectStandardError $stderr
+
+      <# t2b #>
+      $proc = Start-Process -WindowStyle Minimized -Wait -PassThru `
+        -FilePath $ttba -ArgumentList "`"$dumped`" `"$extracted`"" `
+        -RedirectStandardError $stderr
       if((Test-Path $stderr) -and (Get-ChildItem $stderr).Length -gt 0){
         Write-Host -ForegroundColor Red (Get-Content $stderr)
         Write-Host -ForegroundColor Magenta "some error has occurred."
