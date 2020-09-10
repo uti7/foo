@@ -194,3 +194,27 @@ __git_ps1 ()
     return $exit
 }
 
+function makeb()
+{
+  # make new branch
+  [ "$1" = "" ] && echo "usage: makeb branch-name" && return 2
+  bname="$1"
+  set -x
+  git fetch
+  git checkout master && git pull && git checkout -b "$bname" && git push -u origin "$bname"
+  set +x
+  git remote prune origin
+  return $?
+}
+function deleteb()
+{
+  # delete branch
+  [ "$1" = "" ] && echo "usage: makeb branch-name" && return 2
+  bname="$1"
+  set -x
+  git fetch
+  git checkout "$bname" && git checkout master && git pull && git branch -D "$bname" && git push --delete origin "$bname"
+  set +x
+  git remote prune origin
+  return $?
+}
