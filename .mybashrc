@@ -13,7 +13,7 @@ alias vi="vim"
 alias now="date +'%Y%m%d%H%M%S'"
 alias tmux='rm -rf /tmp/tmux* && tmux'
 
-gvim="/cygdrive/c/cast/app/gvim64/gvim.exe"
+gvim="/c/cast/app/gvim64/gvim.exe"
 
 export EDITOR=vim
 export LANG=ja_JP.utf8
@@ -25,7 +25,7 @@ export TEMP="/tmp"
 export SCREENDIR="$TEMP/uscreens"
 export TMUX_TMPDIR="$TEMP/uscreens"
 export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
-export PATH=$HOME/bin:$HOME/foo:$PATH
+export PATH=/mingw64/bin:$HOME/bin:$HOME/foo:$PATH
 
 function gvim {
   TMP=$TEMP
@@ -42,7 +42,7 @@ function gvim {
   $gvim $opt $files &
 }
 function jwhois {
-/cygdrive/c/progra~2/GnuWin32/bin/jwhois $*
+/c/progra~2/GnuWin32/bin/jwhois $*
 }
 function dig {
 /cygdrive/c/progra~1/ISC\ BIND\ 9/bin/dig $*
