@@ -14,7 +14,7 @@
     // To learn more about global settings, visit https://aka.ms/terminal-global-settings
 
     // If enabled, selections are automatically copied to your clipboard.
-    "copyOnSelect": false,
+    "copyOnSelect": true,
 
     // If enabled, formatted data is also copied to your clipboard
     "copyFormatting": false,
@@ -28,10 +28,10 @@
         "defaults":
         {
             // Put settings here that you want to apply to all profiles.
-						"cursorColor":"#FF0000",
-						"cursorShape": "vintage",
-						"fontFace": "Consolas",
-						"fontSize": 10
+            "cursorColor":"#FF0000",
+            "cursorShape": "vintage",
+            "fontFace": "Consolas",
+            "fontSize": 10
         },
         "list":
         [
@@ -41,7 +41,7 @@
                 "name": "Windows PowerShell",
                 "commandline": "powershell.exe",
                 "hidden": false,
-								"background": "#012456"
+                "background": "#012456"
             },
             {
                 // Make changes here to the cmd.exe profile.
@@ -50,13 +50,27 @@
                 "commandline": "cmd.exe",
                 "hidden": false
             },
-          {
-            "guid": "{07b52e3e-de2c-5db4-bd2d-ba144ed6c273}",
-            "hidden": false,
-            "name": "Ubuntu-20.04",
-            "source": "Windows.Terminal.Wsl",
-            "startingDirectory": "//wsl$/Ubuntu-20.04/home/wsl2u"
-          },
+            {
+                "guid": "{432a0ca2-f829-4637-9ab4-9570a015e6b9}",
+                "name": "MSYS2",
+                "icon": "C:/msys64/msys2.ico",
+                "commandline": "cmd.exe /c \"set MSYSTEM=MSYS&& set MSYS=winsymlinks:nativestrict&& C:/msys64/usr/bin/bash.exe --login\"",
+                "hidden": false
+            },
+            {
+                "guid": "{66e3d476-8bad-46c9-85e3-e091ec7747de}",
+                "name": "MINGW64",
+                "icon": "C:/msys64/msys2.ico",
+                "commandline": "cmd.exe /c \"set MSYSTEM=MINGW64&& set MSYS=winsymlinks:nativestrict&& C:/msys64/usr/bin/bash.exe --login\"",
+                "hidden": false
+            },
+            {
+              "guid": "{07b52e3e-de2c-5db4-bd2d-ba144ed6c273}",
+              "hidden": false,
+              "name": "Ubuntu-20.04",
+              "source": "Windows.Terminal.Wsl",
+              "startingDirectory": "//wsl$/Ubuntu-20.04/home/wsl2u"
+            },
             {
                 "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
                 "hidden": false,
