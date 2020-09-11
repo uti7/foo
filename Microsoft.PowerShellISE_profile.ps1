@@ -8,18 +8,18 @@ set-alias l ll
 function coldspa {cd c:\cast\proj\coldspa\v3}
 function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' coldspa3.ahk }
 
-Function vi($files){
+Function vi {
   $files_str =@("--")
-  if($files){ (Resolve-Path $files) | % { $files_str += ($_.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }}
-  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str;
+  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
 }
 Set-Alias vim vi
 Set-Alias gvim vi
-Function vimdiff($files){
+Function vimdiff {
   $files_str = @("-d")
-  if($files){ (Resolve-Path $files) | % { $files_str += ($_.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }} else { $files_str = "--" }
-  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str;
+  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
 }
 
