@@ -7,10 +7,40 @@ set-alias l ll
 
 function coldspa {cd c:\cast\proj\coldspa\v3}
 function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' coldspa3.ahk }
-function vi($files){
-$files_str =@();(resolve-path $files) | % { $files_str+= $_.Path } ;
-& "c:\cast\app\gvim64\gvim.exe" $files_str;
-"["+$files_str+"]" }
+
+Function vi($files){
+  $files_str =@("--")
+  if($files){ (Resolve-Path $files) | % { $files_str += ($_.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }}
+  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str;
+  "["+$files_str+"]"
+}
+Set-Alias vim vi
+Set-Alias gvim vi
+Function vimdiff($files){
+  $files_str = @("-d")
+  if($files){ (Resolve-Path $files) | % { $files_str += ($_.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }} else { $files_str = "--" }
+  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str;
+  "["+$files_str+"]"
+}
+
+function gzbvi(){
+  
+  
+  if((Get-Location).Path -ne "C:\cast\gba"){
+    Set-Location c:\cast\gba
+    Write-Host -ForegroundColor Cyan (Get-Location)
+  }
+  c:\cast\app\bin\gzbvi.ps1 -file '.\MagicalVacation2.sgm' -format '.\MagicalVacation.b2t'
+}
+
+function gzb2b(){
+  
+  if((Get-Location).Path -ne "C:\cast\gba"){
+    Set-Location c:\cast\gba
+    Write-Host -ForegroundColor Cyan (Get-Location)
+  }
+  c:\cast\app\bin\gzb2b.ps1 -file '.\MagicalVacation2.sgm' -override '.\MagicalVacation.b2b'
+}
 
 # same as operator that -split
 # to use .ps1 file command line args who other shell (e.g. .bat file, bash prompt)
