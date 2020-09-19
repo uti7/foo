@@ -12,6 +12,7 @@ alias bc="bc -q"
 alias vi="vim"
 alias now="date +'%Y%m%d%H%M%S'"
 alias tmux='rm -rf /tmp/tmux* && tmux'
+alias az='/c/Program\ Files\ \(x86\)/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
 
 gvim="/c/cast/app/gvim64/gvim.exe"
 
