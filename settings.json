@@ -29,7 +29,9 @@
         {
             // Put settings here that you want to apply to all profiles.
             "cursorColor":"#FF0000",
-            "cursorShape": "vintage",
+            "cursorShape": "filledBox",
+            //"cursorShape": "vintage",
+            //"cursorHeight": 50,
             "fontFace": "Consolas",
             "fontSize": 10
         },
@@ -54,7 +56,8 @@
                 "guid": "{432a0ca2-f829-4637-9ab4-9570a015e6b9}",
                 "name": "MSYS2",
                 "icon": "C:/msys64/msys2.ico",
-                "commandline": "cmd.exe /c \"set MSYSTEM=MSYS&& set MSYS=winsymlinks:nativestrict&& C:/msys64/usr/bin/bash.exe --login\"",
+                //"commandline": "cmd.exe /c \"set MSYSTEM=MSYS&& set MSYS=winsymlinks:nativestrict&& C:/msys64/usr/bin/bash.exe --login\"",
+                "commandline": "C:/msys64/usr/bin/env.exe MSYS=enable_pcon MSYSTEM=MSYS /bin/bash --login",
                 "hidden": false
             },
             {
