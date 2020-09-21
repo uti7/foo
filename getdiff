@@ -7,7 +7,9 @@ function usage {
 synopsis:
   1) [find] current direcory files
   2) [diff] from another directory for every files
-  3) [echo] a command line for different file that \`vimdiff dir_b_file dir_a_file', also \`cp ...'
+  3) [echo] a command line for different file that as follows
+            \`vimdiff dir_b_file dir_a_file'
+            \`cp dir_b_file dir_a_file'
 
 usage:  $self [OPTION] DIR_A
 
@@ -19,6 +21,7 @@ OPTION:
   -r          : output the command line that reverse A and B 
   -v          : output only vimdiff command line
   -c          : output only cp command line
+  -t          : output only command line for each dir_b_file
   -f          : output full path (default: as is)
 
 example:
@@ -31,9 +34,10 @@ EOT
 
 is_vimdiff=1
 is_cp=1
+is_tar=0
 dir_b=.
 
-opt=`getopt -q -o cfN:P:rv -- "$@"`
+opt=`getopt -q -o cfN:P:rtv -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -51,11 +55,13 @@ do
       shift 2
       ;;
     -r) is_reverse=1; shift;;
+    -t) is_vimdiff=0; is_cp=0; is_tar=1; shift;;
     -v) is_cp=0; shift;;
     --) shift; break;;
     *)  usage; exit 2;;
     esac
 done
+
 [ $# -eq 0 ] && usage && exit 2
 
 dir_a=`echo -n "$1"|sed -e 's|/$||'`
@@ -82,8 +88,8 @@ find . $prune_spec \
   -name dist -prune -o -name node_modules -prune -o -name semantic -prune -o \
   -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f $not_spec -print \
 |awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
-  -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} 'BEGIN{
-        i=1;
+  -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} -v is_tar=${is_tar:-0} 'BEGIN{
+        i=1; dir_b_files="";
     }
     {
         b=$0;
@@ -114,6 +120,7 @@ find . $prune_spec \
 #            }
           }
           if(is_cp==1) printf("cp %s %s\n",b,a);
+          if(is_tar==1) printf("#   %s\n",b);
         }
         if(x==2){
           printf("# %d: ---------- does not exist on one side -----\n",i);
@@ -124,13 +131,21 @@ find . $prune_spec \
             printf("echo \"%s\"\n",cl);
             printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
           }
-          print cl;
+          if(is_tar==0){
+            print cl;
+          }else{
+            printf("#   %s\n",b);
+          }
         }
         if(x!=0){
           i++;
+          dir_b_files = dir_b_files " " b
         }
     }
     END{
         if(is_vimdiff==1 && is_cp==0) printf("echo \"%s\"\n","done.");
+        if(is_tar==1){
+            printf("tar cvzf differ%d.tar.gz %s\n", i-1, dir_b_files);
+        }
     }
     '
