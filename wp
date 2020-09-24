@@ -1,0 +1,7 @@
+#!/bin/sh
+# purpose: get the native Windows path from the WSL path. it's similar to cygpath (cygwin, msys)
+[ $# -ne 1 ] && echo "usage: wp WSL_PATH" && exit 2
+abs_path="$(cd $(dirname $1) && pwd)/$(basename $1)"
+wsl_file_prefix='\\\\wsl$\\Ubuntu-20.04'
+win_file_re='^/mnt/'
+echo $target|awk -v abs_path="$abs_path" -v wsl_file_prefix="$wsl_file_prefix" -v win_file_re="$win_file_re" 'match(abs_path,win_file_re)>0{sub(win_file_re,"",abs_path);abs_path=gensub(/^([a-z])/,"\\1:","g",abs_path);}match(abs_path,/^\//)>0{abs_path=sprintf("%s/%s",wsl_file_prefix,gensub(/^\//,"","g",abs_path));}END{gsub(/\//,"\\",abs_path);print abs_path;}'
