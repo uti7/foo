@@ -35,7 +35,7 @@ function gvim {
   for f in $*
   do
     if [ -f "$f" ]; then
-      files+=" `wp $*`"
+      files+=" `wp $f`"
     else
       opt+=" $f"
     fi
