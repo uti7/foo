@@ -3,6 +3,7 @@
 myname=${0//*\//}
 [ $# -ne 1 ] && echo "usage: $myname PATH" 1>&2 && exit 2
 abs_path="$(cd $(dirname $1) && pwd)/$(basename $1)"
+abs_path="$(echo $abs_path|sed -e 's/^\/\//\//')"
 wsl_file_prefix='\\\\wsl$\\Ubuntu-20.04'
 win_file_re='^/mnt/'
 has_cygpath=$(type cygpath 1>/dev/null 2>&1;echo $?)
