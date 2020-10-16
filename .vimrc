@@ -6,9 +6,12 @@ set backupdir=>/tmp,. " backup directory
 set directory=>/tmp,. " swap directory
 set vb t_vb=          " visual bell disabled
 
+set enc=utf-8
+
 syntax on
 set hlsearch
 colorscheme desert
+set modeline
 
 set ignorecase
 set smartcase
@@ -39,12 +42,14 @@ map <Leader>^ :cf /tmp/.eee0<CR>
 map <Leader>0 :cf /tmp/.eee0<CR>
 map <Leader>1 :cf /tmp/.eee1<CR>
 map <Leader>2 :cf /tmp/.eee2<CR>
-nnoremap \h :e ~/.fjhist<Bar>$<CR>
+nnoremap <Leader>h :e ~/.fjhist<Bar>$<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
 nnoremap !fj :!fj 
 autocmd BufEnter *.fjhist setlocal autoread
+
+cnoremap bro bro filter  ol<Left><Left><Left>
 
 map gC	"+y
 map gX	"+x
@@ -107,6 +112,17 @@ function! s:fj_A_for_keyword_angular()
 endfunction
 command! Fja4kwAngular :call s:fj_A_for_keyword_angular()
 nnoremap <C-@> :Fja4kwAngular<CR>
+
+" \x exec current line string as external command
+function! s:exec_current_command_line()
+  let s:cl = substitute(getline("."), '^\s*\$\s*', '', "")
+  if s:cl == ""
+    return
+  endif
+  exec '!echo ' . s:cl . ';' . s:cl
+endfunction
+command! ExecCurrentCommandLine :call s:exec_current_command_line()
+noremap <Leader>x :ExecCurrentCommandLine<CR>
 
 inoremap LLL log_message('debug',__FILE__.':'.__LINE__.': '.__CLASS__.'->'.__METHOD__.'():'<CR>.preg_replace('/\r?\n/', '', var_export(<CR>$foo<CR>,true)));<ESC>
 
