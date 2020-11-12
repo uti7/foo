@@ -22,6 +22,9 @@
     "initialCols": 180,
     "initialRows": 40,
 
+    "multiLinePasteWarning": false,
+    "largePasteWarning": false,
+
     // A profile specifies a command to execute paired with information about how it should look and feel.
     // Each one of them will appear in the 'New Tab' dropdown,
     //   and can be invoked from the commandline with `wt.exe -p xxx`
@@ -43,7 +46,7 @@
             {
                 // Make changes here to the powershell.exe profile.
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-                "name": "Windows PowerShell",
+                "name": "ps1",
                 "commandline": "powershell.exe",
                 "hidden": false,
                 "background": "#012456"
@@ -51,13 +54,13 @@
             {
                 // Make changes here to the cmd.exe profile.
                 "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-                "name": "コマンド プロンプト",
+                "name": "cmd",
                 "commandline": "cmd.exe",
                 "hidden": false
             },
             {
                 "guid": "{432a0ca2-f829-4637-9ab4-9570a015e6b9}",
-                "name": "MSYS2",
+                "name": "msys2",
                 "icon": "C:/msys64/msys2.ico",
                 //"commandline": "cmd.exe /c \"set MSYSTEM=MSYS&& set MSYS=winsymlinks:nativestrict&& C:/msys64/usr/bin/bash.exe --login\"",
                 "commandline": "C:/msys64/usr/bin/env.exe MSYS=enable_pcon MSYSTEM=MSYS /bin/bash --login",
@@ -65,7 +68,7 @@
             },
             {
                 "guid": "{66e3d476-8bad-46c9-85e3-e091ec7747de}",
-                "name": "MINGW64",
+                "name": "mingw64",
                 "icon": "C:/msys64/msys2.ico",
                 "commandline": "cmd.exe /c \"set MSYSTEM=MINGW64&& set MSYS=winsymlinks:nativestrict&& C:/msys64/usr/bin/bash.exe --login\"",
                 "hidden": false
@@ -73,7 +76,7 @@
             {
               "guid": "{07b52e3e-de2c-5db4-bd2d-ba144ed6c273}",
               "hidden": false,
-              "name": "Ubuntu-20.04",
+              "name": "wsl2",
               "source": "Windows.Terminal.Wsl",
               "startingDirectory": "//wsl$/Ubuntu-20.04/home/wsl2u"
             },
