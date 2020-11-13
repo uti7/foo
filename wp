@@ -2,7 +2,11 @@
 # purpose: get the native Windows path from the WSL path. it's similar to cygpath (cygwin, msys)
 myname=${0//*\//}
 [ $# -ne 1 ] && echo "usage: $myname PATH" 1>&2 && exit 2
-abs_path="$(cd $(dirname $1) && pwd)/$(basename $1)"
+if [ "$1" != / ]; then
+  abs_path="$(cd $(dirname $1) && pwd)/$(basename $1)"
+else
+  abs_path="$1"
+fi
 abs_path="$(echo $abs_path|sed -e 's/^\/\//\//')"
 wsl_file_prefix='\\\\wsl$\\Ubuntu-20.04'
 win_file_re='^/mnt/'
