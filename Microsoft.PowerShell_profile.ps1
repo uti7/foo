@@ -11,7 +11,7 @@ function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' co
 Function gvim {
   $files_str =@("--")
   $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
-  Start-Process -FilePath "c:\cast\app\gvim64\vim.exe" -ArgumentList $files_str
+  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
 }
 Function vim {
