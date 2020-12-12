@@ -8,14 +8,20 @@ set-alias l ll
 function coldspa {cd c:\cast\proj\coldspa\v3}
 function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' coldspa3.ahk }
 
-Function vi {
+Function gvim {
   $files_str =@("--")
   $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
-  Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
+  Start-Process -FilePath "c:\cast\app\gvim64\vim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
 }
-Set-Alias vim vi
-Set-Alias gvim vi
+Function vim {
+  $files_str =@("--")
+  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  & "c:\cast\app\gvim64\vim.exe" $files_str
+  "["+$files_str+"]"
+}
+Set-Alias vi vim
+
 Function vimdiff {
   $files_str = @("-d")
   $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
