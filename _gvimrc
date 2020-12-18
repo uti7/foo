@@ -332,6 +332,6 @@ endfunction
 noremap + :call ChangeFontSize(1)<CR>
 noremap - :call ChangeFontSize(-1)<CR>
 command! ZI :call ChangeFontSize(1)
-command! ZO :call ChangeFontSize(1)
+command! ZO :call ChangeFontSize(-1)
 
 vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>
