@@ -22,6 +22,7 @@ set expandtab
 
 set ruler " show line-number,column-number
 set laststatus=2 " always show file name
+set statusline=%F%m%h%w%r\ %<%=[%l,%02v,%%%B]
 set errorfile=/tmp/.eee0
 set keywordprg=fj\ -A
 

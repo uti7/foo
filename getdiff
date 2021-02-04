@@ -5,6 +5,7 @@ function usage {
   cat << EOT
 
 synopsis:
+  do the following:
   1) [find] current direcory files
   2) [diff] from another directory for every files
   3) [echo] a command line for different file that as follows
@@ -21,7 +22,7 @@ OPTION:
   -r          : output the command line that reverse A and B 
   -v          : output only vimdiff command line
   -c          : output only cp command line
-  -t          : output only command line for each dir_b_file
+  -t          : output tar command line to create tarballs for all dir_b_files that differ
   -f          : output full path (default: as is)
 
 example:
