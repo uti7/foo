@@ -4,26 +4,39 @@ self=${0//*\//}
 function usage {
   cat << EOT
 
-synopsis:
+Synopsis:
   do the following:
   1) [find] current direcory files
   2) [diff] from another directory for every files
   3) [echo] a command line for different file that as follows
             \`vimdiff dir_b_file dir_a_file'
             \`cp dir_b_file dir_a_file'
+            also, output the following command line (with option "-t" or "-r")
+            \`rm dir_b_file' (which non-existent at dir_a side)
+            \`tar cvzf differ.tar.gz dir_b_files' (only the difference from dir_a side)
 
-usage:  $self [OPTION] DIR_A
+Usage:  $self [OPTION] DIR_A
 
-DIR_A:  destination (DIR_B is current directory)
+DIR_A:  destination,  it's the side making the change
+        (DIR_B : the side that does [find], it's current directory)
 
 OPTION:
   -N NOTFILE  : specified to find option that \`-not -name NOTFILE'
   -P PRUNEDIR : specified to find option that \`-name PRUNEDIR -prune -o'
-  -r          : output the command line that reverse A and B 
+  -p PRUNEDIR : specified to find option that \`-path PRUNEDIR -prune -o'
+
+  -g          : controls what implicitly excludes files and directories.
+                if this option given, general use (i.e. for backup),
+                otherwise, use for system development files (e.g. work to deploy)
+
+  -R          : output the command line that reverse A and B 
   -v          : output only vimdiff command line
   -c          : output only cp command line
   -t          : output tar command line to create tarballs for all dir_b_files that differ
+  -r          : output only rm command line for files that exist on only dir_b
   -f          : output full path (default: as is)
+
+  -L          : use [ls -R] instead of [find] to enumerate the files
 
 example:
   $ cd ~/foo
@@ -33,12 +46,15 @@ example:
 EOT
 }
 
+ls_used="ls -1aFR . |awk 'NF==0{next;}/^\.+\/\$/{next;}/:\$/{sub(/:\$/,\"/\");wd=\$0;next;}match(\$0,/[/@=]\$/)>0{next;}match(\$0,/\*\$/)>0{sub(/\*\$/,\"\",\$0);}{printf(\"%s%s\n\",wd,\$0);}'|grep -Ev"
+
 is_vimdiff=1
 is_cp=1
 is_tar=0
+is_rm=0
 dir_b=.
 
-opt=`getopt -q -o cfN:P:rtv -- "$@"`
+opt=`getopt -q -o cfgLN:P:Rrtv -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -47,16 +63,26 @@ do
     case $1 in
     -c) is_vimdiff=0; shift;;
     -f) is_out_fullpath=1; shift;;
+    -g) is_general=1; shift;;
+    -L) is_lsR=1; shift;;
     -N)
-      not_spec="$not_spec -not -name $2"
+      #not_spec="$not_spec -not -name $2"
+      not_name_spec+=( "$2" )
       shift 2
       ;;
     -P)
-      prune_spec="$prune_spec -name $2 -prune -o"
+      #prune_spec="$prune_spec -name $2 -prune -o"
+      prune_name_spec+=( "$2" )
       shift 2
       ;;
-    -r) is_reverse=1; shift;;
-    -t) is_vimdiff=0; is_cp=0; is_tar=1; shift;;
+    -p)
+      #prune_spec="$prune_spec -path $2 -prune -o"
+      prune_path_spec+=( ="$2" )
+      shift 2
+      ;;
+    -R) is_reverse=1; shift;;
+    -r) is_vimdiff=0; is_cp=0; is_tar=0; is_rm=1; shift;;
+    -t) is_vimdiff=0; is_cp=0; is_tar=1; is_rm=0; shift;;
     -v) is_cp=0; shift;;
     --) shift; break;;
     *)  usage; exit 2;;
@@ -72,25 +98,68 @@ if [ ${is_out_fullpath:-0} -eq 1 ]; then
   dir_b="$PWD"
 fi
 
-  #-prune -o -name \*.js \
-  #-exec sh /tmp/is_text {} \; -name \*.csv \
+if [ ${is_general:-0} -eq 1 ]; then
+    not_name_spec+=(  '\~$*' )
+    prune_name_spec+=( .git )
+else
+    not_name_spec+=( '\~$\*'
+      *.orig
+      *.pdb
+      *.vcxproj
+      *.vcxproj.user
+      *.vcproj
+      *.tlog
+      *.log
+      *.obj
+      *.exe
+			.eee[0-9]
+			errors.err
+    )
+    prune_name_spec+=( .git
+			dist
+			node_modules
+			semantic
+			uploads
+			fonts
+			logs
+			tags
+			user_guide
+			sessions
+			filing
+    )
+fi
 
-find . $prune_spec \
-  -not -name '~$*' \
-  -name \*.orig -prune -o \
-  -name \*.pdb -prune -o \
-  -name \*.vcxproj -prune -o \
-  -name \*.vcxproj.user -prune -o \
-  -name \*.vcproj -prune -o \
-  -name \*.tlog -prune -o \
-  -name \*.log -prune -o \
-  -name \*.obj -prune -o \
-  -name \*.exe -prune -o \
-  -name dist -prune -o -name node_modules -prune -o -name semantic -prune -o \
-  -name uploads -prune -o -name fonts -prune -o -name logs -prune -o -name .git -prune -o -name .eee\? -prune -o -name tags -prune -o -name user_guide -prune -o -name errors.err -prune -o -name sessions -prune -o -name filing -prune -o -type f $not_spec -print \
+if [ ${is_lsR:-0} -eq 1 ]; then
+  # ls used, make ERE (for grep -e ERE) from glob expression
+  for i in  ${not_name_spec[@]}; do
+    not_name_spec_cl+=" --regexp=\\b$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+  done
+  for i in ${prune_name_spec[@]}; do
+    prune_name_spec_cl+=" --regexp=/$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )/"
+  done
+  for i in ${prune_path_spec[@]}; do
+    prune_path_spec_cl+=" --regexp=^$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+  done
+  scan_cl="$ls_used $not_name_spec_cl $prune_name_spec_cl $prune_path_spec_cl"
+else
+  # find used
+  for i in  ${not_name_spec[@]}; do
+    not_name_spec_cl+=" -not -name $i"
+  done
+  for i in  ${prune_name_spec[@]}; do
+    prune_name_spec_cl+=" -name $i -prune -o"
+  done
+  for i in  ${prune_path_spec[@]}; do
+    prune_path_spec_cl+=" -path $i -prune -o"
+  done
+  scan_cl="find . $prune_name_spec_cl $prune_path_spec_cl $not_name_spec_cl -type f -print"
+fi
+#echo $scan_cl && exit 0
+
+eval "$scan_cl" \
 |awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
-  -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} -v is_tar=${is_tar:-0} 'BEGIN{
-        i=1; dir_b_files="";
+  -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} -v is_tar=${is_tar:-0} -v is_rm=${is_rm:-0} 'BEGIN{
+      i=1; dir_b_files="";
     }
     {
         b=$0;
@@ -99,8 +168,12 @@ find . $prune_spec \
         }
         a=$0;
         sub(/^\./,dir_a,a); # thats the same
-        a=sprintf("%1c%s%1c",39,a,39);
-        b=sprintf("%1c%s%1c",39,b,39);
+        quot=sprintf("%1c",39);
+        if(match(b,quot)>0){
+          quot=sprintf("%1c",34);
+        }
+        a=sprintf("%1s%s%1s",quot,a,quot);
+        b=sprintf("%1s%s%1s",quot,b,quot);
         if(is_reverse!=0){
           is_reverse=a;a=b;b=is_reverse;
         }
@@ -120,22 +193,27 @@ find . $prune_spec \
 #              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
 #            }
           }
-          if(is_cp==1) printf("cp %s %s\n",b,a);
+          if(is_cp==1) printf("cp -p %s %s\n",b,a);
           if(is_tar==1) printf("#   %s\n",b);
+          if(is_rm==1) printf("# vimdiff %s %s\n",b,a);
         }
         if(x==2){
           printf("# %d: ---------- does not exist on one side -----\n",i);
           #subdir_a = gensub(/^(.*\/)([^\/]+)$/, "\\1", "g", a); # for gawk
           subdir_a = a; sub(/([^\/]+)$/, "", subdir_a); # for mawk (ubuntu)
-          cl=sprintf("mkdir -p %s%1c && cp %s %s",subdir_a,39,b,a);
+          cl=sprintf("mkdir -p %s%1s && cp -p %s %s",subdir_a,quot,b,a);
           if(is_vimdiff==1 && is_cp==0){
             printf("echo \"%s\"\n",cl);
             printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
           }
-          if(is_tar==0){
+          if(is_tar==0 && is_rm==0){
             print cl;
           }else{
-            printf("#   %s\n",b);
+            if(is_rm==1){
+              printf("rm %s\n",b);
+            }else{  # tar
+              printf("#   %s\n",b);
+            }
           }
         }
         if(x!=0){
