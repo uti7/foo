@@ -99,10 +99,10 @@ if [ ${is_out_fullpath:-0} -eq 1 ]; then
 fi
 
 if [ ${is_general:-0} -eq 1 ]; then
-    not_name_spec+=(  '\~$*' )
+    not_name_spec+=(  '\~\$*' )
     prune_name_spec+=( .git )
 else
-    not_name_spec+=( '\~$\*'
+    not_name_spec+=( '\~\$\*'
       *.orig
       *.pdb
       *.vcxproj
