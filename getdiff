@@ -192,10 +192,11 @@ eval "$scan_cl" \
 #            if(is_cp==0){
 #              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
 #            }
+          }else{
+            printf("# vimdiff %s %s\n",b,a);
           }
           if(is_cp==1) printf("cp -p %s %s\n",b,a);
           if(is_tar==1) printf("#   %s\n",b);
-          if(is_rm==1) printf("# vimdiff %s %s\n",b,a);
         }
         if(x==2){
           printf("# %d: ---------- does not exist on one side -----\n",i);
