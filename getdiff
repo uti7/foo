@@ -46,7 +46,7 @@ example:
 EOT
 }
 
-ls_used="ls -1aFR . |awk 'NF==0{next;}/^\.+\/\$/{next;}/:\$/{sub(/:\$/,\"/\");wd=\$0;next;}match(\$0,/[/@=]\$/)>0{next;}match(\$0,/\*\$/)>0{sub(/\*\$/,\"\",\$0);}{printf(\"%s%s\n\",wd,\$0);}'|grep -Ev"
+ls_used="ls -1aFR %s . |awk 'NF==0{next;}/^\.+\/\$/{next;}/:\$/{sub(/:\$/,\"/\");wd=\$0;next;}match(\$0,/[/@=]\$/)>0{next;}match(\$0,/\*\$/)>0{sub(/\*\$/,\"\",\$0);}{printf(\"%%s%%s\\\\n\",wd,\$0);}'"
 
 is_vimdiff=1
 is_cp=1
@@ -99,7 +99,7 @@ if [ ${is_out_fullpath:-0} -eq 1 ]; then
 fi
 
 if [ ${is_general:-0} -eq 1 ]; then
-    not_name_spec+=(  '\~\$*' )
+    not_name_spec+=(  '\~\$*' *.cache )
     prune_name_spec+=( .git )
 else
     not_name_spec+=( '\~\$\*'
@@ -132,15 +132,18 @@ fi
 if [ ${is_lsR:-0} -eq 1 ]; then
   # ls used, make ERE (for grep -e ERE) from glob expression
   for i in  ${not_name_spec[@]}; do
-    not_name_spec_cl+=" --regexp=\\b$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+    #not_name_spec_cl+=" --regexp=\\b$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+    ignore_spec_cl+=" --ignore=$i"
   done
   for i in ${prune_name_spec[@]}; do
-    prune_name_spec_cl+=" --regexp=/$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )/"
+    #prune_name_spec_cl+=" --regexp=/$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )/"
+    ignore_spec_cl+=" --ignore=$i"
   done
   for i in ${prune_path_spec[@]}; do
-    prune_path_spec_cl+=" --regexp=^$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+    #prune_path_spec_cl+=" --regexp=^$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+    ignore_spec_cl+=" --ignore=$i"
   done
-  scan_cl="$ls_used $not_name_spec_cl $prune_name_spec_cl $prune_path_spec_cl"
+  scan_cl=$(printf "$ls_used" "$ignore_spec_cl")
 else
   # find used
   for i in  ${not_name_spec[@]}; do
