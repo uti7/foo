@@ -6,18 +6,19 @@ function usage {
 
 Synopsis:
   do the following:
-  1) [find] current direcory files
-  2) [diff] from another directory for every files
+  1) [find] current direcory files => DIR_B_FILES
+  2) [diff] from another directory for every files => DIR_A_FILES
   3) [echo] a command line for different file that as follows
-            \`vimdiff dir_b_file dir_a_file'
-            \`cp dir_b_file dir_a_file'
+            \`vimdiff DIR_B_FILE DIR_A_FILE'
+            \`cp -p DIR_B_FILE DIR_A_FILE'
+
             also, output the following command line (with option "-t" or "-r")
-            \`rm dir_b_file' (which non-existent at dir_a side)
-            \`tar cvzf differ.tar.gz dir_b_files' (only the difference from dir_a side)
+            \`rm DIR_B_FILE' (which non-existent at DIR_A side)
+            \`tar cvzf differ.tar.gz DIR_B_FILES' (difference file only)
 
 Usage:  $self [OPTION] DIR_A
 
-DIR_A:  destination,  it's the side making the change
+DIR_A:  destination, the side where the script output by this script makes changes.
         (DIR_B : the side that does [find], it's current directory)
 
 OPTION:
@@ -32,8 +33,8 @@ OPTION:
   -R          : output the command line that reverse A and B 
   -v          : output only vimdiff command line
   -c          : output only cp command line
-  -t          : output tar command line to create tarballs for all dir_b_files that differ
-  -r          : output only rm command line for files that exist on only dir_b
+  -t          : output tar command line to create tarballs for all DIR_B_FILES that differ
+  -r          : output only rm command line for files that exist on only DIR_B
   -f          : output full path (default: as is)
 
   -L          : use [ls -R] instead of [find] to enumerate the files
