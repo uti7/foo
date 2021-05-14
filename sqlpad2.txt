@@ -1,5 +1,4 @@
-Attribute VB_Name = "Module1"
-'Attribute VB_Name = "Module1"
+Attribute VB_Name = "Module11"
 Option Explicit
 
 Dim isStopped As Boolean
@@ -14,15 +13,15 @@ Attribute execSQL.VB_ProcData.VB_Invoke_Func = "r\n14"
 Dim con As New ADODB.Connection
 Dim connectionString As String
 
-Dim sDBSever As String
-Dim sDBName As String
-Dim sLoginID As String
-Dim sPassWD As String
-
-sDBSever = "192.168.0.88"
-sDBName = "aaa"
-sLoginID = "bbb"
-sPassWD = "ccc"
+'Dim sDBSever As String
+'Dim sDBName As String
+'Dim sLoginID As String
+'Dim sPassWD As String
+'
+'sDBSever = "192.168.0.88"
+'sDBName = "aaa"
+'sLoginID = "bbb"
+'sPassWD = "ccc"
 
 
 '
@@ -30,7 +29,7 @@ sPassWD = "ccc"
 'connectionString = "Driver={SQL Server};"
 '& "Persist Security Info=True" _
 '
-connectionString = "Provider=MSDASQL; DSN=PostgreSQL35W2;DATABASE=dbname;SERVER=localhost;PORT=5432;UID=postgres;;SSLmode=disable"
+connectionString = "Provider=MSDASQL;DSN=PostgreSQL35W;DATABASE=dfx;SERVER=localhost;PORT=5432;Uid=dfx;Pwd=dfx;SSLmode=disable"
 
 '#If False Then
 'con.Provider = "SQLOLEDB"
@@ -69,6 +68,8 @@ End If
 If InStr(1, q, "----") > 0 Then
     q = Mid(q, 1, InStr(1, q, "----") - 1)
 End If
+
+q = evalArgs(q)
 
 '
 con.Open connectionString
@@ -216,4 +217,19 @@ Attribute StopExecution.VB_ProcData.VB_Invoke_Func = "q\n14"
     isStopped = True
 End Sub
 
-
+Function evalArgs(q As String) As String
+    Dim re, ms, m, addr, e
+    Set re = CreateObject("VBScript.RegExp")
+    With re
+        .Pattern = "#\w+\b"
+        .IgnoreCase = True
+        .Global = True
+    End With
+    Set ms = re.Execute(q)
+    evalArgs = q
+    For Each m In ms
+        addr = Right(m.Value, Len(m.Value) - 1)
+        e = CStr(ActiveSheet.Range(addr).Value)
+        evalArgs = Replace(evalArgs, m.Value, e)
+    Next
+End Function
