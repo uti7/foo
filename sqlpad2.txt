@@ -109,8 +109,9 @@ If n > 0 Then
             MsgBox "too many records, stopped at 10,000 "
             Exit Do
         End If
-        DoEvents
-
+        If i Mod 100 = 0 Then
+            DoEvents
+        End If
     Loop
 End If
 
@@ -151,17 +152,16 @@ If n > 0 Then
         
             i = i + 1
         Loop
-        If isStopped Then
-            MsgBox "stopped."
-        End If
+
 '    End If
     
-
-
-
 End If
 
-ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+If isStopped Then
+    ActiveSheet.Cells(i, sc + 1) = "STOPPED: " & affected & " affected."
+Else
+    ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+End If
 
 
 ActiveSheet.Cells(i + 1, sc + 1).Select
