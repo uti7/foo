@@ -162,10 +162,11 @@ If n > 0 Then
 
 End If
 
-ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+'ActiveSheet.Cells(i, sc + 1) = "END: " & affected & " affected."
+ActiveSheet.Cells(affected + 2, sc + 1) = "END: " & affected & " affected."
 
 
-ActiveSheet.Cells(i + 1, sc + 1).Select
+ActiveSheet.Cells(affected + 2, sc + 1).Select
 
 On Error Resume Next
 If Not ActiveSheet.AutoFilterMode Then
