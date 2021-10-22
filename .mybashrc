@@ -1,4 +1,5 @@
-# [ -f $HOME/.mybashrc ] && source $HOME/.mybashrc
+# add the following to your bashrc
+# [ -r $HOME/foo/.mybashrc ] && . $HOME/foo/.mybashrc
 
 #unset HISTFILE
 alias h=history
