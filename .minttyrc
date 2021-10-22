@@ -1,7 +1,9 @@
 BoldAsFont=-1
-Font=ＭＳ ゴシック
+#Font=ＭＳ ゴシック
+Font=Consolas
 Locale=ja_JP
 Charset=UTF-8
+Columns=160
 Rows=50
 Language=en
 CursorType=block
