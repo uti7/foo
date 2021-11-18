@@ -22,11 +22,22 @@ Function vim {
 }
 Set-Alias vi vim
 
-Function vimdiff {
-  $files_str = @("-d")
+Function gvimdiff {
+  $files_str = @("-c `":se columns=160`" -d")
   $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
   Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
+}
+
+Function vimdiff {
+  $files_str = @("-d")
+  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  & "c:\cast\app\gvim64\vim.exe" $files_str
+  "["+$files_str+"]"
+}
+
+Function git {
+  & "c:\msys64\usr\bin\git.exe" $args
 }
 
 function gzbvi(){
