@@ -77,6 +77,7 @@ file:
                   noremap <C-H> :cc<CR>
                   nnoremap !fj :!fj 
                   noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
+                  noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
                   map \\0 :cf .eee0<CR>
                   map \\1 :cf .eee1<CR>
                   map \\2 :cf .eee2<CR>

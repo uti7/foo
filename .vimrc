@@ -49,6 +49,7 @@ noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
 nnoremap !fj :!fj 
 noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
+noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
 autocmd BufEnter *.fjhist setlocal autoread
 
 cnoremap bro bro filter  ol<Left><Left><Left>
