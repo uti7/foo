@@ -127,6 +127,22 @@ endfunction
 command! ExecCurrentCommandLine :call s:exec_current_command_line()
 noremap <Leader>x :ExecCurrentCommandLine<CR>
 
+" \b run 'git blame' around current line
+function! s:exec_git_blame()
+  let s:slnum = line(".") - 18
+  let s:elnum = line(".") + 18
+  let s:maxlnum = line("$")
+  if s:slnum < 1
+    s:slnum = 1
+  endif
+  if s:elnum > s:maxlnum
+    s:elnum = s:maxlnum
+  endif
+  exec '!git blame -L ' . s:slnum . ',' . s:elnum . ' ' . expand("%")
+endfunction
+command! ExecGitBlame :call s:exec_git_blame()
+noremap <Leader>b :ExecGitBlame<CR>
+
 inoremap LLL log_message('debug',__FILE__.':'.__LINE__.': '.__CLASS__.'->'.__METHOD__.'():'<CR>.preg_replace('/\r?\n/', '', var_export(<CR>$foo<CR>,true)));<ESC>
 
 augroup MyGroup
