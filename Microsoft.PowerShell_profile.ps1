@@ -10,13 +10,13 @@ function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' co
 
 Function gvim {
   $files_str =@("--")
-  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  $args|%{Resolve-Path $_ -ea SilentlyContinue |Out-Null; $files_str += if(!$?){ $_ } else{ (Resolve-Path $_).Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '' }}
   Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
 }
 Function vim {
   $files_str =@("--")
-  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  $args|%{Resolve-Path $_ -ea SilentlyContinue |Out-Null; $files_str += if(!$?){ $_ } else{ (Resolve-Path $_).Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '' }}
   & "c:\cast\app\gvim64\vim.exe" $files_str
   "["+$files_str+"]"
 }
@@ -24,14 +24,14 @@ Set-Alias vi vim
 
 Function gvimdiff {
   $files_str = @("-c `":se columns=160`" -d")
-  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  $args|%{Resolve-Path $_ -ea SilentlyContinue |Out-Null; $files_str += if(!$?){ $_ } else{ (Resolve-Path $_).Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '' }}
   Start-Process -FilePath "c:\cast\app\gvim64\gvim.exe" -ArgumentList $files_str
   "["+$files_str+"]"
 }
 
 Function vimdiff {
   $files_str = @("-d")
-  $args | % { $f = (Resolve-Path $_);  $files_str += ($f.Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '') }
+  $args|%{Resolve-Path $_ -ea SilentlyContinue |Out-Null; $files_str += if(!$?){ $_ } else{ (Resolve-Path $_).Path -replace '^Microsoft.PowerShell.Core\\FileSystem::', '' }}
   & "c:\cast\app\gvim64\vim.exe" $files_str
   "["+$files_str+"]"
 }
