@@ -4,27 +4,20 @@ set -f
 function usage {
   cat << EOT | less -e
 name:
-  $myname - file traverser
+  $myname - file traverser for vim
 
 synopsis:
   find(1) DIR -name FILE ->  grep(1) PATTERN ->  vim(1) +/PATTERN/
 
 usage:
-  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-FiIclxtz] PATTERN [FILE...]
-  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-FiIclxtz] {-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
+  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [OPTION2] PATTERN [FILE...]
+  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [OPTION2] {-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
   $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -L [FILE...]
   $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -D [FILE...]
   $myname [-h]
 
+OPTION1 (with optarg):
   -d DIR       : a search-path, givens to find(1). if omited, then \`.'
-  -h           : show this usage.
-  -i           : ignore case, its applied the FILE as well as the PATTERN
-  -I           : reset ignore-case where specified in .${myname}rc, however FILE has no effect
-  -c           : complete matching for FILE, default: partial matching
-  -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
-  -D           : find target is only directory, and no grep forcely.
-  -n           : no vim(1), only output like grep
-  -N           : ask whether open by vim
   -e CMD       : execute CMD instead vim
   -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
   -A PATTERN   : same as -a, evaluates to '\<PATTERN\>'
@@ -33,6 +26,16 @@ usage:
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert filtering for every path
   -P PRUNEDIR  : specified to find option that \`-name PRUNEDIR -prune -o'
+
+OPTION2 (without optarg):
+  -h           : show this usage.
+  -i           : ignore case, its applied the FILE as well as the PATTERN
+  -I           : reset ignore-case where specified in .${myname}rc, however FILE has no effect
+  -c           : complete matching for FILE, default: partial matching
+  -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
+  -D           : find target is only directory, and no grep forcely.
+  -n           : no vim(1), only output like grep
+  -N           : ask whether open by vim
   -F           : PATTERN as fixed strings (behave like fgrep(1))
   -x           : output precedent line (e.g. php declaration) with grep results.
                  (see the variable \`default_precedent' what setting in
@@ -44,6 +47,7 @@ usage:
   -s           : show sum(1) for this file.
   -b           : if errorfile cache exists, remove it before find
 
+resource identifier:
   DIR          : a directory
   CMD          : command string that single argument expressed (e.g. \`-e ls\\ -l')
   PATTERN      : a extended regular expression
@@ -53,6 +57,7 @@ usage:
                  it may be far with seach-path.  wildcard-char should be escaped
                  to avoid expand by shell. (e.g. \\*.txt)
                  if omited, then \`\\*'
+
 note:
                  option -l with -n (or -N) are specified,
                  grep invoked and print only each file name which, like its
