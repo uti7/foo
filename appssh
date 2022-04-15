@@ -1,12 +1,43 @@
 #!/usr/bin/sh
+myname=${0//*\//}
+function usage
+{
+  cat << EOT
+
+Synopsis:
+  $myname - login to azure app-service via ssh
+
+Usage:
+  $ $myname [PORT-NO]
+
+Prepare:
+  1-1) install az cli
+  1-2) define an alias named \`az' in the name. (e.g) in .bashrc
+    $  alias az='/c/Program\ Files\ \(x86\)/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
+
+Execution:
+  2-1) use the \`az webapp create-remote-connection' command to open a remote connection to your app
+      $ az webapp create-remote-connection --subscription <SUBSCRIPTION_NAME_OR_ID> \\
+        --resource-group <RESOURCE_GROUP_NAME> -n <APP_SRV_NAME> &
+  2-2) the port number is printed, then open an SSH session with the container on any client using the local port.
+
+Further information:
+  https://docs.microsoft.com/ja-jp/azure/app-service/configure-linux-open-ssh-session#open-ssh-session-from-remote-shell
+
+EOT
+}
+
+###
 if [ $# -eq 0 ]; then
+  usage
+
   printf "ENTER PORT-NO:"
   read port
 else
   port=$1
 fi
-port=$((port + 0))
-[ $port -eq 0 ] && echo "ERROR: invalid port no." && exit 1
+x=$((port + 0))
+[ $x -eq 0 ] && echo "ERROR: invalid port no ($port)." && exit 1
 
 while [ 0 ];do
   ssh -p $port root@localhost
