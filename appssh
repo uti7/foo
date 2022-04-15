@@ -27,6 +27,10 @@ Execution:
 
   2-3) the port number is printed, then open an SSH session with the container on any client using the local port.
 
+Closing:
+  3-1) close ssh session
+  3-2) kill the process of create-remote-connection command (executed in 2-2)
+
 Further information:
   https://docs.microsoft.com/ja-jp/azure/app-service/configure-linux-open-ssh-session#open-ssh-session-from-remote-shell
 
