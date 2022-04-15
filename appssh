@@ -12,14 +12,20 @@ Usage:
 
 Prepare:
   1-1) install az cli
+
   1-2) define an alias named \`az' in the name. (e.g) in .bashrc
     $  alias az='/c/Program\ Files\ \(x86\)/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
 
 Execution:
-  2-1) use the \`az webapp create-remote-connection' command to open a remote connection to your app
+  2-1) login to azure
+      $ az login
+        (a login prompt will open in your web browser)
+
+  2-2) use the \`az webapp create-remote-connection' command to open a remote connection to your app
       $ az webapp create-remote-connection --subscription <SUBSCRIPTION_NAME_OR_ID> \\
-        --resource-group <RESOURCE_GROUP_NAME> -n <APP_SRV_NAME> &
-  2-2) the port number is printed, then open an SSH session with the container on any client using the local port.
+          --resource-group <RESOURCE_GROUP_NAME> -n <APP_SRV_NAME> &
+
+  2-3) the port number is printed, then open an SSH session with the container on any client using the local port.
 
 Further information:
   https://docs.microsoft.com/ja-jp/azure/app-service/configure-linux-open-ssh-session#open-ssh-session-from-remote-shell
