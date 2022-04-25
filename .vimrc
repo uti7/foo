@@ -16,6 +16,8 @@ set modeline
 set ignorecase
 set smartcase
 
+set ambiwidth=double
+
 set tabstop=2
 set shiftwidth=2
 set expandtab
