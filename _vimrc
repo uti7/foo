@@ -7,6 +7,7 @@ set ts=2
 set sw=2
 set number
 set expandtab
+set ambiwidth=double
 
 map <F5> a<C-R>=strftime("%Y-%m-%d")<CR><Esc>
 imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
