@@ -19,8 +19,8 @@
     // If enabled, formatted data is also copied to your clipboard
     "copyFormatting": false,
 
-    "initialCols": 180,
-    "initialRows": 40,
+    "initialCols": 230,
+    "initialRows": 46,
 
     "multiLinePasteWarning": false,
     "largePasteWarning": false,
