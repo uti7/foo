@@ -131,16 +131,25 @@ noremap <Leader>x :ExecCurrentCommandLine<CR>
 
 " \b run 'git blame' around current line
 function! s:exec_git_blame()
-  let s:slnum = line(".") - 18
-  let s:elnum = line(".") + 18
+  let s:clnum = line(".")
+  let s:slnum1 = s:clnum - 16
+  let s:elnum1 = s:clnum - 0
+  let s:slnum2 = s:clnum + 1
+  let s:elnum2 = s:clnum + 16
   let s:maxlnum = line("$")
-  if s:slnum < 1
-    s:slnum = 1
+  if s:slnum1 < 1
+    let s:slnum1 = 1
   endif
-  if s:elnum > s:maxlnum
-    s:elnum = s:maxlnum
+  if s:elnum1 < 1
+    let s:elnum1 = 1
   endif
-  exec '!git blame -L ' . s:slnum . ',' . s:elnum . ' ' . expand("%")
+  if s:slnum2 > s:maxlnum
+    let s:slnum2 = s:maxlnum
+  endif
+  if s:elnum2 > s:maxlnum
+    let s:elnum2 = s:maxlnum
+  endif
+  exec '!git blame -L ' . s:slnum1 . ',' . s:elnum1 . ' ' . expand("%") . ' && echo "^^^^^^^^" && git blame -L ' . s:slnum2 . ',' . s:elnum2 . ' ' . expand('%')
 endfunction
 command! ExecGitBlame :call s:exec_git_blame()
 noremap <Leader>b :ExecGitBlame<CR>
