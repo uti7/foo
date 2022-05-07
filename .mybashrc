@@ -44,6 +44,11 @@ export PATH=/mingw64/bin:$HOME/bin:$HOME/foo:$PATH
 php="$mnt_root/c/pleiades/xampp/php/php.exe"
 function php {
   TMP=$TEMP
+  if [ "$1" = "-r" ]; then
+    shift
+    $php -r "$*"
+    return $?
+  fi
   files=
   opt=
   for f in $*

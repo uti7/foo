@@ -10,6 +10,11 @@ esac
 php="/mnt/c/pleiades/xampp/php/php.exe"
 function php {
   TMP="$TEMP"
+  if [ "$1" = "-r" ]; then
+    shift
+    $php -r "$*"
+    return $?
+  fi
   files=
   opt=
   for f in $*
@@ -21,5 +26,7 @@ function php {
     fi
   done
   $php $opt $files
+  return $?
 }
-php $@
+php $*
+exit $?
