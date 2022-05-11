@@ -1,6 +1,7 @@
 set noundofile
 set backupdir=>$TEMP,C:/tmp,c:\temp,. " backup directory
 set directory=>$TEMP,C:/tmp,c:\temp,. " swap directory
+set vb t_vb=          " visual bell disabled
 set shortmess=I
 set nobackup
 set ts=2
@@ -26,3 +27,4 @@ map <C-H> :cc<CR>
 nnoremap <Leader>^ :cf &errorfile
 cnoremap bro bro filter  ol<Left><Left><Left>
 set tags=tags;,ctags,$temp/mono.doubt
+set shell=C:\Program\ Files\WindowsApps\Microsoft.PowerShell_7.2.1.0_x64__8wekyb3d8bbwe\pwsh.exe
