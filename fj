@@ -46,6 +46,7 @@ OPTION2 (without optarg):
                  it's not available with \`-z'
   -s           : show sum(1) for this file.
   -b           : if errorfile cache exists, remove it before find
+  -1           : a file with the latest timestamp will be hit
 
 resource identifier:
   DIR          : a directory
@@ -339,7 +340,7 @@ if [ ! -d "$HOME/.${myname}" ]; then
   mkdir "$HOME/.${myname}"
 fi
 
-opt=`getopt -q -o a:A:bd:De:hnNFiIclLp:P:sv:V:txz -- "$@"`
+opt=`getopt -q -o 1a:A:bd:De:hnNFiIclLp:P:sv:V:txz -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 cache_path=`savehist $*`
@@ -349,6 +350,9 @@ eval set -- "$opt"
 while [ 0 ]
 do
     case $1 in
+    -1) is_latest_only=1
+      shift
+      ;;
     -a)
       reg_exp[${#reg_exp[@]}]="$2"
       invert_opt[${#invert_opt[@]}]=""
@@ -360,7 +364,7 @@ do
       shift 2
       ;;
     -b) is_remove_cache=1
-        shift;;
+      shift;;
     -d)
       f=`echo $2 | sed -e 's/[ ()]/?/g'`
       base_path="${base_path:-} $f"; shift 2;;
@@ -625,6 +629,11 @@ function lookup_process
 }
 
 [ ! -f "$cache_path" ] && lookup_process
+
+# only new one
+if [ ${is_latest_only:-0} -eq 1 ]; then
+  matched=`ls -1taF $matched |grep -v '/$' |sed -e 's/[@*]$//' |head -1`
+fi
 
 #
 # action
