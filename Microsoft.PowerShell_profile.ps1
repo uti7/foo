@@ -1,5 +1,7 @@
 cd ~
 
+. c:\cast\app\bin\fj_source.ps1
+
 Function ll($p){
   Get-ChildItem -Path $p | Sort-Object -Property LastWriteTime
 }
@@ -37,6 +39,7 @@ Function vimdiff {
 }
 
 Function git {
+  # used for reference
   & "c:\msys64\usr\bin\git.exe" $args
 }
 
