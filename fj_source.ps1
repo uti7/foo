@@ -1,12 +1,14 @@
 #Requires -Version 3.0 
 <#
     usage:
-    PS> . this.ps1
-    PS> fj -pattern PATTERN -files FILES [-list_path] [-root_dir ROOT_DIR] [-no_list] [-open_by_editor | -show_only]
+      ex. 1) on powershell console
+        PS> . .\this.ps1
+        PS> fj -pattern PATTERN -files FILES [-list_path] [-root_dir ROOT_DIR] [-no_list] [-open_by_editor | -show_only]
 
-    ex.)
-      similar to:
+      ex. 2) on cmd prompt
+        CMD> powershell.exe -F .\fj.ps1 -pattern ...
 
+    similar to:
         $ find ... \( -name FILE -o -name FILE -o ... \) ... -print | xargs grep PATTERN
             > powershell -f .\fj.ps1 -p[attern] PATTERN -f[iles] "*.php,*.html,*.txt"
 
@@ -45,7 +47,7 @@ Function fj {
   , [parameter(HelpMessage="PATTERN")]
   [string] $pattern = "."
   , [parameter(HelpMessage="root DIR")]
-  [string] $root_dir = ".\"
+  [string] $root_dir = "$PWD\"
   , [parameter(HelpMessage="list file-path what PATTERN matched")]
   [switch] $list_path = $false
   , [parameter(HelpMessage="no list file-path what deny -l opt.")]
@@ -57,7 +59,7 @@ Function fj {
   , [parameter(HelpMessage='show result, also no prompt whether open')]
   [switch] $show_only = $false
   , [parameter(HelpMessage='files that comma separaited ("*.php,*.html")')]
-  [string] $files = "*.txt"
+  [string] $files = "*.ahk,*.pl,*.py,*.ps1,*.php,*.js,*.cs,*.c,*.vb,*.vbs,*.wsf,*.wsh,*.cpp,*.h,*.html,*.htm,*.inc,*.md,*.txt"
   )
 
 $org_dir = (Get-Location)
