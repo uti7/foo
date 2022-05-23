@@ -1,5 +1,6 @@
 cd ~
 
+$env:Path = "c:\Program Files\PostgreSQL\12\bin;$env:Path"
 . c:\cast\app\bin\fj_source.ps1
 
 Function ll($p){
