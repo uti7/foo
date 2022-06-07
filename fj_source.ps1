@@ -48,9 +48,9 @@ Function fj {
   [string] $pattern = "."
   , [parameter(HelpMessage="root DIR")]
   [string] $root_dir = "$PWD\"
-  , [parameter(HelpMessage="list file-path what PATTERN matched")]
+  , [parameter(HelpMessage="list file-path what PATTERN matched, it's means no grep")]
   [switch] $list_path = $false
-  , [parameter(HelpMessage="no list file-path what deny -l opt.")]
+  , [parameter(HelpMessage="no list file-path what deny -list_path opt.")]
   [switch] $no_list = $false
   , [parameter(HelpMessage="open result-file by editor that no prompt")]
   [switch] $open_by_editor = $false
@@ -111,14 +111,16 @@ if($dir_only){
     } | Set-Variable items
 }elseif($list_path){
     Get-ChildItem -Recurse -Include $files $root_dir | ? {
-        $_.FullName -notmatch "\\.git\\" `
+        $_.Mode -notmatch "d" `
+        -and $_.FullName -notmatch "\\.git\\" `
         -and $_.FullName -notmatch "\\.svn\\" `
         -and $_.FullName -notmatch "\\.cpan\\" `
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }else{
     Get-ChildItem -Recurse -Include $files $root_dir | ? {
-        $_.FullName -notmatch "\\.git\\" `
+        $_.Mode -notmatch "d" `
+        -and $_.FullName -notmatch "\\.git\\" `
         -and $_.FullName -notmatch "\\.svn\\" `
         -and $_.FullName -notmatch "\\.cpan\\"
     } | Set-Variable items
