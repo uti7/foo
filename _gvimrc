@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 07-Mar-2022.
+" Last Change: 09-Jun-2022.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -299,9 +299,17 @@ nnoremap <C-]> g<C-]>
 "set foldmethod=indent
 "set foldlevel=3
 
-"set shell=c:\windows\system32\WindowsPowerShell\v1.0\powershell.exe
+set shell=C:\Windows\System32\cmd.exe
 "set shellcmdflag=
 :set noundofile
+"set nowrapscan
+
+function! s:open_msys_terminal()
+  set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  terminal
+  set shell=C:\Windows\System32\cmd.exe
+endfunction
+command! MSYS :call s:open_msys_terminal()
 
 function! s:delete_hide_buffer()
   let list = filter(range(1, bufnr("$")), "buflisted(v:val)")
