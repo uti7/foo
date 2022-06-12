@@ -340,7 +340,7 @@ if [ ! -d "$HOME/.${myname}" ]; then
   mkdir "$HOME/.${myname}"
 fi
 
-opt=`getopt -q -o 1a:A:bd:De:hnNFiIclLp:P:sv:V:txz -- "$@"`
+opt=`getopt -q -o 1a:A:bd:De:hnNFiIclLp:P:sv:V:txz@ -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 cache_path=`savehist $*`
@@ -427,6 +427,12 @@ do
       ;;
     -x)  is_out_precedent=1; shift;;
     -z)  grep=zgrep;refrep=zrefrep; shift;;
+    -@)
+      is_latest_only=1  # -1
+      is_not_grep=1     # -L
+      is_remove_cache=1 # -b
+      shift
+      ;;
     --) shift; break;;
     *)  usage; exit 2;;
     esac
