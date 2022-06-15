@@ -34,7 +34,7 @@
         "defaults":
         {
             // Put settings here that you want to apply to all profiles.
-            "cursorColor":"#FF0000",
+            "cursorColor":"#AAFF00",
             "cursorShape": "filledBox",
             //"cursorShape": "vintage",
             //"cursorHeight": 50,

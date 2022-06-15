@@ -20,6 +20,7 @@ case `uname -sro` in
     ;;
   *Msys)
     mnt_root=
+    alias az='/c/PROGRA~2/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
     alias tmux='rm -rf /tmp/tmux* && tmux'
     export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
     ;;
