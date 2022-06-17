@@ -1,6 +1,7 @@
 cd ~
 
 $env:Path = "c:\Program Files\PostgreSQL\12\bin;$env:Path"
+$env:PSQL_EDITOR = "C:\cast\app\gvim64\vim.exe"
 . c:\cast\app\bin\fj_source.ps1
 
 Function ll($p){
