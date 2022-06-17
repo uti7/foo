@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 15-Jun-2022.
+" Last Change: 18-Jun-2022.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -305,7 +305,8 @@ set shell=C:\Windows\System32\cmd.exe
 "set nowrapscan
 
 function! s:open_msys_terminal()
-  set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  "set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  execute 'set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ _SWD=' . getcwd() . '\ /bin/bash\ --login'
   terminal
   set shell=C:\Windows\System32\cmd.exe
 endfunction
@@ -313,7 +314,9 @@ command! MSYS :call s:open_msys_terminal()
 
 function! s:open_pwsh_terminal()
   "set shell=$LOCALAPPDATA\Microsoft\WindowsApps\pwsh.exe
-  set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
+  "set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
+  let s:cl='set shell=C:\Program\ Files\PowerShell\7\pwsh.exe\ -NoExit\ -c\ \"&{Set-Location\ ' . getcwd() . '}\"'
+  execute  s:cl
   terminal
   set shell=C:\Windows\System32\cmd.exe
 endfunction

@@ -32,7 +32,8 @@ set tags=tags;,ctags,$temp/mono.doubt
   set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
 
 function! s:open_msys_terminal()
-  set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  "set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  execute 'set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ _SWD=' . getcwd() . '\ /bin/bash\ --login'
   terminal
   set shell=C:\Windows\System32\cmd.exe
 endfunction
