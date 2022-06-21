@@ -318,7 +318,7 @@ function! s:open_pwsh_terminal()
   colorscheme darkblue
   "set shell=$LOCALAPPDATA\Microsoft\WindowsApps\pwsh.exe
   "set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
-  let s:cl='set shell=C:\Program\ Files\PowerShell\7\pwsh.exe\ -NoExit\ -c\ \"&{Set-Location\ ' . getcwd() . '}\"'
+  let s:cl='set shell=C:\Program\ Files\PowerShell\7\pwsh.exe\ -NoExit\ -c\ \"&{Set-Location\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"}\"'
   execute  s:cl
   terminal
   set shell=C:\Windows\System32\cmd.exe
