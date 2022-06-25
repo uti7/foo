@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 09-Jun-2022.
+" Last Change: 21-Jun-2022.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -248,7 +248,7 @@ function! HandleURI(is_show_url)
   let s:uri = substitute(s:uri, '%', '\\%', "g")
   let s:uri = substitute(s:uri, '\]$', '', "g")
   if a:is_show_url != 1
-    exec 'silent !powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
+    exec 'silent !cmd /c powershell -f ' . $vim . '\start.ps1 "' . s:uri . '"'
   endif
   let s:uri = substitute(s:uri, '%', '\\%', "g")
   let s:uri = substitute(s:uri, '\]$', '', "g")
@@ -305,11 +305,25 @@ set shell=C:\Windows\System32\cmd.exe
 "set nowrapscan
 
 function! s:open_msys_terminal()
-  set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  colorscheme desert
+  "set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
+  let s:cl = 'set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ _SWD=\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\"\ /bin/bash\ --login'
+  execute s:cl
   terminal
   set shell=C:\Windows\System32\cmd.exe
 endfunction
 command! MSYS :call s:open_msys_terminal()
+
+function! s:open_pwsh_terminal()
+  colorscheme darkblue
+  "set shell=$LOCALAPPDATA\Microsoft\WindowsApps\pwsh.exe
+  "set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
+  let s:cl='set shell=C:\Program\ Files\PowerShell\7\pwsh.exe\ -NoExit\ -c\ \"&{Set-Location\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"}\"'
+  execute  s:cl
+  terminal
+  set shell=C:\Windows\System32\cmd.exe
+endfunction
+command! PWSH :call s:open_pwsh_terminal()
 
 function! s:delete_hide_buffer()
   let list = filter(range(1, bufnr("$")), "buflisted(v:val)")
