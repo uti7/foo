@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+case `uname -sro` in
+  Linux*-microsoft-standard*GNU/Linux)
+    ;;
+  *)
+    echo  'this script only works on wsl.'
+    exit 2
+    ;;
+esac
+gvim="/mnt/c/cast/app/gvim64/gvim.exe"
+function gvim {
+  TMP=$TEMP
+  files=
+  opt=
+  for f in $*
+  do
+    if [ -f "$f" ]; then
+      files+=" `wp $f`"
+    else
+      opt+=" $f"
+    fi
+  done
+  $gvim $opt $files &
+}
+gvim $*
+exit $?
