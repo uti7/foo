@@ -1,0 +1,4 @@
+\x auto
+\pset null '<NULL>'
+\set COMP_KEYWORD_CASE upper
+show client_encoding;
