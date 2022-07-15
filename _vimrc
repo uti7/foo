@@ -29,7 +29,7 @@ cnoremap bro bro filter  ol<Left><Left><Left>
 set tags=tags;,ctags,$temp/mono.doubt
 "set shell=C:\Program\ Files\WindowsApps\Microsoft.PowerShell_7.2.1.0_x64__8wekyb3d8bbwe\pwsh.exe
 "set shell=C:\PROGRA~1\WindowsApps\Microsoft.PowerShell_7.2.1.0_x64__8wekyb3d8bbwe\pwsh.exe
-  set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
+  set shell=\"C:\Program\ Files\PowerShell\7\pwsh.exe\"
 
 function! s:open_msys_terminal()
   "set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
