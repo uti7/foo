@@ -1,4 +1,12 @@
+/*
+prepare:
+$env:Path = "c:\Program Files\PostgreSQL\12\bin;$env:Path"
+$env:PSQL_EDITOR = "C:\cast\app\gvim64\vim.exe"
+$env:PSQLRC="${env:HOMEDRIVE}${env:HOMEPATH}\.psqlrc"
+*/
+
 \x auto
 \pset null '<NULL>'
 \set COMP_KEYWORD_CASE upper
+\encoding 'UTF8'
 show client_encoding;
