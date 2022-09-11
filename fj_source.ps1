@@ -60,9 +60,49 @@ Function fj {
   [switch] $show_only = $false
   , [parameter(HelpMessage='files that comma separaited ("*.php,*.html")')]
   [string] $files = "*.ahk,*.pl,*.py,*.ps1,*.php,*.js,*.cs,*.c,*.vb,*.vbs,*.wsf,*.wsh,*.cpp,*.h,*.html,*.htm,*.inc,*.md,*.txt"
+  , [parameter(HelpMessage='show usage')]
+  [switch] $help = $false
+  , [parameter(HelpMessage='show quick fix path info')]
+  [switch] $qfinfo = $false
   )
 
+  if($help){
+    @"
+ fj [-pattern .]
+    [-root_dir .]
+    [-editor c:\gvim64\gvim.exe]
+    [-list_path]
+    [-no_list]
+    [-open_by_editor]
+    [-dir_only]
+    [-show_only]
+    [-qfinfo]
+    [-files *.txt,*.ahk,*.???,...]
+"@
+    return @{"status"=2;"message"="done."}
+  }
+
 $org_dir = (Get-Location)
+try{
+  ""|Out-File -FilePath $org_dir/$outfile
+}catch [Exception]{
+  $org_dir = $env:Temp
+  try{
+    ""|Out-File -FilePath $org_dir/$outfile
+  }catch [Exception]{
+    $outfile = "errors.er1"
+    try{
+      ""|Out-File -FilePath $org_dir/$outfile
+    }catch [Exception]{
+      Write-Host -ForegroundColor Magenta ($_ + ", given up.")
+      return @{"status"=1;"message"="done."}
+    }
+  }
+}
+if($qfinfo){
+  Write-Host -ForegroundColor Green ("qf:" + "$org_dir\$outfile")
+}
+
 #Set-Location $root_dir
 
 # read preferences as json. at 2015-03-29, regex "SingleLine" using due to replace operator useless
@@ -82,7 +122,7 @@ $DebugPreference =  "Continue" # , then Write-Debug is available
 
 [string]$outfile = "errors.err"
 #[string]$editor = "c:\cast\app\gvim64\gvim.exe"
-[string]$editor_option_ini = "-c :cf"
+[string]$editor_option_ini = "-q $org_dir/$outfile"
 
 # directory exclusion  : 
 # a)  $_.Directory -ne "tcpdf"  # "tcpdf" only, "tcpdf\conf" is not exclude  
@@ -95,7 +135,7 @@ $DebugPreference =  "Continue" # , then Write-Debug is available
 # dont kown what above two properties differnce
 
 # for encode:
-# Select-String -Encoding Default # cp932
+# Select-String -Encoding oem # cp932
 
 if($no_list){
   $list_path = $false
@@ -136,20 +176,20 @@ if(!$list_path -and !$dir_only){
 
 #Set-Location $org_dir
 
-if(!(Test-Path $outfile)){
+if(!(Test-Path $org_dir/$outfile)){
     Write-Host -ForegroundColor Magenta "no matched."
-    return "done: 1"
+    return @{"status"=1;"message"="done."}
 }
 
-if((Get-ChildItem $outfile| % { $_.Length }) -eq 0 ){
+if((Get-ChildItem $org_dir/$outfile| % { $_.Length }) -eq 0 ){
     Write-Host -ForegroundColor Magenta "no matched."
-    return "done: 1"
+    return @{"status"=1;"message"="done."}
 }
 
-Get-Content $outfile
+Get-Content $org_dir/$outfile
 
 if($show_only){
-  return "done: 0"
+  return @{"status"=0;"message"="done."}
 }
 
 if(!$open_by_editor){
@@ -157,7 +197,7 @@ if(!$open_by_editor){
   if($yn -eq "y"){
     $open_by_editor = $true
   }else{
-    return "done: 0"
+    return @{"status"=0;"message"="done."}
   }
 }
   
@@ -169,11 +209,11 @@ if($open_by_editor){
   Invoke-Expression -Command $cmd
   Get-Variable LASTEXITCODE -ErrorAction SilentlyContinue | Out-Null
   if($? -eq $true){
-    return "done: $LASTEXITCODE"
+    return @{"status"=$LASTEXITCODE;"message"="done."}
   }
   else{
-    return "done: 3"
+    return @{"status"=3;"message"="done."}
   }
 }
-return "done: 0"
+return @{"status"=0;"message"="done."}
 }
