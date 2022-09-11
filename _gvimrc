@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 21-Jun-2022.
+" Last Change: 11-Sep-2022.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -78,8 +78,8 @@ if has('win32')
   " Windows用
   "if &guifont == ''
     set ambiwidth=double
-    "set guifont=Consolas:h10:cSHIFTJIS
-    set guifont=MS_Gothic:h9
+    set guifont=Consolas:h9
+    "set guifont=MS_Gothic:h9
     "set guifont=MS_Mincho:h12:cSHIFTJIS
     "set guifont=Migu_1M:h9
   "endif
@@ -195,7 +195,8 @@ colorscheme default " (GUI使用時)
 :imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
 :map <F6> a<C-R>=strftime("%Y-%m-%d")<CR><Esc>
 :imap <F6> <C-R>=strftime("%Y-%m-%d")<CR>
-map <F1> :files<CR>
+noremap   <F1> :tabNext 1<CR>:colorscheme default
+"cmap <F1> tabNext 1|:colorscheme default
 map <F2> :bp<CR>
 map <F3> :bn<CR>
 map <F4> :bd<CR>
@@ -205,6 +206,7 @@ map <C-F8> :tp<CR>
 map <C-F9> :tn<CR>
 nnoremap <F11> :tabprevious<CR>
 nnoremap <F12> :tabNext<CR>
+tnoremap <F12> <C-w>:tabNext<CR>
 map <C-K> :cp<CR>
 map <C-J> :cn<CR>
 map <C-H> :cc<CR>
@@ -311,6 +313,7 @@ function! s:open_msys_terminal()
   execute s:cl
   terminal
   set shell=C:\Windows\System32\cmd.exe
+  colorscheme default
 endfunction
 command! MSYS :call s:open_msys_terminal()
 
@@ -322,6 +325,8 @@ function! s:open_pwsh_terminal()
   execute  s:cl
   terminal
   set shell=C:\Windows\System32\cmd.exe
+  "<C-w>w
+  colorscheme default
 endfunction
 command! PWSH :call s:open_pwsh_terminal()
 
@@ -356,5 +361,9 @@ noremap + :call ChangeFontSize(1)<CR>
 noremap - :call ChangeFontSize(-1)<CR>
 command! ZI :call ChangeFontSize(1)
 command! ZO :call ChangeFontSize(-1)
+
+" oops! doesn't work it
+"tmap <S-Del> <C-w>\"+
+"tnoremap <Leader>v <C-w>\"+
 
 vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>

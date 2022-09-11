@@ -41,6 +41,7 @@ nnoremap <C-F8> :tp<CR>
 nnoremap <C-F9> :tn<CR>
 nnoremap <F11> :tabprevious<CR>
 nnoremap <F12> :tabNext<CR>
+nnoremap <S-F12> :tabprevious<CR>
 map <Leader>^ :cf /tmp/.eee0<CR>
 map <Leader>0 :cf /tmp/.eee0<CR>
 map <Leader>1 :cf /tmp/.eee1<CR>
