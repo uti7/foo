@@ -85,4 +85,8 @@ function gvim {
 #}
 #[ `cygpath -w /` = 'C:\msys64\' -a -r $HOME/foo/.mybashrc_git ] && . $HOME/foo/.mybashrc_git
 [ -r $HOME/.mybashrc_git ] && . $HOME/.mybashrc_git
-[ -n "$_SWD" ] && cd "$_SWD"
+if [ -n "$_SWD" ]; then
+  cd "$_SWD"
+  export VIM=/usr/share/vim
+  export VIMRUNTIME=$VIM/vim82
+fi
