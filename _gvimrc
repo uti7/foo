@@ -176,7 +176,8 @@ endif
 " 印刷用フォント
 if has('printer')
   if has('win32')
-    set printfont=MS_Mincho:h9h12:cSHIFTJIS
+    "set printfont=MS_Mincho:h9h12:cSHIFTJIS
+    set printfont=Consolas:h9
   endif
 endif
 
