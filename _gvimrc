@@ -306,6 +306,27 @@ set shell=C:\Windows\System32\cmd.exe
 :set noundofile
 "set nowrapscan
 
+function! s:open_cygwin_terminal()
+  colorscheme desert
+  let s:cl = 'set shell=D:\cygwin\bin\env.exe\ HOME.=/\ CYGWI\N=nodosfilewarning\ TERM=xterm\ _SWD=\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\"\ /bin/bash\ --login'
+  execute s:cl
+  terminal
+  set shell=C:\Windows\System32\cmd.exe
+  colorscheme default
+endfunction
+command! CYGWIN :call s:open_cygwin_terminal()
+
+function! s:open_ps3_terminal()
+  colorscheme evening
+  let s:cl='set shell=powershell.exe\ -NoExit\ -c\ \"&{Set-Location\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"}\"'
+  execute  s:cl
+  terminal
+  set shell=C:\Windows\System32\cmd.exe
+  "<C-w>w
+  colorscheme default
+endfunction
+command! PS3 :call s:open_ps3_terminal()
+
 function! s:open_msys_terminal()
   colorscheme desert
   "set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
