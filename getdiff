@@ -55,7 +55,7 @@ is_tar=0
 is_rm=0
 dir_b=.
 
-opt=`getopt -q -o cfgLN:P:Rrtv -- "$@"`
+opt=`getopt -q -o cfgLN:P:p:Rrtv -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
