@@ -55,6 +55,8 @@ is_tar=0
 is_rm=0
 dir_b=.
 
+cl_string="$0 $*"
+
 opt=`getopt -q -o cfgLN:P:p:Rrtv -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
@@ -159,6 +161,8 @@ else
   scan_cl="find . $prune_name_spec_cl $prune_path_spec_cl $not_name_spec_cl -type f -print"
 fi
 #echo $scan_cl && exit 0
+
+echo "### $cl_string"
 
 eval "$scan_cl" \
 |awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
