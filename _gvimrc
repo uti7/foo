@@ -189,6 +189,7 @@ set shortmess=I
 set nobackup
 set ts=2
 set sw=2
+set belloff=all
 gui
 :set guioptions-=T
 colorscheme default " (GUI使用時)
