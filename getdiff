@@ -31,6 +31,8 @@ OPTION:
                 otherwise, use for system development files (e.g. work to deploy)
 
   -R          : output the command line that reverse A and B 
+  -V DIR_PATH : (only "-L" using) inverted.  patterns for directory paths
+                to be excluded in [ls -R] followed by awk
   -v          : output only vimdiff command line
   -c          : output only cp command line
   -t          : output tar command line to create tarballs for all DIR_B_FILES that differ
@@ -41,13 +43,16 @@ OPTION:
 
 example:
   $ cd ~/foo
-  $ $self -c -N config.php -N database.php -N log4php_configurator.xml /var/www/html/foo | tee /tmp/aaa
+  $ $self -c -N config.php -N database.php -N log4php_configurator.xml -P vendor /var/www/html/foo | tee /tmp/aaa
   $ sh -x /tmp/aaa
+
+  (using [ls -R] for scan with "-V" option due to "-p" option does not work)
+  $ $self -L -c -N config.php -N database.php -N log4php_configurator.xml -V 'foo/app|bar/log' /var/www/html/foo | tee /tmp/aaa
 
 EOT
 }
 
-ls_used="ls -1aFR %s . |awk 'NF==0{next;}/^\.+\/\$/{next;}/:\$/{sub(/:\$/,\"/\");wd=\$0;next;}match(\$0,/[/@=]\$/)>0{next;}match(\$0,/\*\$/)>0{sub(/\*\$/,\"\",\$0);}{printf(\"%%s%%s\\\\n\",wd,\$0);}'"
+ls_used="ls -1aFR %s . |awk %s 'NF==0{next;}/^\.+\/\$/{next;}/:\$/{sub(/:\$/,\"/\");wd=\$0;next;}match(\$0,/[/@=]\$/)>0{next;}match(\$0,/\*\$/)>0{sub(/\*\$/,\"\",\$0);}inverts!=\"\"&&match(wd,inverts)>0{next;}{printf(\"%%s%%s\\\\n\",wd,\$0);}'"
 
 is_vimdiff=1
 is_cp=1
@@ -57,7 +62,7 @@ dir_b=.
 
 cl_string="$0 $*"
 
-opt=`getopt -q -o cfgLN:P:p:Rrtv -- "$@"`
+opt=`getopt -q -o cfgLN:P:p:RrtV:v -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 eval set -- "$opt"
@@ -86,6 +91,9 @@ do
     -R) is_reverse=1; shift;;
     -r) is_vimdiff=0; is_cp=0; is_tar=0; is_rm=1; shift;;
     -t) is_vimdiff=0; is_cp=0; is_tar=1; is_rm=0; shift;;
+    -V)
+      inverts_spec_cl="-v \"inverts=$2\""
+      shift 2;;
     -v) is_cp=0; shift;;
     --) shift; break;;
     *)  usage; exit 2;;
@@ -146,7 +154,7 @@ if [ ${is_lsR:-0} -eq 1 ]; then
     #prune_path_spec_cl+=" --regexp=^$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
     ignore_spec_cl+=" --ignore=$i"
   done
-  scan_cl=$(printf "$ls_used" "$ignore_spec_cl")
+  scan_cl=$(printf "$ls_used" "$ignore_spec_cl" "$inverts_spec_cl")
 else
   # find used
   for i in  ${not_name_spec[@]}; do
