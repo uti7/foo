@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 11-Sep-2022.
+" Last Change: 09-Dec-2022.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -85,6 +85,10 @@ if has('win32')
   "endif
   " 行間隔の設定
   set linespace=1
+  " 一部のUCS文字の幅を自動計測して決める
+  "if has('kaoriya')
+  "  set ambiwidth=auto
+  "endif
 elseif has('mac')
   set guifont=Osaka－等幅:h14
 elseif has('xfontset')
