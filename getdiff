@@ -85,7 +85,7 @@ do
       ;;
     -p)
       #prune_spec="$prune_spec -path $2 -prune -o"
-      prune_path_spec+=( ="$2" )
+      prune_path_spec+=( "$2" )
       shift 2
       ;;
     -R) is_reverse=1; shift;;
