@@ -152,11 +152,13 @@ if [ ${is_lsR:-0} -eq 1 ]; then
   done
   for i in ${prune_path_spec[@]}; do
     #prune_path_spec_cl+=" --regexp=^$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
-    ignore_spec_cl+=" --ignore=$i"
+    #ignore_spec_cl+=" --ignore=$i"
+     usage && echo 'option "-p" cannot be used with "-L"' && exit 2
   done
   scan_cl=$(printf "$ls_used" "$ignore_spec_cl" "$inverts_spec_cl")
 else
   # find used
+  [ -n "$inverts_spec_cl" ] && usage && echo 'option "-V" cannot be used without "-L"' && exit 2
   for i in  ${not_name_spec[@]}; do
     not_name_spec_cl+=" -not -name $i"
   done
