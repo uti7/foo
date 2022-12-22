@@ -122,6 +122,7 @@ nnoremap <C-@> :Fja4kwAngular<CR>
 " \x exec current line string as external command
 function! s:exec_current_command_line()
   let s:cl = substitute(getline("."), '^\s*\$\s*', '', "")
+  let s:cl = substitute(s:cl, '^\s*#\+\s*', '', "")
   if s:cl == ""
     return
   endif
