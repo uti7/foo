@@ -592,6 +592,7 @@ function lookup_process
   do
     matched_org=$matched
     matched=""
+    x=1
     for f in $matched_org
     do
       if [ ${is_not_grep:-0} -eq 0 -a -z "${invert_opt[$i]}" ]; then
@@ -609,7 +610,7 @@ function lookup_process
         echo $f | grep -${pattern_opt}q ${ignore_case_opt:-} "${reg_exp[$i]}"
         x=$?
       fi
-      [ $x -eq 0 ] && matched="$matched $f"
+      [ "$x" -eq 0 ] && matched="$matched $f"
     done
     if [ -z "$matched" ]; then
       echo "${reg_exp[$i]}: No matched."
