@@ -660,6 +660,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
         cp $cache_path $errorfile
         echo "(cached)"|cat - $errorfile|less -e
       fi
+      chmod a+rw $errorfile 2>/dev/null
     elif [ ${is_file_with_matches:-0} -eq 1 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
