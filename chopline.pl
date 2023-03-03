@@ -5,8 +5,8 @@ use Getopt::Long;
 use POSIX;
 
 use utf8;
-use open IN => ":encoding(cp932)";
-use open OUT => ":encoding(cp932)";
+use open IN => ":encoding(utf8)";
+use open OUT => ":encoding(utf8)";
 binmode STDIN, ':encoding(utf8)';
 binmode STDOUT, ':encoding(utf8)';
 binmode STDERR, ':encoding(utf8)';
