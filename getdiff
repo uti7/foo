@@ -44,6 +44,9 @@ OPTION:
 example:
   $ cd ~/foo
   $ $self -c -N config.php -N database.php -N log4php_configurator.xml -P vendor /var/www/html/foo | tee /tmp/aaa
+  $ sh -x /tmp/aaa go
+
+  HINT: to execute getdiff again with the same options, run /tmp/aaa without arguments, following:
   $ sh -x /tmp/aaa
 
   (using [ls -R] for scan with "-V" option due to "-p" option does not work)
