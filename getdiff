@@ -44,10 +44,7 @@ OPTION:
 example:
   $ cd ~/foo
   $ $self -c -N config.php -N database.php -N log4php_configurator.xml -P vendor /var/www/html/foo | tee /tmp/aaa
-  $ sh -x /tmp/aaa go
-
-  HINT: to execute getdiff again with the same options, run /tmp/aaa without arguments, following:
-  $ sh -x /tmp/aaa
+  $ bash /tmp/aaa
 
   (using [ls -R] for scan with "-V" option due to "-p" option does not work)
   $ $self -L -c -N config.php -N database.php -N log4php_configurator.xml -V 'foo/app|bar/log' /var/www/html/foo | tee /tmp/aaa
@@ -175,10 +172,28 @@ else
 fi
 #echo $scan_cl && exit 0
 
-echo "#!/usr/bin/bash"
-echo '[ "$1" != "go" ] && exec /usr/bin/time' "-f 'real=%E, sys(sec)= %S, user(sec)=%U'" "$cl_string"
-echo 'set -x'
+  cat << EOT
+#!/usr/bin/bash
+echo '1) retry getdiff with the same options.'
+echo '  ' "$cl_string"
+echo '2) run this file to copy the diff.'
 echo
+echo -n 'choose action (1 or 2): '
+read act
+case "\$act" in
+  1)
+    echo
+    exec /usr/bin/time -f 'real=%E, sys(sec)= %S, user(sec)=%U' $cl_string
+    ;;
+  2)
+    echo
+    set -x
+    ;;
+  *)
+    exit 3
+esac
+
+EOT
 
 eval "$scan_cl" \
 |awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
