@@ -174,25 +174,24 @@ fi
 
   cat << EOT
 #!/usr/bin/bash
-echo '1) retry getdiff with the same options.'
-echo '  ' "$cl_string"
-echo '2) run this file to copy the diff.'
+echo '1) retry getdiff with the same options.' >/dev/stderr
+echo '  ' "$cl_string" >/dev/stderr
+echo '2) run this file to copy the diff.' >/dev/stderr
 echo
-echo -n 'choose action (1 or 2): '
+echo -n 'choose action (1 or 2): ' >/dev/stderr
 read act
 case "\$act" in
   1)
-    echo
-    exec /usr/bin/time -f 'real=%E, sys(sec)= %S, user(sec)=%U' $cl_string
+    echo >/dev/stderr
+    exec /usr/bin/time -f 'real=%E, sys(sec)=%S, user(sec)=%U' $cl_string
     ;;
   2)
-    echo
+    echo >/dev/stderr
     set -x
     ;;
   *)
     exit 3
 esac
-
 EOT
 
 eval "$scan_cl" \
