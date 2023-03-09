@@ -195,7 +195,7 @@ esac
 EOT
 
 eval "$scan_cl" \
-|awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
+|awk -l filefuncs -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
   -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} -v is_tar=${is_tar:-0} -v is_rm=${is_rm:-0} 'BEGIN{
       i=1; dir_b_files="";
     }
@@ -210,13 +210,19 @@ eval "$scan_cl" \
         if(match(b,quot)>0){
           quot=sprintf("%1c",34);
         }
+        none_quot_a = a;
         a=sprintf("%1s%s%1s",quot,a,quot);
         b=sprintf("%1s%s%1s",quot,b,quot);
         if(is_reverse!=0){
           is_reverse=a;a=b;b=is_reverse;
         }
-        cmd=sprintf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
-        x=system(cmd);close(cmd);
+        if(is_rm==0){
+          cmd=sprintf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
+          x=system(cmd);close(cmd);
+        }
+        else{
+          x=(stat(none_quot_a,f) < 0) ? 2 : 0;
+        }
         if(x==1){
           printf("# %d: ---------- has difference -----\n",i);
           if(is_vimdiff==1){
@@ -224,13 +230,15 @@ eval "$scan_cl" \
             if(is_cp==0){
               printf("echo \"%s\"\n",cl);
               printf("echo -n \"sure? ([y]es, [s]kip or else):\" && read q && case \"$q\" in y) %s;; s) echo \"...skipped\";; *) exit 3;; esac\n", cl);
-            }else{
+            }
+            else{
               print cl;
             }
 #            if(is_cp==0){
 #              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
 #            }
-          }else{
+          }
+          else{
             printf("# vimdiff %s %s\n",b,a);
           }
           if(is_cp==1) printf("cp -p %s %s\n",b,a);
@@ -247,7 +255,8 @@ eval "$scan_cl" \
           }
           if(is_tar==0 && is_rm==0){
             print cl;
-          }else{
+          }
+          else{
             if(is_rm==1){
               printf("rm %s\n",b);
             }else{  # tar
