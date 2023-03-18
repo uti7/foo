@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 09-Dec-2022.
+" Last Change: 18-Mar-2023.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -343,6 +343,17 @@ function! s:open_msys_terminal()
   colorscheme default
 endfunction
 command! MSYS :call s:open_msys_terminal()
+
+function! s:open_wsl_terminal()
+  colorscheme desert
+  " substitute(getcwd(), " ", "\\\\ ", "g") 
+  let s:cl = 'set shell=wsl.exe\ --distribution\ Ubuntu-20.04\ --user\ wsl2u\ --shell-type\ login'
+  execute s:cl
+  terminal
+  set shell=C:\Windows\System32\cmd.exe
+  colorscheme default
+endfunction
+command! WSL :call s:open_wsl_terminal()
 
 function! s:open_pwsh_terminal()
   colorscheme darkblue
