@@ -143,27 +143,30 @@ if($no_list){
 
 if($dir_only){
     $files = "*"
-    Get-ChildItem -Recurse -Include $files $root_dir | ? {
+    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") $root_dir | ? {
         $_.Mode -match "d" `
-        -and $_.FullName -notmatch "\\.git\\" `
-        -and $_.FullName -notmatch "\\.svn\\" `
-        -and $_.FullName -notmatch "\\.cpan\\" `
+        -and $_.FullName -notmatch "\\\.git\\" `
+        -and $_.FullName -notmatch "\\\.svn\\" `
+        -and $_.FullName -notmatch "\\\.cpan\\" `
+        -and $_.FullName -notmatch "\\\.vscode\\" `
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }elseif($list_path){
-    Get-ChildItem -Recurse -Include $files $root_dir | ? {
+    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") $root_dir | ? {
         $_.Mode -notmatch "d" `
-        -and $_.FullName -notmatch "\\.git\\" `
-        -and $_.FullName -notmatch "\\.svn\\" `
-        -and $_.FullName -notmatch "\\.cpan\\" `
+        -and $_.FullName -notmatch "\\\.git\\" `
+        -and $_.FullName -notmatch "\\\.svn\\" `
+        -and $_.FullName -notmatch "\\\.cpan\\" `
+        -and $_.FullName -notmatch "\\\.vscode\\" `
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }else{
-    Get-ChildItem -Recurse -Include $files $root_dir | ? {
+    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") $root_dir | ? {
         $_.Mode -notmatch "d" `
-        -and $_.FullName -notmatch "\\.git\\" `
-        -and $_.FullName -notmatch "\\.svn\\" `
-        -and $_.FullName -notmatch "\\.cpan\\"
+        -and $_.FullName -notmatch "\\\.git\\" `
+        -and $_.FullName -notmatch "\\\.svn\\" `
+        -and $_.FullName -notmatch "\\\.cpan\\"
+        -and $_.FullName -notmatch "\\\.vscode\\" `
     } | Set-Variable items
 }
 
