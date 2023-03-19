@@ -142,6 +142,7 @@ if($no_list){
 }
 
 if($dir_only){
+    $files = "*"
     Get-ChildItem -Recurse -Include $files $root_dir | ? {
         $_.Mode -match "d" `
         -and $_.FullName -notmatch "\\.git\\" `
