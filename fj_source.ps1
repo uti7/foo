@@ -157,7 +157,7 @@ if($dir_only){
         -and $_.FullName -notmatch "\\\.git\\" `
         -and $_.FullName -notmatch "\\\.svn\\" `
         -and $_.FullName -notmatch "\\\.cpan\\" `
-        -and $_.FullName -notmatch "\\\.vscode\\" `
+        -and $_.FullName -notmatch "\\\.vscode\\"
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }else{
@@ -165,8 +165,8 @@ if($dir_only){
         $_.Mode -notmatch "d" `
         -and $_.FullName -notmatch "\\\.git\\" `
         -and $_.FullName -notmatch "\\\.svn\\" `
-        -and $_.FullName -notmatch "\\\.cpan\\"
-        -and $_.FullName -notmatch "\\\.vscode\\" `
+        -and $_.FullName -notmatch "\\\.cpan\\" `
+        -and $_.FullName -notmatch "\\\.vscode\\"
     } | Set-Variable items
 }
 
