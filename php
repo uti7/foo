@@ -2,11 +2,17 @@
 case `uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
     ;;
+  Linux*-generic*GNU/Linux)
+    exec /usr/bin/php $*
+    ;;
+  MSYS_NT-*Msys)
+    ;;
   *)
-    echo  'this script only works on wsl.'
+    echo  'this script only works on msys2, wsl or native linux.'
     exit 2
     ;;
 esac
+
 php="/mnt/c/pleiades/xampp/php/php.exe"
 function php {
   TMP="$TEMP"
