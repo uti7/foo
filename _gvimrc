@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 18-Mar-2023.
+" Last Change: 21-Apr-2023.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -231,6 +231,7 @@ cmap Vsp set columns=160<CR>:vsp
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 cmap FJ !powershell -f $vim\fj.ps1 -p 
 cnoremap bro bro filter  ol<Left><Left><Left>
+tmap <C-N> <C-W>N
 
 set tags=tags;,ctags,$temp/mono.doubt
 set grepprg=findstr\ /r

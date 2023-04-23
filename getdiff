@@ -101,6 +101,12 @@ do
 done
 
 [ $# -eq 0 ] && usage && exit 2
+if [ -t 1 ]; then
+  echo "WARNING: the stdout is not directed to a pipe and is not being redirected to a file." 1>/dev/stderr
+  echo -n "   is that okay? (y or else):" 1>/dev/stderr
+  read q
+  [ "$q" != y ] && exit 2
+fi
 
 dir_a=`echo -n "$1"|sed -e 's|/$||'`
 
