@@ -188,11 +188,11 @@ echo -n 'choose action (1 or 2): ' >/dev/stderr
 read act
 case "\$act" in
   1)
-    echo >/dev/stderr
+    #echo >/dev/stderr
     exec /usr/bin/time -f 'real=%E, sys(sec)=%S, user(sec)=%U' $cl_string
     ;;
   2)
-    echo >/dev/stderr
+    #echo >/dev/stderr
     set -x
     ;;
   *)

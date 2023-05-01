@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 23-Apr-2023.
+" Last Change: 01-May-2023.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -381,6 +381,18 @@ function! s:open_pwsh_terminal()
   call s:revert_cursor_color()
 endfunction
 command! PWSH :call s:open_pwsh_terminal()
+
+function! s:open_cmd_terminal()
+  colorscheme torte
+  let s:cl='set shell=C:\Windows\System32\cmd.exe\ -k\ \"cd\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"\"'
+  execute  s:cl
+  terminal
+  set shell=C:\Windows\System32\cmd.exe
+  "<C-w>w
+  colorscheme default
+  call s:revert_cursor_color()
+endfunction
+command! CMD :call s:open_cmd_terminal()
 
 function! s:delete_hide_buffer()
   let list = filter(range(1, bufnr("$")), "buflisted(v:val)")
