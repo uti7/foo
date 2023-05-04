@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 04-May-2023.
+" Last Change: 05-May-2023.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -326,6 +326,7 @@ function! s:open_cygwin_terminal()
   let s:cl = 'set shell=D:\cygwin\bin\env.exe\ HOME.=/\ CYGWI\N=nodosfilewarning\ TERM=xterm\ _SWD=\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\"\ /bin/bash\ --login'
   execute s:cl
   terminal
+  set nonu
   set shell=C:\Windows\System32\cmd.exe
   colorscheme default
   call s:revert_cursor_color()
@@ -337,8 +338,8 @@ function! s:open_ps3_terminal()
   let s:cl='set shell=powershell.exe\ -NoExit\ -c\ \"chcp\ 65001;&{Set-Location\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"}\"'
   execute  s:cl
   terminal
+  set nonu
   set shell=C:\Windows\System32\cmd.exe
-  "<C-w>w
   colorscheme default
   call s:revert_cursor_color()
 endfunction
@@ -346,10 +347,10 @@ command! PS3 :call s:open_ps3_terminal()
 
 function! s:open_msys_terminal()
   colorscheme desert
-  "set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ /bin/bash\ --login
   let s:cl = 'set shell=C:/msys64/usr/bin/env.exe\ MSYS=enable_pcon\ MSYSTEM=MSYS\ _SWD=\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\"\ /bin/bash\ --login'
   execute s:cl
   terminal
+  set nonu
   set shell=C:\Windows\System32\cmd.exe
   colorscheme default
   call s:revert_cursor_color()
@@ -362,6 +363,7 @@ function! s:open_wsl_terminal()
   let s:cl = 'set shell=wsl.exe\ --distribution\ Ubuntu-20.04\ --user\ wsl2u'
   execute s:cl
   terminal
+  set nonu
   set shell=C:\Windows\System32\cmd.exe
   colorscheme default
   call s:revert_cursor_color()
@@ -371,12 +373,11 @@ command! WSL :call s:open_wsl_terminal()
 function! s:open_pwsh_terminal()
   colorscheme darkblue
   "set shell=$LOCALAPPDATA\Microsoft\WindowsApps\pwsh.exe
-  "set shell=C:\Program\ Files\PowerShell\7\pwsh.exe
   let s:cl='set shell=C:\Program\ Files\PowerShell\7\pwsh.exe\ -NoExit\ -c\ \"chcp\ 65001;&{Set-Location\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"}\"'
   execute  s:cl
   terminal
+  set nonu
   set shell=C:\Windows\System32\cmd.exe
-  "<C-w>w
   colorscheme default
   call s:revert_cursor_color()
 endfunction
@@ -387,8 +388,8 @@ function! s:open_cmd_terminal()
   let s:cl='set shell=C:\Windows\System32\cmd.exe\ -k\ \"cd\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"\"'
   execute  s:cl
   terminal
+  set nonu
   set shell=C:\Windows\System32\cmd.exe
-  "<C-w>w
   colorscheme default
   call s:revert_cursor_color()
 endfunction
