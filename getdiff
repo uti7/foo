@@ -180,6 +180,7 @@ fi
 
   cat << EOT
 #!/usr/bin/bash
+set -f
 echo '1) retry getdiff with the same options.' >/dev/stderr
 echo '  ' "$cl_string" >/dev/stderr
 echo '2) run this file to copy the diff.' >/dev/stderr

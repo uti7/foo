@@ -14,7 +14,7 @@ alias vi="vim"
 alias now="date +'%Y%m%d%H%M%S'"
 alias now="date +'%Y%m%d%H%M%S'"
 
-case `uname -sro` in
+case `/usr/bin/uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
     mnt_root=/mnt
     ;;
@@ -22,7 +22,7 @@ case `uname -sro` in
     mnt_root=
     alias az='/c/PROGRA~2/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
     alias tmux='rm -rf /tmp/tmux* && tmux'
-    export WINTEMP=`cygpath -u "$LOCALAPPDATA\Temp"`
+    export WINTEMP=`/usr/bin/cygpath -u "$LOCALAPPDATA\Temp"`
     ;;
   *)
     mnt_root=
