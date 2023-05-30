@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc)
 "
-" Last Change: 05-May-2023.
+" Last Change: 31-May-2023.
 " Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
 "
 " 解説:
@@ -430,5 +430,6 @@ command! ZO :call ChangeFontSize(-1)
 " oops! doesn't work it
 "tmap <S-Del> <C-w>\"+
 "tnoremap <Leader>v <C-w>\"+
+cab wslroot \\wsl$\Ubuntu-20.04
 
 vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>
