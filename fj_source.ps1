@@ -71,15 +71,14 @@ Function fj {
  fj [-pattern .]
     [-root_dir .]
     [-editor c:\gvim64\gvim.exe]
-    [-list_path]
-    [-no_list]
+    [ {-list_path | -no_list} ]
     [-open_by_editor]
     [-dir_only]
     [-show_only]
     [-qfinfo]
     [-files *.txt,*.ahk,*.???,...]
 "@
-    return @{"status"=2;"message"="done."}
+    return [pscustomobject]@{"status"=2;"message"="done."}
   }
 
 $org_dir = (Get-Location)
@@ -182,18 +181,18 @@ if(!$list_path -and !$dir_only){
 
 if(!(Test-Path $org_dir/$outfile)){
     Write-Host -ForegroundColor Magenta "no matched."
-    return @{"status"=1;"message"="done."}
+    return [pscustomobject]@{"status"=1;"message"="no matched."}
 }
 
 if((Get-ChildItem $org_dir/$outfile| % { $_.Length }) -eq 0 ){
     Write-Host -ForegroundColor Magenta "no matched."
-    return @{"status"=1;"message"="done."}
+    return [pscustomobject]@{"status"=1;"message"="no matched."}
 }
 
 Get-Content $org_dir/$outfile
 
 if($show_only){
-  return @{"status"=0;"message"="done."}
+  return [pscustomobject]@{"status"=0;"message"="done."}
 }
 
 if(!$open_by_editor){
@@ -201,7 +200,7 @@ if(!$open_by_editor){
   if($yn -eq "y"){
     $open_by_editor = $true
   }else{
-    return @{"status"=0;"message"="done."}
+    return [pscustomobject]@{"status"=0;"message"="done."}
   }
 }
   
@@ -213,11 +212,11 @@ if($open_by_editor){
   Invoke-Expression -Command $cmd
   Get-Variable LASTEXITCODE -ErrorAction SilentlyContinue | Out-Null
   if($? -eq $true){
-    return @{"status"=$LASTEXITCODE;"message"="done."}
+    return [pscustomobject]@{"status"=$LASTEXITCODE;"message"="done."}
   }
   else{
-    return @{"status"=3;"message"="done."}
+    return [pscustomobject]@{"status"=3;"message"="it didn't work."}
   }
 }
-return @{"status"=0;"message"="done."}
+return [pscustomobject]@{"status"=0;"message"="done."}
 }
