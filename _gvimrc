@@ -233,6 +233,7 @@ cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 cmap FJ !powershell -f $vim\fj.ps1 -p 
 cnoremap bro bro filter  ol<Left><Left><Left>
 tnoremap <C-N> <C-W>N
+tnoremap <Leader>: <C-W>:
 
 set tags=tags;,ctags,$temp/mono.doubt
 set grepprg=findstr\ /r
