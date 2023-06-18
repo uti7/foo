@@ -242,6 +242,17 @@ function! OpenCurrentFilespec()
 endfunction
 nnoremap <Leader>dr :call OpenCurrentFilespec()<CR>
 
+function! ChangeLocalDirectory()
+  " like a lcd, to use open at terminal job notrmal-mode
+  let s:path = expand('<cfile>')
+  if(!isdirectory(s:path))
+    let s:path = substitute(s:path, '\\$', '', "")
+    let s:path = substitute(s:path, '[^\\]\+$', '', "")
+  endif
+  execute('lcd ' . s:path)
+endfunction
+nnoremap <Leader>cd :call ChangeLocalDirectory()<CR>
+
 set tags=tags;,ctags,$temp/mono.doubt
 set grepprg=findstr\ /r
 " Chalice SETTINGS
