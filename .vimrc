@@ -56,6 +56,26 @@ noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
 autocmd BufEnter *.fjhist setlocal autoread
 
 cnoremap bro bro filter  ol<Left><Left><Left>
+tnoremap <C-N> <C-W>N
+tnoremap <Leader>: <C-W>:
+
+function! OpenCurrentFilespec()
+  " like a gf, to use open at terminal job notrmal-mode
+  let s:path = expand('<cfile>')
+  execute('drop ' . s:path)
+endfunction
+nnoremap <Leader>dr :call OpenCurrentFilespec()<CR>
+
+function! ChangeLocalDirectory()
+  " like a lcd, to use open at terminal job notrmal-mode
+  let s:path = expand('<cfile>')
+  if(!isdirectory(s:path))
+    let s:path = substitute(s:path, '\\$', '', "")
+    let s:path = substitute(s:path, '[^\\]\+$', '', "")
+  endif
+  execute('lcd ' . s:path)
+endfunction
+nnoremap <Leader>cd :call ChangeLocalDirectory()<CR>
 
 map gC	"+y
 map gX	"+x
