@@ -151,3 +151,19 @@ Function fromb64()
   }
   return $ret
 }
+
+Function hh()
+{
+  Param(
+    [string] $pattern = ".",
+    [switch] $run_latest = $false
+  )
+  $id = $null; $cl = $null
+  Get-History | ? { !($_.CommandLine -match '^hh') -and $_.CommandLine -match $pattern } | % { $id = $_.Id; $cl = $_.CommandLine; $_ }
+  if($run_latest){
+    if($id -ne $null){
+      Write-Host -ForegroundColor Yellow "$id`t$cl"
+      Invoke-History -Id $id
+    }
+  }
+}
