@@ -36,8 +36,19 @@ done
 [ $# -eq 0 ] && usage && exit 2
 
 # ps output format depended
-pid_column=2
-tty_column=4
+case `uname -o` in
+  Msys)
+    pid_column=2
+    tty_column=4
+    ;;
+  GNU/Linux)
+    pid_column=2
+    tty_column=6
+    ;;
+  *)
+    pid_column=2
+    tty_column=4
+esac
 
 awk -v pid_column="$pid_column" -v tty_column="$tty_column" -v tty="$tty" \
 -v is_list_only=${is_list_only:-0} -v is_win_proc=${is_win_proc:-} -v n="$*" 'BEGIN{
