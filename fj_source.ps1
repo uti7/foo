@@ -156,7 +156,7 @@ if($dir_only){
         -and $_.FullName -notmatch "\\\.git\\" `
         -and $_.FullName -notmatch "\\\.svn\\" `
         -and $_.FullName -notmatch "\\\.cpan\\" `
-        -and $_.FullName -notmatch "\\\.vscode\\"
+        -and $_.FullName -notmatch "\\\.vscode\\" `
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }else{
