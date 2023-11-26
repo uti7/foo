@@ -1,10 +1,10 @@
 " vim:set ts=8 sts=2 sw=2 tw=0: (この行に関しては:help modelineを参照)
 "
 " An example for a Japanese version gvimrc file.
-" 日本語版のデフォルトGUI設定ファイル(gvimrc)
+" 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 18-Jun-2023.
-" Maintainer:  MURAOKA Taro <koron@tka.att.ne.jp>
+" Last Change: 27-Nov-2023.
+" Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
 " このファイルにはVimの起動時に必ず設定される、GUI関連の設定が書かれていま
@@ -45,7 +45,7 @@ endif
 " ユーザ優先設定($HOME/.gvimrc_first.vim)があれば読み込む。読み込んだ後に変
 " 数g:gvimrc_first_finishに非0な値が設定されていた場合には、それ以上の設定
 " ファイルの読込を中止する。
-if 0 && exists('$HOME') && filereadable($HOME . '/.gvimrc_first.vim')
+if 1 && exists('$HOME') && filereadable($HOME . '/.gvimrc_first.vim')
   unlet! g:gvimrc_first_finish
   source $HOME/.gvimrc_first.vim
   if exists('g:gvimrc_first_finish') && g:gvimrc_first_finish != 0
@@ -90,10 +90,14 @@ if has('win32')
   "  set ambiwidth=auto
   "endif
 elseif has('mac')
-  set guifont=Osaka－等幅:h14
+  if &guifont == ''
+    set guifont=Osaka－等幅:h14
+  endif
 elseif has('xfontset')
-  " UNIX用 (xfontsetを使用)
-  set guifontset=a14,r14,k14
+  if &guifontset == ''
+    " UNIX用 (xfontsetを使用)
+    set guifontset=a14,r14,k14
+  endif
 endif
 
 "---------------------------------------------------------------------------
@@ -115,12 +119,8 @@ if has('multi_byte_ime') || has('xim')
   " IME ON時のカーソルの色を設定(設定例:紫)
   highlight CursorIM guibg=Purple guifg=NONE
   " 挿入モード・検索モードでのデフォルトのIME状態設定
-  set iminsert=0 imsearch=0
-  if has('xim') && has('GUI_GTK')
-    " XIMの入力開始キーを設定:
-    " 下記の s-space はShift+Spaceの意味でkinput2+canna用設定
-    "set imactivatekey=s-space
-  endif
+  " (8.0.1114 でデフォルトになったが念のため残してある)
+  "set iminsert=0 imsearch=0
   " 挿入モードでのIME状態を記憶させない場合、次行のコメントを解除
   "inoremap <silent> <ESC> <ESC>:set iminsert=0<CR>
 endif
@@ -180,16 +180,15 @@ endif
 " 印刷用フォント
 if has('printer')
   if has('win32')
-    "set printfont=MS_Mincho:h9h12:cSHIFTJIS
-    set printfont=Consolas:h9
+    set printfont=MS_Mincho:h9h12:cSHIFTJIS
   endif
 endif
 
-" Copyright (C) 2005 KaoriYa/MURAOKA Taro
+" Copyright (C) 2009-2018 KaoriYa/MURAOKA Taro
 "2006-01-06 utiumi
 set backupdir=>$TEMP,C:/tmp,c:\temp,. " backup directory
 set directory=>$TEMP,C:/tmp,c:\temp,. " swap directory
-set shortmess=I
+set shortmess=IS
 set nobackup
 set ts=2
 set sw=2
@@ -226,11 +225,10 @@ map gC  "+y
 map gX  "+x
 map gV  "+gP
 imap gV  a"+gPxa
-"cmap dvs set columns=160<CR>:VDsplit ~/デスクトップ/syllabus/htdocs/
 cmap dvd set columns=160<CR>:VDsplit 
 cmap Vsp set columns=160<CR>:vsp 
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
-cmap FJ !powershell -f $vim\fj.ps1 -p 
+"cmap FJ !powershell -f $vim\fj.ps1 -p 
 cnoremap bro bro filter  ol<Left><Left><Left>
 tnoremap <C-N> <C-W>N
 tnoremap <Leader>: <C-W>:
@@ -317,8 +315,8 @@ map  <C-X> "+x
 "visual map  <C-V> "+gP
 "imap  <C-V> "+gP
 
-imap <C-V> <S-INS>
-cmap <C-V> <S-INS>
+"imap <C-V> <S-INS>
+"cmap <C-V> <S-INS>
 
 " tag duplicatin behavior = list choice
 nnoremap <C-]> g<C-]>
