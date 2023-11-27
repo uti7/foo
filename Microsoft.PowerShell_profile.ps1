@@ -167,3 +167,13 @@ Function hh()
     }
   }
 }
+
+Function msys-bash
+{
+  Param(
+    [Parameter(Mandatory=$true, HelpMessage="command line in bash")]
+    [string]$command_line
+  )
+  & C:\msys64\usr\bin\env.exe -C "$PWD" -- MSYS=enable_pcon MSYSTEM=MSYS bash -c "$command_line"
+  # see $LASTEXITCODE
+}
