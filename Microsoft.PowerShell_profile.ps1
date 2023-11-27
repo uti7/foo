@@ -170,10 +170,26 @@ Function hh()
 
 Function msys-bash
 {
+  # One or both of the following arguments must be provided.
   Param(
-    [Parameter(Mandatory=$true, HelpMessage="command line in bash")]
-    [string]$command_line
+    [Parameter(Mandatory=$false, HelpMessage="the Windows path notation for the script file that will be executed.")]
+    [string]$run_script = $null,
+    [Parameter(Mandatory=$false, HelpMessage="command line in bash")]
+    [string]$command_line = $null
   )
-  & C:\msys64\usr\bin\env.exe -C "$PWD" -- MSYS=enable_pcon MSYSTEM=MSYS bash -c "$command_line"
+  if($run_script -ne $null){
+    $no_sepa = $run_script -split '\\'
+    if($no_sepa[0] -match "^[A-Z]:$"){
+      $no_sepa[0] = ("/mnt/" + ($no_sepa[0].ToLower() -replace ":", ''))
+    }
+    $msys_path = $no_sepa -join '/'
+    $do_this = ($msys_path + ' ')
+  }
+  elseif($command_line -eq $null){ # -and $run_script -eq $null
+    Write-Error "usage: msys-path WIN_PATH_SPEC_SCRIPT_FILE [ARGS...]`n       msys-path BASH_COMMAND_LINE"
+    return
+  }
+  $do_this += $command_line
+  & C:\msys64\usr\bin\env.exe -C "$PWD" -- MSYS=enable_pcon MSYSTEM=MSYS bash -c "$do_this"
   # see $LASTEXITCODE
 }
