@@ -3,6 +3,7 @@ cd ~
 $env:Path = "c:\Program Files\PostgreSQL\12\bin;$env:Path"
 $env:PSQL_EDITOR = "C:\cast\app\gvim64\vim.exe"
 $env:PSQLRC="${env:HOMEDRIVE}${env:HOMEPATH}\.psqlrc"
+$env:WSLROOT="\\wsl$\Ubuntu-20.04"
 
 . c:\cast\app\bin\fj_source.ps1
 
