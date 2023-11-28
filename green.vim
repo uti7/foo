@@ -34,12 +34,13 @@ hi StatusLineTermNC term=none ctermbg=40 guibg=green ctermfg=0 guifg=darkgreen
 hi String ctermfg=40 guifg=green
 hi Todo cterm=none ctermfg=40 guifg=green gui=none
 hi Type ctermfg=40 guifg=green
-hi Visual term=reverse ctermbg=120 guibg=darkgreen ctermfg=0 guifg=gray10
+hi Visual term=reverse ctermbg=120 guibg=darkgreen ctermfg=0 guifg=gray10 gui=bold
 hi VertSplit ctermfg=232 guifg=darkgreen cterm=none gui=none
 hi Question ctermfg=40 guifg=green
 hi StatusLine cterm=none gui=none ctermfg=2 guifg=gray10 ctermbg=232 guibg=green
 hi StatusLineNC cterm=none gui=none ctermfg=40 guifg=lightgreen ctermbg=234 guibg=darkgreen
 hi Pmenu ctermbg=232 guibg=darkgreen ctermfg=40 guifg=green
-hi MatchParen ctermbg=232 guibg=yellowgreen ctermfg=2 guifg=gray10
+hi PmenuSel ctermbg=40 guibg=lightgreen ctermfg=232 guifg=black
+hi MatchParen ctermbg=232 guibg=darkgreen ctermfg=2 guifg=green
 hi diffAdded ctermfg=2 guifg=white cterm=none gui=none
 hi diffRemoved ctermfg=1 guifg=gray20
