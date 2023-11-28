@@ -16,7 +16,7 @@ hi Comment ctermfg=2 guifg=yellowgreen
 hi Constant ctermfg=40 guifg=green
 hi CursorLine term=none cterm=none gui=none
 hi Directory ctermfg=40 guifg=green
-hi Folded ctermbg=40 guibg=green ctermfg=0 guifg=gray10
+hi Folded ctermbg=40 guibg=yellowgreen ctermfg=0 guifg=gray10
 hi Identifier ctermfg=40 guifg=green
 hi LineNr ctermfg=2 guifg=white
 hi MoreMsg ctermfg=40 guifg=green
