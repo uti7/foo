@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 27-Nov-2023.
+" Last Change: 28-Nov-2023.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -200,7 +200,7 @@ colorscheme default " (GUI使用時)
 :imap <F5> <C-R>=strftime("%Y-%m-%d")<CR>
 :map <F6> a<C-R>=strftime("%Y-%m-%d")<CR><Esc>
 :imap <F6> <C-R>=strftime("%Y-%m-%d")<CR>
-noremap   <F1> :tabNext 1<CR>:colorscheme default
+noremap   <F1> :tabNext 1<CR>:colorscheme default<CR>
 "cmap <F1> tabNext 1|:colorscheme default
 map <F2> :bp<CR>
 map <F3> :bn<CR>
@@ -345,7 +345,7 @@ function! s:open_cygwin_terminal()
   terminal
   set nonu
   set shell=C:\Windows\System32\cmd.exe
-  colorscheme default
+  colorscheme green
   call s:revert_cursor_color()
 endfunction
 command! CYGWIN :call s:open_cygwin_terminal()
@@ -357,7 +357,7 @@ function! s:open_ps3_terminal()
   terminal
   set nonu
   set shell=C:\Windows\System32\cmd.exe
-  colorscheme default
+  colorscheme green
   call s:revert_cursor_color()
 endfunction
 command! PS3 :call s:open_ps3_terminal()
@@ -369,20 +369,20 @@ function! s:open_msys_terminal()
   terminal
   set nonu
   set shell=C:\Windows\System32\cmd.exe
-  colorscheme default
+  colorscheme green
   call s:revert_cursor_color()
 endfunction
 command! MSYS :call s:open_msys_terminal()
 
 function! s:open_wsl_terminal()
-  colorscheme desert
+  colorscheme green
   " substitute(getcwd(), " ", "\\\\ ", "g") 
   let s:cl = 'set shell=wsl.exe\ --distribution\ Ubuntu-20.04\ --user\ wsl2u'
   execute s:cl
   terminal
   set nonu
   set shell=C:\Windows\System32\cmd.exe
-  colorscheme default
+  colorscheme green
   call s:revert_cursor_color()
 endfunction
 command! WSL :call s:open_wsl_terminal()
@@ -395,7 +395,7 @@ function! s:open_pwsh_terminal()
   terminal
   set nonu
   set shell=C:\Windows\System32\cmd.exe
-  colorscheme default
+  colorscheme green
   call s:revert_cursor_color()
 endfunction
 command! PWSH :call s:open_pwsh_terminal()
@@ -407,7 +407,7 @@ function! s:open_cmd_terminal()
   terminal
   set nonu
   set shell=C:\Windows\System32\cmd.exe
-  colorscheme default
+  colorscheme green
   call s:revert_cursor_color()
 endfunction
 command! CMD :call s:open_cmd_terminal()
