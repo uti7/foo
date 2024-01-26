@@ -32,7 +32,7 @@ hi StatusLineTerm term=none ctermbg=40 guibg=green ctermfg=0 guifg=gray10
 hi StatusLineTermNC ctermbg=15 guibg=lightgreen
 hi StatusLineTermNC term=none ctermbg=40 guibg=green ctermfg=0 guifg=darkgreen
 hi String ctermfg=40 guifg=green
-hi Todo cterm=none ctermfg=40 guifg=green gui=none
+hi Todo cterm=none ctermfg=40 guifg=red gui=none
 hi Type ctermfg=40 guifg=green
 hi Visual term=reverse ctermbg=120 guibg=darkgreen ctermfg=0 guifg=gray10 gui=bold
 hi VertSplit ctermfg=232 guifg=darkgreen cterm=none gui=none
