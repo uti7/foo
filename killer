@@ -51,6 +51,7 @@ case `uname -o` in
 esac
 
 awk -v pid_column="$pid_column" -v tty_column="$tty_column" -v tty="$tty" \
+-v _beExcluded=_beExcluded \
 -v is_list_only=${is_list_only:-0} -v is_win_proc=${is_win_proc:-} -v n="$*" 'BEGIN{
 cmd = "ps -ef" is_win_proc;
 if(tty == ""){
@@ -61,7 +62,7 @@ else{
 }
 for(i=0; (cmd|getline) > 0; i++){
   if(i == 0){ print $0; continue; }
-  if(match($0,n)>0 && match($tty_column, tty_re)>0){
+		if(match($0,n)>0 && match($0,"_beExcluded") == 0 && match($tty_column, tty_re)>0){
     if(is_list_only == 1){
       print "# " $0;
       print "kill " $pid_column;
