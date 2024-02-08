@@ -147,7 +147,7 @@ else
 fi
 
 if [ ${is_lsR:-0} -eq 1 ]; then
-  # ls used, make ERE (for grep -e ERE) from glob expression
+  # ls used. Trying to make ERE will be stopped from now on. >>> make ERE (for grep -e ERE) from glob expression
   for i in  ${not_name_spec[@]}; do
     #not_name_spec_cl+=" --regexp=\\b$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
     ignore_spec_cl+=" --ignore=$i"
@@ -178,8 +178,9 @@ else
 fi
 #echo $scan_cl && exit 0
 
+  echo '#!/usr/bin/bash'
   cat << EOT
-#!/usr/bin/bash
+cd "$PWD" || ( echo "ABORTED." && exit 1 )
 set -f
 echo '1) retry getdiff with the same options.' >/dev/stderr
 echo '  ' "$cl_string" >/dev/stderr
@@ -200,6 +201,8 @@ case "\$act" in
     exit 3
 esac
 EOT
+
+echo "scanning..." 1>&2
 
 eval "$scan_cl" \
 |awk -l filefuncs -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
