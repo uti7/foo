@@ -1,11 +1,13 @@
 #!/usr/bin/bash
 case `uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
+    php_x="/mnt/c/pleiades/xampp/php/php.exe"
     ;;
   Linux*-generic*GNU/Linux)
     exec /usr/bin/php $*
     ;;
   MSYS_NT-*Msys)
+    php_x="/c/pleiades/xampp/php/php.exe"
     ;;
   *)
     echo  'this script only works on msys2, wsl or native linux.'
@@ -13,12 +15,11 @@ case `uname -sro` in
     ;;
 esac
 
-php="/mnt/c/pleiades/xampp/php/php.exe"
 function php {
   TMP="$TEMP"
   if [ "$1" = "-r" ]; then
     shift
-    $php -r "$*"
+    $php_x -r "$*"
     return $?
   fi
   files=
@@ -36,7 +37,7 @@ function php {
       opt+=" $f"
     fi
   done
-  $php $opt $files
+  $php_x $opt $files
   return $?
 }
 php $*

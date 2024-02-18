@@ -104,10 +104,11 @@ Function tob64()
   }
   if($f -ne $null -and $f.GetType().Name -eq "PathInfo"){
     $a = [System.IO.File]::ReadAllBytes($f.Path)
+    $b = [Convert]::ToBase64String($a)
   }else{
     $a = $in
+    $b = [Convert]::ToBase64String([Byte[]][System.Text.Encoding]::Default.GetBytes($a))
   }
-  $b = [Convert]::ToBase64String([Byte[]][System.Text.Encoding]::Default.GetBytes($a))
 
   if($opath -ne ""){
     $ret = [System.IO.File]::WriteAllText($opath, $b, [System.Text.Encoding]::Default)
