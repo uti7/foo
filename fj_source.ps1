@@ -23,12 +23,15 @@ C:\Users\__YOUR_ACCOUNT__\Documents\WindowsPowerShell\Microsoft.PowerShell_profi
 Set-PSDebug -strict
 
 # sub function
-Function parseArray([string] $s, [string] $delim, [int] $max = 0)
+Function parseArray([string] $s, [string] $delim, [int] $max = 0, [switch]$absolute)
 {
     $a = @()
     $s -split $delim, $max | % {
         $i = $_ -replace "^\s+", ""
         $i = $i -replace "\s+$", ""
+        if(!$absolute -and $i -notmatch "^\*"){
+          $i = ("*" + $i)
+        }
         if($i.length){
             $a += $i
         }
@@ -116,7 +119,7 @@ $DebugPreference =  "Continue" # , then Write-Debug is available
 
 
 [array]$files = parseArray $files ","
-[array]$root_dir = parseArray $root_dir ","
+[array]$root_dir = parseArray $root_dir "," -absolute
 
 
 [string]$outfile = "errors.err"
