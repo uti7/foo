@@ -80,6 +80,10 @@ Function fj {
     [-show_only]
     [-qfinfo]
     [-files *.txt,*.ahk,*.???,...]
+
+    -list_path  : no grep, To filter by file name as RE,
+                  use [-file "*.ps1,*.bat" -pattern "foo.*bar"]
+    -no_list    : cancel -list _path option
 "@
     return [pscustomobject]@{"status"=2;"message"="done."}
   }
