@@ -14,6 +14,7 @@ usage:
   $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [OPTION2] {-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
   $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -L [FILE...]
   $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -D [FILE...]
+  $myname [-H] PATTERN
   $myname [-h]
 
 OPTION1 (with optarg):
@@ -26,6 +27,8 @@ OPTION1 (with optarg):
                  use it following one or more \`-a PATTERN'
   -V PATTERN   : invert filtering for every path
   -P PRUNEDIR  : specified to find option that \`-name PRUNEDIR -prune -o'
+
+  -H PATTERN   : recall a command line that matches a PATTERN from past history
 
 OPTION2 (without optarg):
   -h           : show this usage.
@@ -212,6 +215,27 @@ function savehist
   echo "$args"|md5sum|cut -d ' ' -f 1 # the cache file name
 }
 
+function recallhist
+{
+  histfile="$HOME/.${myname}hist"
+  [ ! -r "$histfile" ] && echo "no histfile or not readable." && exit 4
+  grep --color=auto -n -- "$hist_search_pattern" "$histfile"
+  if [ $? -eq 0 ]; then
+    echo -ne '--------\nenter line # (or empty, NaN):'
+    read Q
+    [ -z "$Q" ] && exit 3
+    Q=$((Q + 0)) 2>/dev/null
+    [ $? -ne 0 ] && exit 3
+
+    args=$(sed -n "${Q}p" $histfile)
+    recallcmd="$myfullname $args"
+    exec bash -c "$recallcmd"
+  else
+    echo "hist no matched."
+    exit 3
+  fi
+}
+
 function mkrc
 {
   cat << EOT >"$HOME/.${myname}rc"
@@ -322,6 +346,7 @@ function is_ancestor_vim
 #########
 # begin
 ##########
+myfullname=${0}
 myname=${0//*\//}
 vi=vim
 grep=grep
@@ -340,7 +365,7 @@ if [ ! -d "$HOME/.${myname}" ]; then
   mkdir "$HOME/.${myname}"
 fi
 
-opt=`getopt -q -o 1a:A:bd:De:hnNFiIclLp:P:sv:V:txz@ -- "$@"`
+opt=`getopt -q -o 1a:A:bd:De:H:hnNFiIclLp:P:sv:V:txz@ -- "$@"`
 [ $? -ne 0 ] && usage && exit 2
 
 cache_path=`savehist $*`
@@ -382,6 +407,10 @@ do
       shift
       ;;
     -e)  execute_cmd="$2"; is_not_vi=3; shift 2;;
+    -H)
+      hist_search_pattern="$2"
+      shift 2
+      ;;
     -i)  ignore_case_opt="-i";name_opt="-iname"; shift;;
     -I)  unset ignore_case_opt; shift;;
     -F)  pattern_opt="F"; shift;;
@@ -437,6 +466,11 @@ do
     *)  usage; exit 2;;
     esac
 done
+
+if [ -n "$hist_search_pattern" ]; then
+  recallhist
+  exit 0
+fi
 
 [ ${is_remove_cache:-0} -eq 1 ] && rm -f "$cache_path"
 
