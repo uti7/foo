@@ -70,58 +70,82 @@ note:
 
 file:
                  \$HOME/.${myname}rc:
-                 the preferences. it will automaticaly generated when
-                 ${myname} exec for the 1st time.
+                     the preferences. it will automaticaly generated when
+                     ${myname} exec for the 1st time.
 
                  \$HOME/.${myname}hist:
-                 the history that cmd line args
+                     the history that cmd line args
 
                 .vimrc:
-                  " ----- quickfix relative, etc..
-                  set laststatus=2 " always show file name
-                  set errorfile=.eee0
-                  set errorformat=%f:%l:%m
-                  noremap <C-K> :cp<CR>
-                  noremap <C-J> :cn<CR>
-                  noremap <C-H> :cc<CR>
-                  nnoremap !fj :!fj 
-                  noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
-                  noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
-                  map \\0 :cf .eee0<CR>
-                  map \\1 :cf .eee1<CR>
-                  map \\2 :cf .eee2<CR>
-                  nnomap \\h :e ~/.fjhist<Bar>$<CR>
-                  autocmd BufEnter *.fjhist setlocal autoread
+                    " ----- quickfix relative, etc..
+                    set laststatus=2 " always show file name
+                    set errorfile=/tmp/.eee0
+                    set errorformat=%f:%l:%m
+                    noremap <C-K> :cp<CR>
+                    noremap <C-J> :cn<CR>
+                    noremap <C-H> :cc<CR>
+                    nnoremap !fj :!fj 
+                    noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
+                    noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
+                    nnoremap <Leader>^ :cf /tmp/.eee0<CR>
+                    nnoremap <Leader>0 :cf /tmp/.eee0<CR>
+                    nnoremap <Leader>1 :cf /tmp/.eee1<CR>
+                    nnoremap <Leader>2 :cf /tmp/.eee2<CR>
+                    nnoremap <Leader>3 :cf /tmp/.eee3<CR>
+                    nnoremap <Leader>4 :cf /tmp/.eee4<CR>
+                    nnoremap <Leader>5 :cf /tmp/.eee5<CR>
+                    nnoremap <Leader>6 :cf /tmp/.eee6<CR>
+                    nnoremap <Leader>7 :cf /tmp/.eee7<CR>
+                    nnoremap <Leader>8 :cf /tmp/.eee8<CR>
+                    nnoremap <Leader>9 :cf /tmp/.eee9<CR>
+                    nnomap <Leader>h :e ~/.fjhist<Bar>$<CR>
+                    autocmd BufEnter *.fjhist setlocal autoread
 
-                  set keywordprg=fj\\ -A
-                  function! s:fj_L_for_keyword()
-                    exec '!fj -i -L ' . expand("<cword>")
-                    if filereadable(&errorfile)
-                      cf
-                    endif
-                  endfunction
-                  command! Fjl4kw :call s:fj_L_for_keyword()
-                  nnoremap <C-@> :Fjl4kw<CR>
-                  " ----- 
+                    function! ChangeErrorFile(level)
+                      let s = split(&errorfile, 'eee')
+                      let newLevel = s[1] + a:level
+                      if newLevel > 9
+                        let newLevel = 0
+                      elseif newLevel < 0
+                        let newLevel = 9
+                      endif
+                      "echo 'newLevel=' . newLevel
+                      let &errorfile='/tmp/.eee' . newLevel
+                      echo 'errorfile=' . &errorfile
+                      cf 
+                    endfunction
+                    noremap <Leader>- :call ChangeErrorFile(-1)<CR>
+                    noremap <Leader>@ :call ChangeErrorFile(1)<CR>
+
+                    set keywordprg=fj\\ -A
+                    function! s:fj_L_for_keyword()
+                      exec '!fj -i -L ' . expand("<cword>")
+                      if filereadable(&errorfile)
+                        cf
+                      endif
+                    endfunction
+                    command! Fjl4kw :call s:fj_L_for_keyword()
+                    nnoremap <C-@> :Fjl4kw<CR>
+                    " ----- 
 
                 \$VIMRUNTIME/filetype.vim:
-                  " ----- fj history file
-                  au BufNewFile,BufRead .fjhist		setf fjhist
-                  " ----- 
+                    " ----- fj history file
+                    au BufNewFile,BufRead .fjhist		setf fjhist
+                    " ----- 
 
                 \$VIMRUNTIME/ftplugin/fjhist.vim:
-                  if exists('b:did_ftplugin')
-                    finish
-                  endif
-                  let b:did_ftplugin=1
-
-                  nnoremap <buffer> <LocalLeader>f :call <SID>FireFj()<CR>
-                  function! <SID>FireFj() abort
-                    exec '!fj ' . getline(".")
-                    if filereadable(&errorfile)
-                      cf
+                    if exists('b:did_ftplugin')
+                      finish
                     endif
-                  endfunction
+                    let b:did_ftplugin=1
+
+                    nnoremap <buffer> <LocalLeader>f :call <SID>FireFj()<CR>
+                    function! <SID>FireFj() abort
+                      exec '!fj ' . getline(".")
+                      if filereadable(&errorfile)
+                        cf
+                      endif
+                    endfunction
 
 examples:
 
@@ -523,8 +547,11 @@ if [ $? -eq 0 ]; then
 fi
 errorfile="${errors_err_prefix}0"
 if [ -f "$errorfile" ]; then
-    mv -f "${errors_err_prefix}1" "${errors_err_prefix}2" 2>/dev/null
-    mv -f "${errors_err_prefix}0" "${errors_err_prefix}1" 2>/dev/null
+  for i in 8 7 6 5 4 3 2 1 0; do
+    [ -f "${errors_err_prefix}${i}" ] && mv -f "${errors_err_prefix}$i" "${errors_err_prefix}$(( i + 1 ))"
+  done
+  #mv -f "${errors_err_prefix}1" "${errors_err_prefix}2" 2>/dev/null
+  #mv -f "${errors_err_prefix}0" "${errors_err_prefix}1" 2>/dev/null
 fi
 
 function lookup_process

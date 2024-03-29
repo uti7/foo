@@ -41,19 +41,43 @@ nnoremap <C-F8> :tp<CR>
 nnoremap <C-F9> :tn<CR>
 nnoremap <F11> :tabprevious<CR>
 nnoremap <F12> :tabNext<CR>
-nnoremap <S-F12> :tabprevious<CR>
-map <Leader>^ :cf /tmp/.eee0<CR>
-map <Leader>0 :cf /tmp/.eee0<CR>
-map <Leader>1 :cf /tmp/.eee1<CR>
-map <Leader>2 :cf /tmp/.eee2<CR>
+
+nnoremap <Leader>^ :cf /tmp/.eee0<CR>
+nnoremap <Leader>0 :cf /tmp/.eee0<CR>
+nnoremap <Leader>1 :cf /tmp/.eee1<CR>
+nnoremap <Leader>2 :cf /tmp/.eee2<CR>
+nnoremap <Leader>3 :cf /tmp/.eee3<CR>
+nnoremap <Leader>4 :cf /tmp/.eee4<CR>
+nnoremap <Leader>5 :cf /tmp/.eee5<CR>
+nnoremap <Leader>6 :cf /tmp/.eee6<CR>
+nnoremap <Leader>7 :cf /tmp/.eee7<CR>
+nnoremap <Leader>8 :cf /tmp/.eee8<CR>
+nnoremap <Leader>9 :cf /tmp/.eee9<CR>
 nnoremap <Leader>h :e ~/.fjhist<Bar>$<CR>
 noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
 nnoremap !fj :!fj 
+noremap <expr> <Leader>j ':!fj -A ' . expand("<cword>") . ' .js'
+noremap <expr> <Leader>p ':!fj -A ' . expand("<cword>") . ' .php'
 noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
 noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
+noremap <expr> <Leader>m ':!fj -A ' . expand("<cword>") . ' -d application/language '
 autocmd BufEnter *.fjhist setlocal autoread
+function! ChangeErrorFile(level)
+  let s = split(&errorfile, 'eee')
+  let newLevel = s[1] + a:level
+  if newLevel > 9
+    let newLevel = 0
+  elseif newLevel < 0
+    let newLevel = 9
+  endif
+  let &errorfile='/tmp/.eee' . newLevel
+  echo 'errorfile=' . &errorfile
+	cf 
+endfunction
+noremap <Leader>- :call ChangeErrorFile(-1)<CR>
+noremap <Leader>@ :call ChangeErrorFile(1)<CR>
 
 cnoremap bro bro filter  ol<Left><Left><Left>
 tnoremap <C-N> <C-W>N
@@ -137,7 +161,7 @@ function! s:fj_A_for_keyword_angular()
   endif
 endfunction
 command! Fja4kwAngular :call s:fj_A_for_keyword_angular()
-nnoremap <C-@> :Fja4kwAngular<CR>
+"nnoremap <C-@> :Fja4kwAngular<CR>
 
 " \x exec current line string as external command
 function! s:exec_current_command_line()
