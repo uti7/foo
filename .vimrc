@@ -58,21 +58,29 @@ noremap <C-K> :cp<CR>
 noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
 nnoremap !fj :!fj 
-noremap <expr> <Leader>j ':!fj -A ' . expand("<cword>") . ' .js'
-noremap <expr> <Leader>J ':!fj -a "' . expand("<cword>") . '\s*:\s*function" .js'
+noremap <expr> <Leader>j ':!fj -A ' . expand("<cword>") . ' .js -b'
+noremap <expr> <Leader>J ':!fj -a "' . expand("<cword>") . '\s*:\s*function" .js -b'
 noremap <expr> <Leader>p ':!fj -A ' . expand("<cword>") . ' .php'
-noremap <expr> <Leader>P ':!fj -a "(class\|function)\s*' . expand("<cword>") . '" .php'
+noremap <expr> <Leader>P ':!fj -a "(class\|function)\s*' . expand("<cword>") . '" .php -b'
 noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
 noremap <expr> <Leader>l ':!fj -L ' . expand("<cword>") . ' '
-noremap <expr> <Leader>m ':!fj -A ' . expand("<cword>") . ' -d application/language '
+noremap <expr> <Leader>m ':!fj -A ' . expand("<cword>") . ' -d application/language -b'
 autocmd BufEnter *.fjhist setlocal autoread
 function! ChangeErrorFile(level)
   let s = split(&errorfile, 'eee')
   let newLevel = s[1] + a:level
   if newLevel > 9
     let newLevel = 0
+    echohl WarningMsg
+    echom "The errorfile stack has gone around. It is currently the latest."
+    echohl None
+    let t = input("[Press enter to continue]:")
   elseif newLevel < 0
     let newLevel = 9
+    echohl WarningMsg
+    echom "The errorfile stack has gone around. It is currently the oldest."
+    echohl None
+    let t = input("[Press enter to continue]:")
   endif
   let &errorfile='/tmp/.eee' . newLevel
   echo 'errorfile=' . &errorfile
