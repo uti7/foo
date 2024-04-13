@@ -19,7 +19,6 @@
 #    Set-Location $PSScriptRoot
 #    $edge = [MSEdgeHusk]::new()
 #    $edge.navigate('https://foo.bar.com/')
-#    Start-Sleep -milliseconds 1000
 #
 #    $js = @'
 #    let r = {};
@@ -148,6 +147,9 @@ class MSEdgeHusk {
         return $false
     }
 
+    $waitms = 1500
+    Write-Host -ForegroundColor Magenta "wait $waitms [ms]"
+    Start-Sleep -milliseconds $waitms
     return $true
   }
 
