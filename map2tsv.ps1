@@ -60,7 +60,14 @@ class MapDataReader {
       }else{
         # last one
         $this.len = $this.txt.Length - $this.cutTail
+        if($this.pos -gt 1){
+          # case of 1st Feature
+          # also, Feature its only one
+          $this.len -= ($this.pos-1)
+        }
       }
+      #[System.Diagnostics.Debug]::WriteLine(("getFeature: pos={0}, len={1}" -f $this.pos, $this.len))
+
       $ret = $this.txt.Substring($this.pos, $this.len)
       $this.txt = $this.txt.Substring($this.pos + $this.len, $this.txt.length - ($this.pos+$this.len))
       # prevent decimal point digit loss
@@ -82,7 +89,12 @@ class CSVMapDataReader { # no need to derive
 
   CSVMapDataReader([string]$path){
     $this.csv = New-Object System.Collections.ArrayList
-    $this.csv.AddRange((Import-Csv -LiteralPath $path)) | Out-Null
+    $c =(Import-Csv -LiteralPath $path)
+    if($c -isnot [array]){
+      # convert to array when the source data is a CSV with only one
+      $c = @($c)
+    }
+    $this.csv.AddRange($c) | Out-Null
     $this.n = 0
   }
 
@@ -142,7 +154,7 @@ class TsvWriter {
     $rec += $null # add EPSG column as empty
     # properties, and coordinates-type
     foreach($key in $this.keys){
-      $rec += $j.properties.$key
+      $rec += ($j.properties.$key -replace '\t', '<TAB>')
     }
     $rec += $j.geometry.type
 
@@ -250,6 +262,13 @@ function Concat-File_CustomMade([string]$FileA, [string]$FileB){
 
 }
 
+function Out-Mylog([switch]$Truncate, [string]$Message){
+  if($Truncate){
+    "" | Out-File -Encoding utf8 -LiteralPath "$env:TEMP\$logfile"
+  }
+  (Get-Date  -Format "yyyy/MM/dd HH:mm:ss.fff") + ": $Message" | Out-File -Append -Encoding utf8 -LiteralPath "$env:TEMP\$logfile"
+}
+
 function New-Reader([string]$FilePath){
   $fullpath = (Resolve-Path $FilePath).Path
   $buf = New-Object char[] 80
@@ -265,7 +284,7 @@ function New-Reader([string]$FilePath){
   }elseif($s -match '^WKT,featurecla,'){
     # csv from ne.shp
     return [CSVMapDataReader]::new($FilePath)
-  }elseif($s -match '^WKT,GID_2,'){
+  }elseif($s -match '^WKT,GID_\d,'){
     # csv from gadm.shp
     return [CSVMapDataReader]::new($FilePath)
   }else{
@@ -277,12 +296,18 @@ function New-Reader([string]$FilePath){
 <#
 # start of main
 #>
+Set-Location $env:TEMP
+$logfile = ($MyInvocation.MyCommand.Name -replace '\.[^.]+$', '.log')
+
 $x = 0
 
 $reader = $null
 $writer = $null
 
 try {
+  Out-Mylog -Message "IN : $inPath" -Truncate
+  Out-Mylog -Message "OUT: $outPath"
+
   $reader = New-Reader -FilePath $inPath
   $writer = [TsvWriter]::new($outPath)
 
@@ -299,6 +324,9 @@ try {
 } catch [Exception] {
   Write-Error $_.Exception.Message
   Write-Error $_.ScriptStackTrace
+
+  Out-Mylog -Message $_.Exception.Message
+  Out-Mylog -Message $_.ScriptStackTrace
   $x = 1
 } finally {
   $reader = $null
