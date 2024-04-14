@@ -46,7 +46,7 @@ Set-Location $PSScriptRoot
   Write-Host -ForegroundColor Cyan ("MSEdge Version:       " + $edgeVersion)
   Write-Host -ForegroundColor Cyan ("MSEdgeDriver Version: " + $edgedriverVersion)
   Write-Host -ForegroundColor Cyan ("Selenium WebDriver Version: " + (Get-ItemProperty ".\WebDriver.dll").VersionInfo.FileVersion + " (4.9.1)")
-  if($edgedriverVersion -ne $edgedriverVersion){
+  if($edgeVersion -ne $edgedriverVersion){
     throw "FATAL: MSEdge and EdgeDriver versions must be the same. ($edgeVersion <=> $edgedriverVersion)"
   }
 
