@@ -1,13 +1,13 @@
 #!/usr/bin/bash
 case `uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
-    php_x="/mnt/c/pleiades/xampp/php/php.exe"
+    php_x="/mnt/d/pleiades/xampp/php/php.exe"
     ;;
   Linux*-generic*GNU/Linux)
     exec /usr/bin/php $*
     ;;
   MSYS_NT-*Msys)
-    php_x="/c/pleiades/xampp/php/php.exe"
+    php_x="/d/pleiades/xampp/php/php.exe"
     ;;
   *)
     echo  'this script only works on msys2, wsl or native linux.'
