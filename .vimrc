@@ -59,7 +59,7 @@ noremap <C-J> :cn<CR>
 noremap <C-H> :cc<CR>
 nnoremap !fj :!fj 
 noremap <expr> <Leader>j ':!fj -A ' . expand("<cword>") . ' .js -b'
-noremap <expr> <Leader>J ':!fj -a "' . expand("<cword>") . '\s*:\s*function" .js -b'
+noremap <expr> <Leader>J ':!fj -a "(function\s*' . expand("<cword>") . '\b\|\b' . expand("<cword>") . '\s*:\s*function)" .js -b'
 noremap <expr> <Leader>p ':!fj -A ' . expand("<cword>") . ' .php'
 noremap <expr> <Leader>P ':!fj -a "(class\|function)\s*' . expand("<cword>") . '" .php -b'
 noremap <expr> <Leader>k ':!fj -A ' . expand("<cword>") . ' '
