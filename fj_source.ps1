@@ -62,7 +62,7 @@ Function fj {
   , [parameter(HelpMessage='show result, also no prompt whether open')]
   [switch] $show_only = $false
   , [parameter(HelpMessage='files that comma separaited ("*.php,*.html")')]
-  [string] $files = "*.ahk,*.pl,*.py,*.ps1,*.php,*.js,*.cs,*.c,*.vb,*.vbs,*.wsf,*.wsh,*.cpp,*.h,*.html,*.htm,*.inc,*.md,*.txt"
+  [string] $files = "*.ahk,*.pl,*.py,*.ps1,*.php,*.js,*.cs,*.c,*.vb,*.vbs,*.wsf,*.wsh,*.cpp,*.h,*.html,*.htm,*.inc,*.md,*.txt,*.json,*.csv,*.tsv,*,*.xml,*.yml,*.ini"
   , [parameter(HelpMessage='show usage')]
   [switch] $help = $false
   , [parameter(HelpMessage='show quick fix path info')]
@@ -82,7 +82,7 @@ Function fj {
     [-files *.txt,*.ahk,*.???,...]
 
     -list_path  : no grep, To filter by file name as RE,
-                  use [-file "*.ps1,*.bat" -pattern "foo.*bar"]
+                  ex. of use:  -list_path -file "*.ps1,*.bat" -pattern "foo.*bar"
     -no_list    : cancel -list _path option
 "@
     return [pscustomobject]@{"status"=2;"message"="done."}

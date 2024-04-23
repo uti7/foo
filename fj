@@ -37,7 +37,7 @@ OPTION2 (without optarg):
   -c           : complete matching for FILE, default: partial matching
   -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
   -D           : find target is only directory, and no grep forcely.
-  -n           : no vim(1), only output like grep
+  -n           : no vim(1), only output like the grep
   -N           : ask whether open by vim
   -F           : PATTERN as fixed strings (behave like fgrep(1))
   -x           : output precedent line (e.g. php declaration) with grep results.
@@ -149,29 +149,29 @@ file:
 
 examples:
 
-     $ $myname PATTERN foo\\*.xml
-      its like, as:
-        find . -name foo\\*.xml -print |
-        vim \`grep -El PATTERN\` 
+     $ $myname PATTERN \\*.xml
+      similar to:
+        vim +/PATTERN/ \$(find . -name \\*.xml -exec grep -Eq PATTERN -print)
 
      $ $myname -d /etc PATTERN \\*.conf
-      as:
+      similar to:
         vim +/PATTERN/ \\
-          \`find /etc -name \\*.conf -print0 | xargs -0  grep -El PATTERN\`
+          \$(find /etc -name \\*.conf -print0 | xargs -0  grep -El PATTERN)
 
      $ $myname -nl \\*
-      as:
+      similar to:
         find . -name \\* -print
 
      $ $myname -l \\*bar.php
-      as:
+      similar to:
         vim \`find . -name \\*bar.php -print\`
 
      $ $myname -a foo -a bar /etc/\\*ini /var/log/\\*.log
-      as:
-        find /etc /var/log \\( -name \\*.ini -o -name \\*.log \\) \\
-          -exec grep -Eq foo {} \\; -print | \\
-        grep -EHn 'bar' | vim +/foo\\|bar/
+      similar to:
+        matched=\$(find /etc /var/log \\( -name \\*.ini -o -name \\*.log \\) \\
+          -exec grep -Eq foo {} \\; -print)
+        => matched=\$(grep -El 'bar' \$matched)
+        => vim +/foo\\|bar/ \$matched
 EOT
 }
 
