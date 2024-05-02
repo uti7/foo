@@ -17,10 +17,11 @@ alias now="date +'%Y%m%d%H%M%S'"
 case `/usr/bin/uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
     mnt_root=/mnt
+    alias az='/mnt/c/PROGRA~1/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
     ;;
   *Msys)
     mnt_root=
-    alias az='/c/PROGRA~2/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
+    alias az='/c/PROGRA~1/Microsoft\ SDKs/Azure/CLI2/wbin/az.cmd'
     alias tmux='rm -rf /tmp/tmux* && tmux'
     export WINTEMP=`/usr/bin/cygpath -u "$LOCALAPPDATA\Temp"`
     ;;
