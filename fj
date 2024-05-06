@@ -33,7 +33,8 @@ OPTION1 (with optarg):
 OPTION2 (without optarg):
   -h           : show this usage.
   -i           : ignore case, its applied the FILE as well as the PATTERN
-  -I           : reset ignore-case where specified in .${myname}rc, however FILE has no effect
+  -I           : If the "-i" option (ignore case in PATTERN matching) is specified in the .${myname}rc file,
+                 it resets that option. However, this does not have any effect on FILE
   -c           : complete matching for FILE, default: partial matching
   -l, -L       : no grep(1), will be match irrespective of PATTERN (see below the note:)
   -D           : find target is only directory, and no grep forcely.
@@ -50,6 +51,8 @@ OPTION2 (without optarg):
   -s           : show sum(1) for this file.
   -b           : if errorfile cache exists, remove it before find
   -1           : a file with the latest timestamp will be hit
+  -@           : equivalent to using "-1Lb". This is effective when you want to access the latest log
+                 from a directory containing rolling log files with dynamic filenames.
 
 resource identifier:
   DIR          : a directory
