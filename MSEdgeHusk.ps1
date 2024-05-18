@@ -40,9 +40,45 @@ Set-Location $PSScriptRoot
 
 [void][System.Reflection.Assembly]::LoadFile((Join-Path (Get-Location) "WebDriver.dll"))
 
+Add-Type -A 'System.IO.Compression.FileSystem' # poweshell 5.1: .NetFramework4.7 required.
+
+# driver auto update
+function Download-EdgeDriver($version){
+  Write-Host -ForegroundColor Yellow "EdgeDriver downloading..."
+
+  $zippath = (Join-Path $pwd "edgedriver_win64.zip")
+  $exefile = "msedgedriver.exe"
+  Invoke-WebRequest -Method Get -Uri "https://msedgedriver.azureedge.net/${version}/edgedriver_win64.zip" -OutFile $zippath
+
+  if(Test-Path $zippath){
+    if(Test-Path (Join-Path $pwd $exefile)){
+      Remove-Item (Join-Path $pwd $exefile)
+    }
+
+    # (a) open ZIP archive, take only the target file
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($zippath)
+    $file = $zip.Entries | Where-Object { $_.Name -eq $exefile }
+    <# .NetFramework4.5
+    #$file.ExtractToFile((Join-path $pwd $file.Name))
+    #>
+    [System.IO.Compression.ZipFileExtensions]::ExtractToFile($file, (Join-path $pwd $file.Name), $true) # .NetFramework4.0
+    $zip.Dispose()
+
+    # (b) will be extract all files
+    #[System.IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $pwd "edgedriver_win64.zip"), $pwd)
+
+  }else{
+    throw "FATAL: EdgeDriver download failed. ($version)"
+  }
+}
+
 # show version
   $edgeVersion = (Get-ItemProperty "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe").VersionInfo.FileVersion
-  $edgedriverVersion = (Get-ItemProperty ".\msedgedriver.exe").VersionInfo.FileVersion
+  if(Test-Path ".\msedgedriver.exe"){
+    $edgedriverVersion = (Get-ItemProperty ".\msedgedriver.exe").VersionInfo.FileVersion
+  }else{
+    $edgedriverVersion = "none."
+  }
   Write-Host -ForegroundColor Cyan ("MSEdge Version:       " + $edgeVersion)
   Write-Host -ForegroundColor Cyan ("MSEdgeDriver Version: " + $edgedriverVersion)
   Write-Host -ForegroundColor Cyan ("Selenium WebDriver Version: " + (Get-ItemProperty ".\WebDriver.dll").VersionInfo.FileVersion + " (4.9.1)")
@@ -55,7 +91,9 @@ MSEdgedriver download link:
 "@
 
     Write-Host -ForegroundColor Magenta $msg
-    throw "FATAL: MSEdge and EdgeDriver versions must be the same. ($edgeVersion <=> $edgedriverVersion)"
+    #throw "FATAL: MSEdge and EdgeDriver versions must be the same. ($edgeVersion <=> $edgedriverVersion)"
+
+    Download-EdgeDriver -version $edgeVersion
   }
 
 <#
