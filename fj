@@ -487,6 +487,7 @@ do
       is_latest_only=1  # -1
       is_not_grep=1     # -L
       is_remove_cache=1 # -b
+      is_not_vi=0 # no prompt?
       shift
       ;;
     --) shift; break;;
