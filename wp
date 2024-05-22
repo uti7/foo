@@ -1,16 +1,24 @@
 #!/bin/bash
 # purpose: get the native Windows path from the WSL path. it's similar to cygpath (cygwin, msys)
 myname=${0//*\//}
-[ $# -ne 1 ] && echo "usage: $myname PATH" 1>&2 && exit 2
+[ "$1" = "--single_escape" ] && is_single_escape=1 && shift
+[ $# -ne 1 ] && echo "usage: $myname [--single_escape] PATH" 1>&2 && exit 2
 echo "$1" | grep -q '^file://'
 if [ $? -eq 0 ]; then
   p=$(echo "$1" | sed -e 's#^file://##')
-  p=$(printf '%b\n' "${p//%/\\x}")
+  if [ ${is_single_escape:-0} -eq 0 ]; then
+    p=$(printf '%b\n' "${p//%/\\x}")
+  else
+    p=$(printf '%b\n' "${p//%/\x}")
+  fi
+  #p=$(echo "$1" | sed -e 's#^file://##' -e 's/%/\\x/g')
+  #p=$(printf '%b\n' "$p")
 else
   p="$1"
 fi
-if [ "$p" != / ]; then
-  abs_path="$(cd $(dirname $p) && pwd)/$(basename $p)"
+echo $p | grep -q '^/'
+if [ $? -ne 0 ]; then
+  abs_path="$(cd $(dirname $p) && pwd)/$(basename $p)" 1>&2
 else
   abs_path="$p"
 fi
