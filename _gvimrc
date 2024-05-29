@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 28-Nov-2023.
+" Last Change: 29-May-2024.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -247,7 +247,7 @@ function! ChangeLocalDirectory()
     let s:path = substitute(s:path, '\\$', '', "")
     let s:path = substitute(s:path, '[^\\]\+$', '', "")
   endif
-  execute('lcd ' . s:path)
+  execute('cd ' . s:path)
 endfunction
 nnoremap <Leader>cd :call ChangeLocalDirectory()<CR>
 
