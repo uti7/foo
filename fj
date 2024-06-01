@@ -370,6 +370,18 @@ function is_ancestor_vim
 #is_ancestor_vim $$ $vi
 #exit $?
 
+function escape_space
+{
+  if [ "$1" = wildcard_used ]; then
+    subs_char="?"
+  else
+    subs_char="\\ "
+  fi
+  #echo $* > /tmp/fj.matched
+  awk -v subs_char="$subs_char" -l filefuncs '{for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}}}' |tee /tmp/fj.matched2
+  #echo $* > /tmp/fj.matched2
+}
+
 #########
 # begin
 ##########
@@ -710,6 +722,8 @@ fi
 #
 # action
 #
+
+set +f
 if [ ${is_not_vi:-0} -eq 3 ]; then
   # execute CMD
   echo $matched | xargs ${execute_cmd:-ls}
@@ -719,7 +733,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
       if [ ! -f "$cache_path" ]; then
-        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
+        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | escape_space | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
         cp $errorfile $cache_path
       else
         cp $cache_path $errorfile
@@ -730,7 +744,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
       if [ ! -f "$cache_path" ]; then
-        $refrep "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
+        $refrep "$re4grep" $matched | escape_space | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
         cp $errorfile $cache_path
       else
         cp $cache_path $errorfile
@@ -742,6 +756,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     x=1
     #rm -f "$errorfile"
     if [ ! -f "$cache_path" ]; then
+      matched=$(echo $matched|escape_space wildcard_used)
       for f in $matched
       do
         echo "$f:1:no grep"
