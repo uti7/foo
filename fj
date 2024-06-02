@@ -731,7 +731,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
       if [ ! -f "$cache_path" ]; then
-        matched=$(echo $matched|escape_space)
+        matched=$(echo $matched|escape_space wildcard_used)
         $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
         cp $errorfile $cache_path
       else
@@ -743,8 +743,8 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
       if [ ! -f "$cache_path" ]; then
-        matched=$(echo $matched|escape_space)
-        $refrep "$re4grep" $matched | escape_space | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
+        matched=$(echo $matched|escape_space wildcard_used)
+        $refrep "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
         cp $errorfile $cache_path
       else
         cp $cache_path $errorfile
