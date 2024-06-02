@@ -375,11 +375,9 @@ function escape_space
   if [ "$1" = wildcard_used ]; then
     subs_char="?"
   else
-    subs_char="\\ "
+    subs_char="\\\\ "
   fi
-  #echo $* > /tmp/fj.matched
-  awk -v subs_char="$subs_char" -l filefuncs '{for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}}}' |tee /tmp/fj.matched2
-  #echo $* > /tmp/fj.matched2
+  tee /tmp/fj.matched | awk -v subs_char="$subs_char" -l filefuncs '{for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}}}' |tee /tmp/fj.matched2
 }
 
 #########
@@ -430,7 +428,7 @@ do
     -b) is_remove_cache=1
       shift;;
     -d)
-      f=`echo $2 | sed -e 's/[ ()]/?/g'`
+      f=$(echo $2 | sed -e 's/[ ()]/?/g')
       base_path="${base_path:-} $f"; shift 2;;
     -D)  type_opt="d"; is_not_grep=1
         shift
@@ -578,7 +576,7 @@ function lookup_process
 
   base_path=${base_path:-.}
   set +f
-  base_path=`echo $base_path`
+  base_path=$(echo $base_path)
   set -f
 
   file_spec=""
@@ -602,14 +600,14 @@ function lookup_process
       # content filtering
       if [ "$grep" = "grep" ]; then
         if [ ${is_only_text:-0} -eq 0 ]; then
-          matched=`find $base_path $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}" | sed -e 's/[ ()]/?/g'`
+          matched=`find "$base_path" $file_spec -print0 | xargs -0 $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}" | sed -e 's/[ ()]/?/g'`
         else
           # file type testing for text
-          matched=`find $base_path $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | xargs $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
+          matched=`find "$base_path" $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | xargs $grep -${pattern_opt}l ${ignore_case_opt:-} "${reg_exp[0]}"`
         fi
       else
         # for zgrep, to know each filename because zgrep -H does not work.
-        for f in `find $base_path $file_spec -print`
+        for f in `find "$base_path" $file_spec -print`
         do
           $grep -${pattern_opt}q ${ignore_case_opt:-} "${reg_exp[0]}" $f
           [ $? -eq 0 ] && matched="$matched $f"
@@ -622,18 +620,18 @@ function lookup_process
     elif [ "${invert_opt[0]}" = "for_must_path" ]; then
       # path filtering
       if [ ${is_only_text:-0} -eq 0 ]; then
-        matched=`find $base_path $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+        matched=`find "$base_path" $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
       else
         # file type testing for text
-        matched=`find $base_path $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+        matched=`find "$base_path" $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
       fi
     elif [ "${invert_opt[0]}" = "for_path" ]; then
       # path invert filtering
       if [ ${is_only_text:-0} -eq 0 ]; then
-        matched=`find $base_path $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+        matched=`find "$base_path" $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
       else
         # file type testing for text
-       matched=`find $base_path $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+       matched=`find "$base_path" $file_spec -print0 | xargs -0 file | grep text | cut -d : -f 1 | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
       fi
     fi
 
@@ -647,12 +645,12 @@ function lookup_process
     # not grep
     if [ "${invert_opt[0]}" = "for_must_path" ]; then
       # path filtering
-      matched=`find $base_path $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
+      matched=`find "$base_path" $file_spec -print | $grep -${pattern_opt} ${ignore_case_opt:-} "${reg_exp[0]}"`
     elif [ "${invert_opt[0]}" = "for_path" ]; then
       # path invert filtering
-      matched=`find $base_path $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
+      matched=`find "$base_path" $file_spec -print | $grep -${pattern_opt}v ${ignore_case_opt:-} "${reg_exp[0]}"`
     else
-      matched=`find $base_path $file_spec -print`
+      matched=`find "$base_path" $file_spec -print`
     fi
     if [ -z "$matched" ]; then
       echo "${file_spec_org}: No matched."
@@ -733,7 +731,8 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
     if [ ${is_out_precedent:-0} -eq 0 ] && [ ${is_file_with_matches:-0} -eq 0 ]
     then
       if [ ! -f "$cache_path" ]; then
-        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | escape_space | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
+        matched=$(echo $matched|escape_space)
+        $grep -${pattern_opt}Hn ${ignore_case_opt:-} "$re4grep" $matched | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
         cp $errorfile $cache_path
       else
         cp $cache_path $errorfile
@@ -744,6 +743,7 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
       $grep -${pattern_opt}l ${ignore_case_opt:-} "$re4grep" $matched
     else
       if [ ! -f "$cache_path" ]; then
+        matched=$(echo $matched|escape_space)
         $refrep "$re4grep" $matched | escape_space | tee "$errorfile" | ( [ ${is_vim_child:-0}  -eq 1 ] && less -e || dd 2>/dev/null)
         cp $errorfile $cache_path
       else
