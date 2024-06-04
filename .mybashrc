@@ -63,6 +63,12 @@ function pwsh {
   wkdir=$(wp $PWD)
   /mnt/c/Program\ Files/PowerShell/7/pwsh.exe -NoExit -c "chcp 65001;&{Set-Location \"$wkdir\"}"
 }
+function msys {
+  # change the wsl path notation to that of msys
+  wkdir=$(echo $PWD|sed -e 's#^/mnt##')
+  /mnt/c/msys64/usr/bin/env.exe MSYS=enable_pcon MSYSTEM=MSYS _SWD="$wkdir" /bin/bash --login
+}
+
 #function jwhois {
 #/c/progra~2/GnuWin32/bin/jwhois $*
 #}
