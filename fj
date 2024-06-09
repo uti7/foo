@@ -372,12 +372,15 @@ function is_ancestor_vim
 
 function escape_space
 {
-  if [ "$1" = wildcard_used ]; then
+  is_quot=0
+  if [ "$1" = quotation_used ]; then
+    is_quot=1
+  elif [ "$1" = wildcard_used ]; then
     subs_char="?"
   else
     subs_char="\\\\ "
   fi
-  tee /tmp/fj.matched | awk -v subs_char="$subs_char" -l filefuncs '{for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}}}' |tee /tmp/fj.matched2
+  tee /tmp/fj.matched | awk -v is_quot="$is_quot" -v subs_char="$subs_char" -l filefuncs '(is_quot==0){for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}};next;}(is_quot==1){for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){quot=sprintf("%1c",39);if(match(incf,quot)>0){quot=sprintf("%1c",34);}incf=sprintf("%1s%s%1s",quot,incf,quot);print incf;incf="";}};next;}' |tee /tmp/fj.matched2
 }
 
 #########
@@ -534,6 +537,7 @@ else
       d=`dirname $f`
       if [ "$d" != "." ]; then
         if [ -d "$d" ]; then
+          d=$(echo "$d" | escape_space)
           base_path="$base_path $d"
         else
           reg_exp[${#reg_exp[@]}]="$d"
@@ -714,7 +718,11 @@ function lookup_process
 
 # only new one
 if [ ${is_latest_only:-0} -eq 1 ]; then
-  matched=`ls -1taF $matched |grep -v '/$' |sed -e 's/[@*]$//' |head -1`
+  matched=$(echo "$matched" | escape_space wildcard_used)
+  set +f
+  matched=$(ls -1taF $matched |grep -v '/$' |sed -e 's/[@*]$//' |head -1)
+  set -f
+  matched=$(echo "$matched" | escape_space wildcard_used)
 fi
 
 #
@@ -777,7 +785,9 @@ elif [ ${is_not_vi:-0} -gt 0 ]; then
   fi
 fi
 
-if [ ${is_not_vi:-0} -eq 0 ]; then
+if [ ${is_latest_only:-0} -eq 1 ]; then
+  exec $vi $matched
+elif [ ${is_not_vi:-0} -eq 0 ]; then
   if [ ${is_not_grep:-0} -eq 0 ]; then
     exec $vi "+/$re4vi/" -c :cf $matched
   else
