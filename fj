@@ -431,8 +431,13 @@ do
     -b) is_remove_cache=1
       shift;;
     -d)
-      f=$(echo $2 | sed -e 's/[ ()]/?/g')
-      base_path="${base_path:-} $f"; shift 2;;
+      #f=$(echo $2 | sed -e 's/[ ()]/?/g')
+      if [ -z "$base_path" ]; then
+        base_path="$2"; shift 2
+      else
+        base_path="${base_path:-} $2"; shift 2
+      fi
+      ;;
     -D)  type_opt="d"; is_not_grep=1
         shift
       ;;
@@ -579,9 +584,10 @@ function lookup_process
   #
 
   base_path=${base_path:-.}
-  set +f
-  base_path=$(echo $base_path)
-  set -f
+  #set +f
+  #base_path=$(echo $base_path)
+  #set -f
+  #base_path=$(echo $base_path | sed -e 's/[ ()]/\\&/g')
 
   file_spec=""
   for f in $file_spec_org

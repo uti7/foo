@@ -1,10 +1,11 @@
-#!/usr/bin/bash
+#!/usr/bin/bash -x
+unset -f php
 case `uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
     php_x="/mnt/d/pleiades/xampp/php/php.exe"
     ;;
   Linux*-generic*GNU/Linux)
-    exec /usr/bin/php $*
+    exec /usr/bin/php "$@"
     ;;
   MSYS_NT-*Msys)
     php_x="/d/pleiades/xampp/php/php.exe"
