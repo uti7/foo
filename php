@@ -1,4 +1,4 @@
-#!/usr/bin/bash -x
+#!/usr/bin/bash
 unset -f php
 case `uname -sro` in
   Linux*-microsoft-standard*GNU/Linux)
