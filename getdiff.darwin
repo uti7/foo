@@ -1,0 +1,303 @@
+#!/bin/bash -f
+set -f
+self=${0//*\//}
+getopt=getopt
+# bash 3.x unavailable
+#if [ `uname -s` = Darwin ]; then
+#  . `dirname $0`/getoptses.sh
+#  getopt=getoptses
+#fi
+function usage {
+  cat << EOT
+
+Synopsis:
+  do the following:
+  1) [find] current direcory files => DIR_B_FILES
+  2) [diff] from another directory for every files => DIR_A_FILES
+  3) [echo] a command line for different file that as follows
+            \`vimdiff DIR_B_FILE DIR_A_FILE'
+            \`cp -p DIR_B_FILE DIR_A_FILE'
+
+            also, output the following command line (with option "-t" or "-r")
+            \`rm DIR_B_FILE' (which non-existent at DIR_A side)
+            \`tar cvzf differ.tar.gz DIR_B_FILES' (difference file only)
+
+Usage:  $self [OPTION] DIR_A
+
+DIR_A:  destination, the side where the script output by this script makes changes.
+        (DIR_B : the side that does [find], it's current directory)
+
+OPTION:
+  -N NOTFILE  : specified to find option that \`-not -name NOTFILE'
+  -P PRUNEDIR : specified to find option that \`-name PRUNEDIR -prune -o'
+  -p PRUNEDIR : specified to find option that \`-path PRUNEDIR -prune -o'
+
+  -g          : controls what implicitly excludes files and directories.
+                if this option given, general use (i.e. for backup),
+                otherwise, use for system development files (e.g. work to deploy)
+
+  -R          : output the command line that reverse A and B 
+  -V DIR_PATH : (only "-L" using) inverted.  patterns for directory paths
+                to be excluded in [ls -R] followed by awk
+  -v          : output only vimdiff command line
+  -c          : output only cp command line
+  -t          : output tar command line to create tarballs for all DIR_B_FILES that differ
+  -r          : output only rm command line for files that exist on only DIR_B
+  -f          : output full path (default: as is)
+
+  -L          : use [ls -R] instead of [find] to enumerate the files
+
+example:
+  $ cd ~/foo
+  $ $self -c -N config.php -N database.php -N log4php_configurator.xml -P vendor /var/www/html/foo | tee /tmp/aaa
+  $ bash /tmp/aaa
+
+  (using [ls -R] for scan with "-V" option due to "-p" option does not work)
+  $ $self -L -c -N config.php -N database.php -N log4php_configurator.xml -V 'foo/app|bar/log' /var/www/html/foo | tee /tmp/aaa
+
+EOT
+}
+
+ls_used="ls -1aFR %s . |awk %s 'NF==0{next;}/^\.+\/\$/{next;}/:\$/{sub(/:\$/,\"/\");wd=\$0;next;}match(\$0,/[/@=]\$/)>0{next;}match(\$0,/\*\$/)>0{sub(/\*\$/,\"\",\$0);}inverts!=\"\"&&match(wd,inverts)>0{next;}{printf(\"%%s%%s\\\\n\",wd,\$0);}'"
+
+is_vimdiff=1
+is_cp=1
+is_tar=0
+is_rm=0
+dir_b=.
+
+cl_string="$0 $*"
+
+#opt=`$getopt -q -o cfgLN:P:p:RrtV:v -- "$@"`
+opt=`$getopt cfgLN:P:p:RrtV:v "$@"`
+[ $? -ne 0 ] && usage && exit 2
+
+eval set -- "$opt"
+while [ 0 ]
+do
+    case $1 in
+    -c) is_vimdiff=0; shift;;
+    -f) is_out_fullpath=1; shift;;
+    -g) is_general=1; shift;;
+    -L) is_lsR=1; shift;;
+    -N)
+      #not_spec="$not_spec -not -name $2"
+      not_name_spec+=( "$2" )
+      shift 2
+      ;;
+    -P)
+      #prune_spec="$prune_spec -name $2 -prune -o"
+      prune_name_spec+=( "$2" )
+      shift 2
+      ;;
+    -p)
+      #prune_spec="$prune_spec -path $2 -prune -o"
+      prune_path_spec+=( "$2" )
+      shift 2
+      ;;
+    -R) is_reverse=1; shift;;
+    -r) is_vimdiff=0; is_cp=0; is_tar=0; is_rm=1; shift;;
+    -t) is_vimdiff=0; is_cp=0; is_tar=1; is_rm=0; shift;;
+    -V)
+      inverts_spec_cl="-v \"inverts=$2\""
+      shift 2;;
+    -v) is_cp=0; shift;;
+    --) shift; break;;
+    *)  usage; exit 2;;
+    esac
+done
+
+[ $# -eq 0 ] && usage && exit 2
+if [ -t 1 ]; then
+  echo "WARNING: the stdout is not directed to a pipe and is not being redirected to a file." 1>/dev/stderr
+  echo -n "   is that okay? (y or else):" 1>/dev/stderr
+  read q
+  [ "$q" != y ] && exit 2
+fi
+
+dir_a=`echo -n "$1"|sed -e 's|/$||'`
+
+if [ ${is_out_fullpath:-0} -eq 1 ]; then
+  dir_a=$(cd "$dir_a" && pwd)
+  dir_b="$PWD"
+fi
+
+if [ ${is_general:-0} -eq 1 ]; then
+    not_name_spec+=(  '\~\$*' *.cache )
+    prune_name_spec+=( .git )
+else
+    not_name_spec+=( '\~\$\*'
+        *.orig
+        *.pdb
+        *.vcxproj
+        *.vcxproj.user
+        *.vcproj
+        *.tlog
+        *.log
+        *.obj
+        *.exe
+        .eee[0-9]
+        errors.err
+        *.pbxproj
+        *.xcscheme
+        README.md
+        .gitignore
+        *.xib
+    )
+    prune_name_spec+=( .git
+        dist
+        node_modules
+        semantic
+        uploads
+        fonts
+        logs
+        tags
+        user_guide
+        sessions
+        filing
+        Terms
+    )
+fi
+
+if [ ${is_lsR:-0} -eq 1 ]; then
+  # ls used. Trying to make ERE will be stopped from now on. >>> make ERE (for grep -e ERE) from glob expression
+  for i in  ${not_name_spec[@]}; do
+    #not_name_spec_cl+=" --regexp=\\b$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+    ignore_spec_cl+=" --ignore=$i"
+  done
+  for i in ${prune_name_spec[@]}; do
+    #prune_name_spec_cl+=" --regexp=/$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )/"
+    ignore_spec_cl+=" --ignore=$i"
+  done
+  for i in ${prune_path_spec[@]}; do
+    #prune_path_spec_cl+=" --regexp=^$(echo $i |sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/\?/./g' )$"
+    #ignore_spec_cl+=" --ignore=$i"
+     usage && echo 'option "-p" cannot be used with "-L"' && exit 2
+  done
+  scan_cl=$(printf "$ls_used" "$ignore_spec_cl" "$inverts_spec_cl")
+else
+  # find used
+  [ -n "$inverts_spec_cl" ] && usage && echo 'option "-V" cannot be used without "-L"' && exit 2
+  for i in  ${not_name_spec[@]}; do
+    not_name_spec_cl+=" -not -name $i"
+  done
+  for i in  ${prune_name_spec[@]}; do
+    prune_name_spec_cl+=" -name $i -prune -o"
+  done
+  for i in  ${prune_path_spec[@]}; do
+    prune_path_spec_cl+=" -path $i -prune -o"
+  done
+  scan_cl="find . $prune_name_spec_cl $prune_path_spec_cl $not_name_spec_cl -type f -print"
+fi
+#echo $scan_cl && exit 0
+
+  echo '#!/usr/bin/bash'
+  cat << EOT
+cd "$PWD" || ( echo "ABORTED." && exit 1 )
+set -f
+echo '1) retry getdiff with the same options.' >/dev/stderr
+echo '  ' "$cl_string" >/dev/stderr
+echo '2) run this file to copy the diff.' >/dev/stderr
+echo
+echo -n 'choose action (1 or 2): ' >/dev/stderr
+read act
+case "\$act" in
+  1)
+    #echo >/dev/stderr
+    #exec /usr/bin/time -f 'real=%E, sys(sec)=%S, user(sec)=%U' $cl_string
+    exec time $cl_string
+    ;;
+  2)
+    #echo >/dev/stderr
+    set -x
+    ;;
+  *)
+    exit 3
+esac
+EOT
+
+echo "scanning..." 1>&2
+
+eval "$scan_cl" \
+|awk -v dir_b="$dir_b" -v dir_a="$dir_a" -v is_reverse=${is_reverse:-0} \
+  -v is_cp=${is_cp:-0} -v is_vimdiff=${is_vimdiff:-0} -v is_tar=${is_tar:-0} -v is_rm=${is_rm:-0} 'BEGIN{
+      i=1; dir_b_files="";
+    }
+    {
+        b=$0;
+        if(match(dir_b,/^\//)>0){ # full path spec
+            sub(/^\./, dir_b, b); # however, due to find output would begin with "."
+        }
+        a=$0;
+        sub(/^\./,dir_a,a); # thats the same
+        quot=sprintf("%1c",39);
+        if(match(b,quot)>0){
+          quot=sprintf("%1c",34);
+        }
+        none_quot_a = a;
+        a=sprintf("%1s%s%1s",quot,a,quot);
+        b=sprintf("%1s%s%1s",quot,b,quot);
+        if(is_reverse!=0){
+          is_reverse=a;a=b;b=is_reverse;
+        }
+        if(is_rm==0){
+          cmd=sprintf("diff -q --strip-trailing-cr %s %s 1>/dev/null 2>&1\n",a,b);
+          x=system(cmd);close(cmd);
+        }
+        else{
+          #x=(stat(none_quot_a,f) < 0) ? 2 : 0;
+          x=((getline < none_quot_a) < 0) ? 2 : 0; close(none_quot_a);
+        }
+        if(x==1){
+          printf("# %d: ---------- has difference -----\n",i);
+          if(is_vimdiff==1){
+            cl=sprintf("vimdiff %s %s",b,a);
+            if(is_cp==0){
+              printf("echo \"%s\"\n",cl);
+              printf("echo -n \"sure? ([y]es, [s]kip or else):\" && read q && case \"$q\" in y) %s;; s) echo \"...skipped\";; *) exit 3;; esac\n", cl);
+            }
+            else{
+              print cl;
+            }
+#            if(is_cp==0){
+#              printf("echo -n \"continue? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+#            }
+          }
+          else{
+            printf("# vimdiff %s %s\n",b,a);
+          }
+          if(is_cp==1) printf("cp -p %s %s\n",b,a);
+          if(is_tar==1) printf("#   %s\n",b);
+        }
+        if(x==2){
+          printf("# %d: ---------- does not exist on one side -----\n",i);
+          #subdir_a = gensub(/^(.*\/)([^\/]+)$/, "\\1", "g", a); # for gawk
+          subdir_a = a; sub(/([^\/]+)$/, "", subdir_a); # for mawk (ubuntu)
+          cl=sprintf("mkdir -p %s%1s && cp -p %s %s",subdir_a,quot,b,a);
+          if(is_vimdiff==1 && is_cp==0){
+            printf("echo \"%s\"\n",cl);
+            printf("echo -n \"sure? (y or else):\" && read q && [ \"$q\" != y ] && exit 3\n");
+          }
+          if(is_tar==0 && is_rm==0){
+            print cl;
+          }
+          else{
+            if(is_rm==1){
+              printf("rm %s\n",b);
+            }else{  # tar
+              printf("#   %s\n",b);
+            }
+          }
+        }
+        if(x!=0){
+          i++;
+          dir_b_files = dir_b_files " " b
+        }
+    }
+    END{
+        if(is_vimdiff==1 && is_cp==0) printf("echo \"%s\"\n","done.");
+        if(is_tar==1){
+            printf("tar cvzf differ%d.tar.gz %s\n", i-1, dir_b_files);
+        }
+    }
+    '
