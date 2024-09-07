@@ -179,6 +179,7 @@ Function msys-bash
     [Parameter(Mandatory=$false, HelpMessage="command line in bash")]
     [string]$command_line = $null
   )
+  ($PWD -replace "^([a-z]):\\", '/$1/') -replace "\\", '/' | Set-Variable swd
   if($run_script -ne $null){
     $no_sepa = $run_script -split '\\'
     if($no_sepa[0] -match "^[A-Z]:$"){
@@ -192,7 +193,7 @@ Function msys-bash
     return
   }
   $do_this += $command_line
-  & C:\msys64\usr\bin\env.exe -C "$PWD" -- MSYS=enable_pcon MSYSTEM=MSYS bash -c "$do_this"
+  & C:\msys64\usr\bin\env.exe -C "$PWD" -- MSYS=enable_pcon MSYSTEM=MSYS _SWD="$swd" /bin/bash --login -c "pushd $swd 1>/dev/null; $do_this"
   # see $LASTEXITCODE
 }
 
