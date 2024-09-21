@@ -16,10 +16,11 @@
 #
 # sample:
 #    . \path\to\this\MSEdgeHusk.ps1
-#    Set-Location $PSScriptRoot
 #    $edge = [MSEdgeHusk]::new()
-#    $edge.navigate('https://foo.bar.com/')
 #
+#    Set-Location $PSScriptRoot
+#    $edge.navigate('https://foo.bar.com/')
+
 #    $js = @'
 #    let r = {};
 #    r.foo = $("span.hoge").text();
