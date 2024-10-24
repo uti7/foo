@@ -129,7 +129,7 @@ function Create-EdgeDriver {
     $option.AddArgument("--user-data-dir=$edgeUserProfilePath")
     $option.AddArgument("--profile-directory=Default")
 
-    $service = [OpenQA.Selenium.Edge.EdgeDriverService]::CreateDefaultService((Get-Location))
+    $service = [OpenQA.Selenium.Edge.EdgeDriverService]::CreateDefaultService((Get-Location), "msedgedriver.exe")
     $driver= New-Object OpenQA.Selenium.Edge.EdgeDriver($service, $option)
     $driver.Manage().Timeouts().ImplicitWait = [System.TimeSpan]::FromSeconds(10)
     return $driver
@@ -147,13 +147,14 @@ class MSEdgeHusk {
     $this.jqueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js';
   }
 
-  [bool] navigate($address){
+  [bool] navigate($address, $jqueryUnnecessary = 0){
     Write-Host "GET:  $address"
     $this.edgeDriver.Navigate().GoToUrl($address)
     Write-Host -ForegroundColor Magenta "navigating..."
+    Write-Host -ForegroundColor Yellow "is NO jquery requied: $jqueryUnnecessary"
 
-    $ready = $false
-    for ($i = 0; $i -lt 40; $i++) {
+    $ready = $jqueryUnnecessary
+    for ($i = 0; $i -lt 40 -and !$jqueryUnnecessary; $i++) {
       try {
         $ready = $this.evalScriptViaAttr('((window.hasOwnProperty("$") && window.$.hasOwnProperty("fn") && (window.$.fn.hasOwnProperty("jquery"))) ? window.$.fn.jquery : 0)')
         if($ready -ne 0) {
