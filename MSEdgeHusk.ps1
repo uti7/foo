@@ -147,7 +147,11 @@ class MSEdgeHusk {
     $this.jqueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js';
   }
 
-  [bool] navigate($address, $jqueryUnnecessary = 0){
+  [bool] navigate($address){
+    # no jquery equipped by own
+    return $this.navigate($address, 1)
+  }
+  [bool] navigate($address, $jqueryUnnecessary){
     Write-Host "GET:  $address"
     $this.edgeDriver.Navigate().GoToUrl($address)
     Write-Host -ForegroundColor Magenta "navigating..."
