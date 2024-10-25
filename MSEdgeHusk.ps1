@@ -158,7 +158,7 @@ class MSEdgeHusk {
     Write-Host -ForegroundColor Yellow "is NO jquery requied: $jqueryUnnecessary"
 
     $ready = $jqueryUnnecessary
-    for ($i = 0; $i -lt 40 -and !$jqueryUnnecessary; $i++) {
+    for ($i = 0; $i -lt 40 -and !$ready; $i++) {
       try {
         $ready = $this.evalScriptViaAttr('((window.hasOwnProperty("$") && window.$.hasOwnProperty("fn") && (window.$.fn.hasOwnProperty("jquery"))) ? window.$.fn.jquery : 0)')
         if($ready -ne 0) {
