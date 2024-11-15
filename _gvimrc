@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 29-May-2024.
+" Last Change: 15-Nov-2024.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -327,7 +327,7 @@ nnoremap <C-]> g<C-]>
 "set foldlevel=3
 
 set shell=C:\Windows\System32\cmd.exe
-"set shellcmdflag=
+set shellcmdflag=/c
 :set noundofile
 "set nowrapscan
 
@@ -447,6 +447,9 @@ command! ZO :call ChangeFontSize(-1)
 " oops! doesn't work it
 "tmap <S-Del> <C-w>\"+
 "tnoremap <Leader>v <C-w>\"+
+tnoremap <F12> <C-W>:tabnext<CR>
+tnoremap <C-PageDown> <C-W>:tabnext<CR>
+tnoremap <C-PageUp> <C-W>:tabprevious<CR>
 cab wslroot \\wsl$\Ubuntu-20.04
 
 vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>
