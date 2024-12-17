@@ -222,3 +222,9 @@ Function wsl-bash
   & wsl.exe --distribution Ubuntu-20.04 --user wsl2u --cd $PWD --exec bash -c "$do_this"
   # see $LASTEXITCODE
 }
+
+Function prompt
+{
+  Write-Host -ForegroundColor DarkCyan ("PS " + $PWD.Path.Replace($HOME, "~") + ">") -NoNewline
+  return " "
+}
