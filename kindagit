@@ -1,0 +1,179 @@
+#!/bin/bash
+myname=${0//*\//}
+trap "rm -f /tmp/${myname}.$$.sh" 0
+
+function usage {
+cat << EOT
+
+synopsis:
+  execute git commands sequentially across multiple hosts via ssh
+
+usage:
+  (1) $myname [-v] LOCAL_COMMANDS [-h HOST] [REMOTE_COMMANDS]
+  (2) $myname [-v] -h HOST REMOTE_COMMANDS [-x LOCAL_COMMANDS]
+
+  -v  review-mode (dry run), and they are never executed
+    * CAUTION: must be the beginning of the arguments if you use this option.
+
+  LOCAL_COMMANDS, REMOTE_COMMANDS:
+    * this script expects one or more git subcommands as options.
+    * each command is executed in the order in which its optopns are specified.
+
+      -lLsdfmp
+        -l  git log
+        -L  git log --name-status
+        -s  git status
+        -d  git diff
+        -f  git fetch
+        -m  git merge
+
+      -a FILES
+        git add FILES
+          * FILES must describe as one optarg
+      -c MESSAGE
+        git commit -m MESSAGE
+          * MESSAGE must describe as one optarg
+      -C MESSAGE
+        git commit -am MESSAGE
+
+  -h HOST
+    when this option appears, an SSH connection to HOST is attempted.
+    the passphrase will not be accepted interactively, so try your best to connect without having to enter it.
+    * it's not the git server, it's the server you deploy to
+
+  -r REPOSITORY
+    path to the *local repository* on the HOST. not a remote repository in the git server.
+  -x
+    the ssh session is terminated.
+    if there are trailing LOCAL_COMMAND will be executed on the local host.
+
+passphrase related:
+  environment variable:
+    SSH_ASKPASS
+    ssh(1)
+
+  utility:
+    ssh-keygen(1)
+
+  configuration file:
+    ~/.ssh/config
+    ssh_config(5)
+
+example:
+  # deploy to the HOST
+    \$ $myname -sa 'file1 file3' -c 'fixed some issues' -ph remote.host -r path/to/repository -fm
+  # share changes made on the HOST
+    \$ $myname -h remote.host -r path/to/repository -sC improved -pxfm
+EOT
+}
+[ $# -eq 0 ] && usage && exit 2
+
+#########
+# functions
+##########
+function escape_space
+{
+  is_quot=0
+  if [ "$1" = quotation_used ]; then
+    is_quot=1
+    shift
+  elif [ "$1" = wildcard_used ]; then
+    subs_char="?"
+    shift
+  else
+    subs_char="\\\\ "
+  fi
+  echo "$@" | awk -v is_quot="$is_quot" -v subs_char="$subs_char" -l filefuncs '(is_quot==0){for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}};next;}(is_quot==1){for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){quot=sprintf("%1c",39);if(match(incf,quot)>0){quot=sprintf("%1c",34);}incf=sprintf("%1s%s%1s",quot,incf,quot);print incf;incf="";}};next;}' |tee "/tmp/${myname}.esced"
+}
+
+function exec_or_plan {
+  if [ -n "$remote_commands_path" ]; then
+    # preserve commands when in remote
+    if [ "$1" != 'ssh' ]; then
+      echo "$@" >>"$remote_commands_path"
+      if [ "$1" = "logout" ]; then
+        # connect via ssh
+        if [ -s "$remote_commands_path" -a -n "$ssh_commandline" ]; then
+          if [ "${is_review_mode-0}" -eq 0 ]; then
+            :
+            eval "cat $remote_commands_path | $ssh_commandline" 
+            :
+          else
+            echo "EXEC: cat $remote_commands_path | $ssh_commandline" 
+            echo "CONTENT: $remote_commands_path :"
+            cat $remote_commands_path
+          fi
+          unset remote_commands_path
+        else
+          echo "ERROR: incomplete sequence of the ssh connect or remote commands " 1>&2
+          [ -z "$ssh_commandline" ] && echo "no ssh instruction" 1>&2
+          [ ! -s "$remote_commands_path" ] && echo "no remote commands instruction"  1>&2
+          exit 1
+        fi
+      else
+        # when error occurred, then quit
+        echo '[ "$?" -ne 0 ] && logout' >>"$remote_commands_path"
+      fi
+    else
+      echo "ERROR: ssh requested again, but it does not allow multi-stage connections." 1>&2
+      exit 1
+    fi
+  else
+    # exec immediate when in local
+    if [ "$1" != 'logout' ]; then
+      if [ "$1" = 'ssh' ]; then
+        remote_commands_path="/tmp/${myname}.$$.sh"
+        \cp /dev/null "$remote_commands_path"
+        [ $? -ne 0 ] && echo "FATAL: truncate failed ($remote_commands_path)" 1>&2 && exit 3
+        ssh_commandline="$@"
+      elif [ "$1" != 'cd' ]; then
+        if [ "${is_review_mode-0}" -eq 0 ]; then
+          :
+          eval "$@" || exit $?
+          :
+        else
+          echo "EXEC: $@"
+        fi
+      else
+        echo "ERROR: cd (move to directory what remote-repository) requested, but not currently in ssh state." 1>&2
+        exit 1
+      fi
+    else
+      echo "WARNING: logout requested, but not currently in ssh state.. ignored" 1>&2
+    fi
+  fi
+}
+
+
+#########
+# begin
+##########
+unset remote_commands_path
+unset ssh_commandline
+unset is_review_mode
+while getopts 'vlLsdac:C:fmxh:r:' opt
+do
+    case $opt in
+    v)  is_review_mode=1;;
+    l)  exec_or_plan git --no-pager log |head -$LINES;;
+    L)  exec_or_plan git --no-pager log --name-status |head -$LINES;;
+    s)  exec_or_plan git status;;
+    d)  exec_or_plan git --no-pager diff |head -$LINES;;
+    a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);;
+    c)  exec_or_plan git commit -m "$OPTARG";;
+    C)  exec_or_plan git commit -am "$OPTARG";;
+    f)  exec_or_plan git fetch;;
+    m)  exec_or_plan git merge;;
+    x)  exec_or_plan logout;;
+    h)  exec_or_plan ssh -tt "$OPTARG";;
+    r)  exec_or_plan cd "$OPTARG";;
+		*)  usage; exit 2;;
+		esac
+done
+
+shift "$(( $OPTIND - 1 ))" 1>/dev/null 2>&1
+
+if [ -n "$remote_commands_path" ]; then
+  echo "WARNING: SSH state remains. logout instructions may have been forgotten. doing this now..." 1>&2
+  exec_or_plan logout
+fi
