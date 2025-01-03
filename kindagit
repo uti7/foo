@@ -87,10 +87,23 @@ function escape_space
 }
 
 function exec_or_plan {
+  local git_self
+  local git_subcmd
+  local git_subopt
+  local git_commitmsg
   if [ -n "$remote_commands_path" ]; then
     # preserve commands when in remote
     if [ "$1" != 'ssh' ]; then
-      echo "$@" >>"$remote_commands_path"
+      if [ "$1" = 'git' -a "$2" = 'commit' ]; then
+        # git commit only, treat the commit message
+        git_self="$1"; shift
+        git_subcmd="$1"; shift
+        git_subopt="$1"; shift
+        git_commitmsg="$*"
+        echo "$git_self $git_subcmd $git_subopt '$git_commitmsg'" >>"$remote_commands_path"
+      else
+        echo "$@" >>"$remote_commands_path"
+      fi
       if [ "$1" = "logout" ]; then
         # connect via ssh
         if [ -s "$remote_commands_path" -a -n "$ssh_commandline" ]; then
@@ -132,7 +145,16 @@ function exec_or_plan {
           # dummy of prompt and echo back
           printf "%s@%s %s\n$ %s\n" "$USER" "$HOSTNAME" "$(echo $PWD|sed -e s?${HOME}?~?)" "$*"
           :
-          eval "$@" || exit $?
+          if [ "$1" = 'git' -a "$2" = 'commit' ]; then
+            # git commit only, treat the commit message
+            git_self="$1"; shift
+            git_subcmd="$1"; shift
+            git_subopt="$1"; shift
+            git_commitmsg="$*"
+            eval "$git_self $git_subcmd $git_subopt '$git_commitmsg'" || exit $?
+          else
+            eval "$@" || exit $?
+          fi
           :
         else
           echo "EXEC: $@"
