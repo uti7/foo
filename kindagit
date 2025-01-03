@@ -154,17 +154,18 @@ function exec_or_plan {
 unset remote_commands_path
 unset ssh_commandline
 unset is_review_mode
-while getopts 'vlLsdac:C:fmxh:r:' opt
+while getopts 'vlLsdac:C:pfmxh:r:' opt
 do
     case $opt in
     v)  is_review_mode=1;;
-    l)  exec_or_plan git --no-pager log |head -$LINES;;
-    L)  exec_or_plan git --no-pager log --name-status |head -$LINES;;
+    l)  exec_or_plan git --no-pager log |head -"${LINES-100}";;
+    L)  exec_or_plan git --no-pager log --name-status |head -"${LINES-100}";;
     s)  exec_or_plan git status;;
     d)  exec_or_plan git --no-pager diff;;
     a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);;
     c)  exec_or_plan git commit -m "$OPTARG";;
     C)  exec_or_plan git commit -am "$OPTARG";;
+    p)  exec_or_plan git push;;
     f)  exec_or_plan git fetch;;
     m)  exec_or_plan git merge;;
     x)  exec_or_plan logout;;
