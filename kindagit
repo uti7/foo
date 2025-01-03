@@ -129,6 +129,9 @@ function exec_or_plan {
       elif [ "$1" != 'cd' ]; then
         if [ "${is_review_mode-0}" -eq 0 ]; then
           :
+          # dummy of prompt and echo back
+          printf "%s@%s %s\n$ %s\n" "$USER" "$HOSTNAME" "$(echo $PWD|sed -e s?${HOME}?~?)" "$*"
+          :
           eval "$@" || exit $?
           :
         else
@@ -158,7 +161,7 @@ do
     l)  exec_or_plan git --no-pager log |head -$LINES;;
     L)  exec_or_plan git --no-pager log --name-status |head -$LINES;;
     s)  exec_or_plan git status;;
-    d)  exec_or_plan git --no-pager diff |head -$LINES;;
+    d)  exec_or_plan git --no-pager diff;;
     a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);;
     c)  exec_or_plan git commit -m "$OPTARG";;
     C)  exec_or_plan git commit -am "$OPTARG";;
