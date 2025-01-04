@@ -95,16 +95,16 @@ function exec_or_plan {
   if [ -n "$remote_commands_path" ]; then
     # preserve commands when in remote
     if [ "$1" != 'ssh' ]; then
-      if [ "$1" = 'git' -a "$2" = 'commit' ]; then
-        # git commit only, treat the commit message
-        git_self="$1"; shift
-        git_subcmd="$1"; shift
-        git_subopt="$1"; shift
-        git_commitmsg="$*"
-        echo "$git_self $git_subcmd $git_subopt '$git_commitmsg'" >>"$remote_commands_path"
-      else
+#      if [ "$1" = 'git' -a "$2" = 'commit' ]; then
+#        # git commit only, treat the commit message
+#        git_self="$1"; shift
+#        git_subcmd="$1"; shift
+#        git_subopt="$1"; shift
+#        git_commitmsg="$*"
+#        echo "$git_self $git_subcmd $git_subopt '$git_commitmsg'" >>"$remote_commands_path"
+#      else
         echo "$@" >>"$remote_commands_path"
-      fi
+#      fi
       if [ "$1" = "logout" ]; then
         # connect via ssh
         if [ -s "$remote_commands_path" -a -n "$ssh_commandline" ]; then
@@ -146,16 +146,16 @@ function exec_or_plan {
           # dummy of prompt and echo back
           printf "%s@%s %s\n$ %s\n" "$USER" "$HOSTNAME" "$(echo $PWD|sed -e s?${HOME}?~?)" "$*"
           :
-          if [ "$1" = 'git' -a "$2" = 'commit' ]; then
-            # git commit only, treat the commit message
-            git_self="$1"; shift
-            git_subcmd="$1"; shift
-            git_subopt="$1"; shift
-            git_commitmsg="$*"
-            eval "$git_self $git_subcmd $git_subopt '$git_commitmsg'" || exit $?
-          else
+#          if [ "$1" = 'git' -a "$2" = 'commit' ]; then
+#            # git commit only, treat the commit message
+#            git_self="$1"; shift
+#            git_subcmd="$1"; shift
+#            git_subopt="$1"; shift
+#            git_commitmsg="$*"
+#            eval "$git_self $git_subcmd $git_subopt '$git_commitmsg'" || exit $?
+#          else
             eval "$@" || exit $?
-          fi
+#          fi
           :
         else
           echo "EXEC: $@"
@@ -185,9 +185,9 @@ do
     L)  exec_or_plan git --no-pager log --name-status |head -"${LINES-100}";;
     s)  exec_or_plan git status;;
     d)  exec_or_plan git --no-pager diff;;
-    a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);; # single quotes don't make sense. "'$OPTARG'"
-    c)  exec_or_plan git commit -m "$OPTARG";;
-    C)  exec_or_plan git commit -am "$OPTARG";;
+    a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);;
+    c)  exec_or_plan git commit -m "'$OPTARG'";;
+    C)  exec_or_plan git commit -am "'$OPTARG'";;
     p)  exec_or_plan git push;;
     f)  exec_or_plan git fetch;;
     m)  exec_or_plan git merge;;
