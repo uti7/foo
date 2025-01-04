@@ -73,6 +73,7 @@ EOT
 ##########
 function escape_space
 {
+  # used for file paths, it will be checked if it exists.
   is_quot=0
   if [ "$1" = quotation_used ]; then
     is_quot=1
@@ -184,7 +185,7 @@ do
     L)  exec_or_plan git --no-pager log --name-status |head -"${LINES-100}";;
     s)  exec_or_plan git status;;
     d)  exec_or_plan git --no-pager diff;;
-    a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);;
+    a)  exec_or_plan git add $(echo "$OPTARG" | escape_space wildcard_used);; # single quotes don't make sense. "'$OPTARG'"
     c)  exec_or_plan git commit -m "$OPTARG";;
     C)  exec_or_plan git commit -am "$OPTARG";;
     p)  exec_or_plan git push;;
