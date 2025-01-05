@@ -167,8 +167,37 @@ function exec_or_plan {
 }
 
 function call_hist {
-  [ ! -r "$histfile" ] && echo "$2" && return 0
-  awk -F= -v key="$1" -v val="$2" '($1==key){print ((match(val,sprintf("^%1c?-",39))>0)? $2 : $2); exit 0}' "$histfile"
+  local xcode
+  #printf "DEBUG: key=%s  val=%s\n" "$1" "$2" 1>&2
+  if [ ! -r "$histfile" ]; then
+    \cp /dev/null "$histfile" || exit 1
+    echo "$2"
+    return 0
+  fi
+  awk -F= -v key="$1" -v val="$2" \
+    'BEGIN{x = -1;}
+    ($1==key){
+      retval = ((match(val,sprintf("^%1c?--",39))>0)? $2 : val);
+      x = 0;
+      exit 0; # to END section
+    }END{
+      #print "AWK: END: x=" x >"/dev/stderr";
+      if(x != 0){
+        if(match(val,sprintf("^%1c?--",39))>0){
+          printf("ERROR: call_hist: [%s] has not a value in history but %s was used.\n", key, val) > "/dev/stderr";
+          retval = "__NOTHING__";
+          x = 1;
+        }else{
+          retval = val;
+          x = 0;
+        }
+      }
+      printf("%s", retval);
+      exit x;
+    }' "$histfile"
+    xcode="$?"
+    # no process terminate due to this function is called in command substitution
+    #[ "$xcode" -ne 0 ] && exit "$xcode"
 }
 
 #########
@@ -195,8 +224,16 @@ do
     f)  exec_or_plan git fetch;;
     m)  exec_or_plan git merge;;
     x)  exec_or_plan logout;;
-    h)  exec_or_plan ssh -tt `call_hist last_host "'$OPTARG'"`;;  # optarg is accept only a hostname
-    r)  exec_or_plan cd `call_hist last_repository "'$OPTARG'"`;; # optarg is a path
+    h)  
+      last_host=$(call_hist last_host "'$OPTARG'") # optarg is accept only a hostname
+      [ "$last_host" = __NOTHING__ ] && exit 1
+      exec_or_plan ssh -tt "$last_host"
+      ;;
+    r)
+      last_repository=$(call_hist last_repository "'$OPTARG'") # optarg is a path
+      [ "$last_repository" = __NOTHING__ ] && exit 1
+      exec_or_plan cd "$last_repository"
+      ;;
 		*)  usage; exit 2;;
 		esac
 done
