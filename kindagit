@@ -172,11 +172,6 @@ function exec_or_plan {
 function call_hist {
   local xcode
   #printf "DEBUG: key=%s  val=%s\n" "$1" "$2" 1>&2
-  if [ ! -r "$histfile" ]; then
-    \cp /dev/null "$histfile" || exit 1
-    echo "$2"
-    return 0
-  fi
   awk -F= -v key="$1" -v val="$2" \
     'BEGIN{x = -1;}
     ($1==key){
@@ -211,11 +206,21 @@ unset ssh_commandline
 unset is_review_mode
 unset last_host
 unset last_repository
+if [ -r "$histfile" ]; then
+  . "$histfile" || exit 1
+else
+  \cp /dev/null "$histfile" || exit 1
+fi
 
 while getopts 'vlLsdac:C:pfmxh:r:' opt
 do
     case $opt in
-    v)  is_review_mode=1;;
+    v)  is_review_mode=1
+      echo '=== history'
+      echo "    last_host      : [$last_host]"
+      echo "    last_repository: [$last_repository]"
+      echo '==='
+      ;;
     l)  exec_or_plan git --no-pager log |head -"${LINES-100}";;
     L)  exec_or_plan git --no-pager log --name-status |head -"${LINES-100}";;
     s)  exec_or_plan git status;;
