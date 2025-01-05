@@ -1,6 +1,7 @@
 #!/bin/bash
 myname=${0//*\//}
 trap "rm -f /tmp/${myname}.$$.sh" 0
+histfile="$HOME/.${myname}.hist"
 
 function usage {
 cat << EOT
@@ -88,23 +89,10 @@ function escape_space
 }
 
 function exec_or_plan {
-  local git_self
-  local git_subcmd
-  local git_subopt
-  local git_commitmsg
   if [ -n "$remote_commands_path" ]; then
     # preserve commands when in remote
     if [ "$1" != 'ssh' ]; then
-#      if [ "$1" = 'git' -a "$2" = 'commit' ]; then
-#        # git commit only, treat the commit message
-#        git_self="$1"; shift
-#        git_subcmd="$1"; shift
-#        git_subopt="$1"; shift
-#        git_commitmsg="$*"
-#        echo "$git_self $git_subcmd $git_subopt '$git_commitmsg'" >>"$remote_commands_path"
-#      else
-        echo "$@" >>"$remote_commands_path"
-#      fi
+      echo "$*" >>"$remote_commands_path"
       if [ "$1" = "logout" ]; then
         # connect via ssh
         if [ -s "$remote_commands_path" -a -n "$ssh_commandline" ]; then
@@ -118,14 +106,19 @@ function exec_or_plan {
             cat $remote_commands_path
           fi
           unset remote_commands_path
+          unset ssh_commandline
         else
           echo "ERROR: incomplete sequence of the ssh connect or remote commands " 1>&2
-          [ -z "$ssh_commandline" ] && echo "no ssh instruction" 1>&2
-          [ ! -s "$remote_commands_path" ] && echo "no remote commands instruction"  1>&2
+          [ -z "$ssh_commandline" ] && echo "    no ssh instruction" 1>&2
+          [ ! -s "$remote_commands_path" ] && echo "    no remote commands instruction"  1>&2
           exit 1
         fi
+      elif [ "$1" = 'cd' ]; then
+        last_repository="$2"
+        # when error occurred then quit
+        echo '[ "$?" -ne 0 ] && logout' >>"$remote_commands_path"
       else
-        # when error occurred, then quit
+        # when error occurred then quit
         echo '[ "$?" -ne 0 ] && logout' >>"$remote_commands_path"
       fi
     else
@@ -139,26 +132,18 @@ function exec_or_plan {
         remote_commands_path="/tmp/${myname}.$$.sh"
         \cp /dev/null "$remote_commands_path"
         [ $? -ne 0 ] && echo "FATAL: truncate failed ($remote_commands_path)" 1>&2 && exit 3
-        ssh_commandline="$@"
+        ssh_commandline="$*"
+        last_host="$3"
       elif [ "$1" != 'cd' ]; then
         if [ "${is_review_mode-0}" -eq 0 ]; then
           :
           # dummy of prompt and echo back
           printf "%s@%s %s\n$ %s\n" "$USER" "$HOSTNAME" "$(echo $PWD|sed -e s?${HOME}?~?)" "$*"
           :
-#          if [ "$1" = 'git' -a "$2" = 'commit' ]; then
-#            # git commit only, treat the commit message
-#            git_self="$1"; shift
-#            git_subcmd="$1"; shift
-#            git_subopt="$1"; shift
-#            git_commitmsg="$*"
-#            eval "$git_self $git_subcmd $git_subopt '$git_commitmsg'" || exit $?
-#          else
-            eval "$@" || exit $?
-#          fi
+          eval "$*" || exit $?
           :
         else
-          echo "EXEC: $@"
+          echo "EXEC: $*"
         fi
       else
         echo "ERROR: cd (move to directory what remote-repository) requested, but not currently in ssh state." 1>&2
@@ -170,6 +155,10 @@ function exec_or_plan {
   fi
 }
 
+function call_hist {
+  [ ! -r "$histfile" ] && echo "$2" && return 0
+  awk -F= -v key="$1" -v val="$2" '($1==key){print ((match(val,sprintf("^%1c?-",39))>0)? $2 : $2); exit 0}' "$histfile"
+}
 
 #########
 # begin
@@ -177,6 +166,9 @@ function exec_or_plan {
 unset remote_commands_path
 unset ssh_commandline
 unset is_review_mode
+unset last_host
+unset last_repository
+
 while getopts 'vlLsdac:C:pfmxh:r:' opt
 do
     case $opt in
@@ -192,8 +184,8 @@ do
     f)  exec_or_plan git fetch;;
     m)  exec_or_plan git merge;;
     x)  exec_or_plan logout;;
-    h)  exec_or_plan ssh -tt "$OPTARG";;
-    r)  exec_or_plan cd "$OPTARG";;
+    h)  exec_or_plan ssh -tt `call_hist last_host "'$OPTARG'"`;;  # optarg is accept only a hostname
+    r)  exec_or_plan cd `call_hist last_repository "'$OPTARG'"`;; # optarg is a path
 		*)  usage; exit 2;;
 		esac
 done
@@ -204,3 +196,5 @@ if [ -n "$remote_commands_path" ]; then
   echo "WARNING: SSH state remains. logout instructions may have been forgotten. doing this now..." 1>&2
   exec_or_plan logout
 fi
+[ -n "$last_host" ] && echo "$last_host"|grep -qvE "^'?-" && echo last_host="$last_host" 1>"$histfile"
+[ -n "$last_repository" ] && echo "$last_repository"|grep -qvE "^'?-" && echo last_repository="$last_repository" 1>>"$histfile"
