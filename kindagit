@@ -39,14 +39,25 @@ usage:
 
   -h HOST
     when this option appears, an SSH connection to HOST is attempted.
-    the passphrase will not be accepted interactively, so try your best to connect without having to enter it.
+    the passphrase will not be accepted interactively,
+    so try your best to connect without having to enter it.
     * it's not the git server, it's the server you deploy to
+
+    if you specify \`-' for HOST, the history will be referenced
+    and the most recently used value will be applied.
 
   -r REPOSITORY
     path to the *local repository* on the HOST. not a remote repository in the git server.
+
+    if you specify \`-' for REPOSITORY, the history will be referenced
+    and the most recently used value will be applied.
+
   -x
     the ssh session is terminated.
     if there are trailing LOCAL_COMMAND will be executed on the local host.
+
+file:
+  ~/.${myname}.hist    : history preserved
 
 passphrase related:
   environment variable:
