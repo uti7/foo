@@ -27,6 +27,7 @@ usage:
         -d  git diff
         -f  git fetch
         -m  git merge
+        -p  git push
 
       -a FILES
         git add FILES
@@ -41,15 +42,15 @@ usage:
     when this option appears, an SSH connection to HOST is attempted.
     the passphrase will not be accepted interactively,
     so try your best to connect without having to enter it.
-    * it's not the git server, it's the server you deploy to
+    * HOST is not the git server, it's the server you deploy to
 
-    if you specify \`-' for HOST, the history will be referenced
+    if you specify \`--' for HOST, the history will be referenced
     and the most recently used value will be applied.
 
   -r REPOSITORY
     path to the *local repository* on the HOST. not a remote repository in the git server.
 
-    if you specify \`-' for REPOSITORY, the history will be referenced
+    if you specify \`--' for REPOSITORY, the history will be referenced
     and the most recently used value will be applied.
 
   -x
@@ -76,6 +77,8 @@ example:
     \$ $myname -sa 'file1 file3' -c 'fixed some issues' -ph remote.host -r path/to/repository -fm
   # share changes made on the HOST
     \$ $myname -h remote.host -r path/to/repository -sC improved -pxfm
+  # show commit log at previous HOST 
+    \$ $myname -h -- -r -- -lx | head -30
 EOT
 }
 [ $# -eq 0 ] && usage && exit 2
