@@ -53,6 +53,9 @@ usage:
     if you specify \`--' for REPOSITORY, the history will be referenced
     and the most recently used value will be applied.
 
+  -H
+    similar to \`-h -- -r --'
+
   -x
     the ssh session is terminated.
     if there are trailing LOCAL_COMMAND will be executed on the local host.
@@ -79,6 +82,8 @@ example:
     \$ $myname -h remote.host -r path/to/repository -sC improved -pxfm
   # show commit log at previous HOST 
     \$ $myname -h -- -r -- -lx | head -30
+  # confirm history
+    \$ $myname -v
 EOT
 }
 [ $# -eq 0 ] && usage && exit 2
@@ -212,7 +217,7 @@ else
   \cp /dev/null "$histfile" || exit 1
 fi
 
-while getopts 'vlLsdac:C:pfmxh:r:' opt
+while getopts 'vlLsdaHc:C:pfmxh:r:' opt
 do
     case $opt in
     v)  is_review_mode=1
@@ -239,6 +244,14 @@ do
       ;;
     r)
       last_repository=$(call_hist last_repository "'$OPTARG'") # optarg is a path
+      [ "$last_repository" = __NOTHING__ ] && exit 1
+      exec_or_plan cd "$last_repository"
+      ;;
+    H)
+      last_host=$(call_hist last_host '--')
+      [ "$last_host" = __NOTHING__ ] && exit 1
+      exec_or_plan ssh -tt "$last_host"
+      last_repository=$(call_hist last_repository '--')
       [ "$last_repository" = __NOTHING__ ] && exit 1
       exec_or_plan cd "$last_repository"
       ;;
