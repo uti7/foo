@@ -93,7 +93,6 @@ EOT
 ##########
 function escape_space
 {
-  set -x
   # used for file paths, it will be checked if it exists.
   is_quot=0
   if [ "$1" = quotation_used ]; then
@@ -106,7 +105,6 @@ function escape_space
     subs_char="\\\\ "
   fi
   echo "$@" | awk -v is_quot="$is_quot" -v subs_char="$subs_char" -l filefuncs '(is_quot==0){for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){gsub(/ /,subs_char,incf);print incf;incf="";}};next;}(is_quot==1){for(i=1;i<=NF;i++){incf=incf ((incf)? " " : "") $i;if(stat(incf,f)==0){quot=sprintf("%1c",39);if(match(incf,quot)>0){quot=sprintf("%1c",34);}incf=sprintf("%1s%s%1s",quot,incf,quot);print incf;incf="";}};next;}' |tee "/tmp/${myname}.esced"
-  set +x
 }
 
 function exec_or_plan {
