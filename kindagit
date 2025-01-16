@@ -81,7 +81,7 @@ example:
   # share changes made on the HOST
     \$ $myname -h remote.host -r path/to/repository -sC improved -pxfm
   # show commit log at previous HOST 
-    \$ $myname -h -- -r -- -lx | head -30
+    \$ $myname -h -- -r -- -lx | less -Rr
   # confirm history
     \$ $myname -v
 EOT
