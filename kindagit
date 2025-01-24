@@ -111,8 +111,9 @@ function exec_or_plan {
   if [ -n "$remote_commands_path" ]; then
     # preserve commands when in remote
     if [ "$1" != 'ssh' ]; then
-      echo "$*" >>"$remote_commands_path"
+      echo -n "${*}" >>"$remote_commands_path"
       if [ "$1" = "logout" ]; then
+        echo '' >>"$remote_commands_path" # new line after last logout 
         # connect via ssh
         if [ -s "$remote_commands_path" -a -n "$ssh_commandline" ]; then
           if [ "${is_review_mode-0}" -eq 0 ]; then
@@ -135,10 +136,10 @@ function exec_or_plan {
       elif [ "$1" = 'cd' ]; then
         last_repository="$2"
         # when error occurred then quit
-        echo '[ "$?" -ne 0 ] && logout' >>"$remote_commands_path"
+        echo ' || logout' >>"$remote_commands_path"
       else
         # when error occurred then quit
-        echo '[ "$?" -ne 0 ] && logout' >>"$remote_commands_path"
+        echo ' || logout' >>"$remote_commands_path"
       fi
     else
       echo "ERROR: ssh requested again, but it does not allow multi-stage connections." 1>&2
