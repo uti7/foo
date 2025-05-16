@@ -78,7 +78,7 @@ function msys {
 #[ `cygpath -w /` = 'C:\msys64\' -a -r $HOME/foo/.mybashrc_git ] && . $HOME/foo/.mybashrc_git
 [ -r $HOME/foo/.mybashrc_git ] && . $HOME/foo/.mybashrc_git
 if [ -n "$_SWD" ]; then
-  cd "$_SWD"
+  [ -d "$_SWD" ] && cd "$_SWD"
   export VIM=/usr/share/vim
   export VIMRUNTIME=$VIM/vim82
 fi
