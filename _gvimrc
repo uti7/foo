@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 15-Nov-2024.
+" Last Change: 27-Feb-2025.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -185,7 +185,7 @@ if has('printer')
 endif
 
 " Copyright (C) 2009-2018 KaoriYa/MURAOKA Taro
-"2006-01-06 utiumi
+"2006-01-06 byown
 set backupdir=>$TEMP,C:/tmp,c:\temp,. " backup directory
 set directory=>$TEMP,C:/tmp,c:\temp,. " swap directory
 set shortmess=IS
@@ -193,6 +193,7 @@ set nobackup
 set ts=2
 set sw=2
 set belloff=all
+set scrolloff=2
 gui
 :set guioptions-=T
 colorscheme default " (GUI使用時)
