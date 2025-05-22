@@ -195,7 +195,8 @@ case "\$act" in
     ;;
   2)
     #echo >/dev/stderr
-    set -x
+    #set -x
+    set +x
     ;;
   *)
     exit 3
