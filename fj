@@ -367,6 +367,7 @@ function is_ancestor_vim
 #      ga  282216       1 ?          Mar  1 /usr/bin/mintty
 #      ga  297684  279008 pty0     02:03:12 /usr/bin/bash
 
+#vi=vim
 #is_ancestor_vim $$ $vi
 #exit $?
 
