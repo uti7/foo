@@ -12,7 +12,7 @@
 #   msedgedriver download link:
 #     https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 #     more directly:
-#       https://msedgedriver.azureedge.net/115.0.1901.188/edgedriver_win64.zip
+#       https://msedgedriver.microsoft.com/115.0.1901.188/edgedriver_win64.zip
 #
 # sample:
 #    . \path\to\this\MSEdgeHusk.ps1
@@ -49,7 +49,7 @@ function Download-EdgeDriver($version){
 
   $zippath = (Join-Path $pwd "edgedriver_win64.zip")
   $exefile = "msedgedriver.exe"
-  Invoke-WebRequest -Method Get -Uri "https://msedgedriver.azureedge.net/${version}/edgedriver_win64.zip" -OutFile $zippath
+  Invoke-WebRequest -Method Get -Uri "https://msedgedriver.microsoft.com/${version}/edgedriver_win64.zip" -OutFile $zippath
 
   if(Test-Path $zippath){
     if(Test-Path (Join-Path $pwd $exefile)){
@@ -88,7 +88,7 @@ function Download-EdgeDriver($version){
 MSEdgedriver download link:
     https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
     more directly:
-        https://msedgedriver.azureedge.net/{VERSION}/edgedriver_win64.zip
+        https://msedgedriver.microsoft.com/{VERSION}/edgedriver_win64.zip
 "@
 
     Write-Host -ForegroundColor Magenta $msg
