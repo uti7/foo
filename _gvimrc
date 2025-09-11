@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 27-Feb-2025.
+" Last Change: 11-Sep-2025.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -454,3 +454,6 @@ tnoremap <C-PageUp> <C-W>:tabprevious<CR>
 cab wslroot \\wsl$\Ubuntu-20.04
 
 vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|where\\|order\\|grroup\)\>\\|,/\r&/g<CR>
+noremap <S-Del> :emenu Edit.Paste<CR>
+inoremap <S-Del> <Esc>:emenu Edit.Paste<CR>
+tnoremap <Del> <C-w>:emenu Edit.Paste<CR>
