@@ -3,7 +3,11 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
+<<<<<<< HEAD
 " Last Change: 11-Sep-2025.
+=======
+" Last Change: 11-Sep-2025.
+>>>>>>> refs/remotes/origin/master
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
