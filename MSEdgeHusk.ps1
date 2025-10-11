@@ -49,7 +49,7 @@ function Download-EdgeDriver($version){
 
   $zippath = (Join-Path $pwd "edgedriver_win64.zip")
   $exefile = "msedgedriver.exe"
-  Invoke-WebRequest -Method Get -Uri "https://msedgedriver.microsoft.com/${version}/edgedriver_win64.zip" -OutFile $zippath
+  Invoke-WebRequest -Method Get -Uri "https://msedgewebdriverstorage.z22.web.core.windows.net/?prefix=${version}/edgedriver_win64.zip" -OutFile $zippath
 
   if(Test-Path $zippath){
     if(Test-Path (Join-Path $pwd $exefile)){
@@ -88,7 +88,8 @@ function Download-EdgeDriver($version){
 MSEdgedriver download link:
     https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
     more directly:
-        https://msedgedriver.microsoft.com/{VERSION}/edgedriver_win64.zip
+        #https://msedgedriver.microsoft.com/{VERSION}/edgedriver_win64.zip
+        https://msedgewebdriverstorage.z22.web.core.windows.net/?prefix={VERSION}/edgedriver_win64.zip
 "@
 
     Write-Host -ForegroundColor Magenta $msg
