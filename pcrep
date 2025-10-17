@@ -1,0 +1,44 @@
+#!/usr/bin/bash
+myname="${0//*\//}"
+function usage {
+  cat << EOT
+
+synopsis: alternative to grep using PCRE
+usage   : $myname [-s] PCRE [FILE...]
+option  : -s : silent. the file name and line number are never printed. (default: printed)
+
+required: perl
+EOT
+}
+
+opt=`getopt -q -o s -- "$@"`
+[ $? -ne 0 ] && usage && exit 2
+
+eval set -- "$opt"
+while [ 0 ]
+do
+	case "$1" in
+	-s) is_silent=1; shift;;
+  --) shift; break;;
+	*) usage; exit 2;;
+	esac
+done
+[ $# -eq 0 ] && usage && exit 2
+
+re="$1"
+shift
+
+if [ ${is_silent:-0} -eq 0 ]; then
+ppp=$(cat <<EOS
+if(\$_ =~ /$re/){print "\${ARGV}:\${.}:\$_";} close ARGV if eof
+EOS
+)
+else
+ppp=$(cat <<EOS
+if(\$_ =~ /$re/){print "\$_";} close ARGV if eof
+EOS
+)
+fi
+#echo $ppp
+#set -x
+exec perl -lane  "$ppp" $@
