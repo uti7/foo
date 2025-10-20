@@ -127,7 +127,8 @@ function Create-EdgeDriver {
     $option.AddArguments("--disable-extensions", "--no-sandbox", "--disable-dev-shm-usage")
 
     # create a profile to exclude sign-in information and block images, among other things.
-    $edgeUserProfilePath = "$env:Temp\EdgeProfile"
+    #$edgeUserProfilePath = "$env:Temp\EdgeProfile"
+    $edgeUserProfilePath = Join-Path -Path $PSScriptRoot -ChildPath "EdgeProfile"
     $option.AddArgument("--user-data-dir=$edgeUserProfilePath")
     $option.AddArgument("--profile-directory=Default")
 
