@@ -10727,7 +10727,7 @@ if($PSVersionTable.PSVersion.Major -lt 3){
   Write-Host -ForegroundColor red "FATAL: requires PSVersion 3.0 or later."
   exit
 }
-Set-Location $PSScriptRoot
+#Set-Location $PSScriptRoot
 
 [void][System.Reflection.Assembly]::LoadFile("$pwd\TKMP.dll")
 # DEBUG: message
@@ -10816,7 +10816,9 @@ function init() {
   }
 }
 
-if($Global:mail -eq $null){
+if (-not (Get-Variable -Name 'mail' -Scope Global -ErrorAction SilentlyContinue)) {
+    init
+} elseif($Global:mail -eq $null){
   init
 }
 
