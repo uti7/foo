@@ -4,9 +4,9 @@
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
 <<<<<<< HEAD
-" Last Change: 11-Sep-2025.
+" Last Change: 19-Nov-2025.
 =======
-" Last Change: 11-Sep-2025.
+" Last Change: 19-Nov-2025.
 >>>>>>> refs/remotes/origin/master
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
@@ -366,6 +366,18 @@ function! s:open_ps3_terminal()
   call s:revert_cursor_color()
 endfunction
 command! PS3 :call s:open_ps3_terminal()
+
+function! s:open_ps5x86_terminal()
+  colorscheme ron
+  let s:cl='set shell=C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe\ -NoExit\ -c\ \"chcp\ 65001;&{Set-Location\ \\\"' . substitute(getcwd(), " ", "\\\\ ", "g") . '\\\"}\"'
+  execute  s:cl
+  terminal
+  set nonu
+  set shell=C:\Windows\System32\cmd.exe
+  colorscheme green
+  call s:revert_cursor_color()
+endfunction
+command! PS86 :call s:open_ps5x86_terminal()
 
 function! s:open_msys_terminal()
   colorscheme desert
