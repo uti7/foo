@@ -126,9 +126,9 @@ $DebugPreference =  "Continue" # , then Write-Debug is available
 [array]$root_dir = parseArray $root_dir "," -absolute
 
 
-[string]$outfile = "errors.err"
+[string]$outfile = "errors.err" # don't know why it's being overwritten here
 #[string]$editor = "c:\cast\app\gvim64\gvim.exe"
-[string]$editor_option_ini = "-q $org_dir/$outfile"
+[string]$editor_option_preset = "-q $org_dir/$outfile"
 
 # directory exclusion  : 
 # a)  $_.Directory -ne "tcpdf"  # "tcpdf" only, "tcpdf\conf" is not exclude  
@@ -149,7 +149,7 @@ if($no_list){
 
 if($dir_only){
     $files = "*"
-    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") $root_dir | ? {
+    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") -Path $root_dir -ea SilentlyContinue | ? {
         $_.Mode -match "d" `
         -and $_.FullName -notmatch "\\\.git\\" `
         -and $_.FullName -notmatch "\\\.svn\\" `
@@ -158,7 +158,7 @@ if($dir_only){
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }elseif($list_path){
-    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") $root_dir | ? {
+    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") -Path $root_dir -ea SilentlyContinue | ? {
         $_.Mode -notmatch "d" `
         -and $_.FullName -notmatch "\\\.git\\" `
         -and $_.FullName -notmatch "\\\.svn\\" `
@@ -167,7 +167,7 @@ if($dir_only){
         -and $_.FullName -match $pattern
     } | Set-Variable items
 }else{
-    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") $root_dir | ? {
+    Get-ChildItem -Recurse -Include $files -Exclude (".git", ".svn", ".cpan", ".vscode") -Path $root_dir -ea SilentlyContinue | ? {
         $_.Mode -notmatch "d" `
         -and $_.FullName -notmatch "\\\.git\\" `
         -and $_.FullName -notmatch "\\\.svn\\" `
@@ -213,7 +213,7 @@ if(!$open_by_editor){
   
 if($open_by_editor){
   $re4vi = $pattern -replace "([()|?+])", "\`$1"
-  $editor_option = ($editor_option_ini + " '+/$re4vi/' ")
+  $editor_option = ($editor_option_preset + " '+/$re4vi/' ")
   $cmd = "$editor $editor_option"
   write-host -ForegroundColor green $cmd
   Invoke-Expression -Command $cmd
