@@ -41,7 +41,7 @@ export LANG=ja_JP.utf8
 export TEMP="/tmp"
 export SCREENDIR="$TEMP/uscreens"
 export TMUX_TMPDIR="$TEMP/uscreens"
-export PATH=/mingw64/bin:$HOME/bin:$HOME/foo:$PATH
+export PATH=/mingw64/bin:$HOME/bin:$HOME/foo:$HOME/.local/bin:$PATH
 
 
 function gvim {
