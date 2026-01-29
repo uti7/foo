@@ -10,15 +10,17 @@ synopsis:
   find(1) DIR -name FILE ->  grep(1) PATTERN ->  vim(1) +/PATTERN/
 
 usage:
-  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [OPTION2] PATTERN [FILE...]
-  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [OPTION2] {-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
-  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -L [FILE...]
-  $myname [-d DIR [-d ...]] [{-n|-N|-e CMD}] [-iIc] -D [FILE...]
+  $myname [OPTION] PATTERN [FILE...]
+  $myname [OPTION] {-a|-p|-V} PATTERN [{-a|-p|-v|-V} PATTERN ...] [FILE...]
+  $myname [-iIc] -L [FILE...]
+  $myname [-iIc] -D [FILE...]
   $myname [-H] PATTERN
   $myname [-h]
 
 OPTION1 (with optarg):
   -d DIR       : a search-path, givens to find(1). if omited, then \`.'
+                 also, specify multiple of "-d DIR", all of them will be
+                 passed to the "path" argument of find(1).
   -e CMD       : execute CMD instead vim
   -a PATTERN   : for all PATTERN(s) matching (i.e. AND condition of them)
   -A PATTERN   : same as -a, evaluates to '\<PATTERN\>'
