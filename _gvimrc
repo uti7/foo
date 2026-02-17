@@ -3,7 +3,7 @@
 " An example for a Japanese version gvimrc file.
 " 日本語版のデフォルトGUI設定ファイル(gvimrc) - Vim 8.1
 "
-" Last Change: 20-Nov-2025.
+" Last Change: 17-Feb-2026.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -226,8 +226,8 @@ map gC  "+y
 map gX  "+x
 map gV  "+gP
 imap gV  a"+gPxa
-cmap dvd set columns=160<CR>:VDsplit 
-cmap Vsp set columns=160<CR>:vsp 
+cmap dvd set columns=240<CR>:VDsplit 
+cmap Vsp set columns=240<CR>:vsp 
 cmap NOD ^[^-@!"#$%&'()=\[\]/?><;:,.0-9０-９･].*\*$
 "cmap FJ !powershell -f $vim\fj.ps1 -p 
 cnoremap bro bro filter  ol<Left><Left><Left>
@@ -301,6 +301,7 @@ let g:netrw_localmkdir='md' " avoid netrw
 if has('multi_byte_ime')
   highlight Cursor guifg=White guibg=Red
   highlight CursorIM guifg=Black guibg=Green
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endif
 
 " force begin of line when type a '#' at ps1 file, let it cancel
@@ -336,6 +337,7 @@ function! s:revert_cursor_color()
   if has('multi_byte_ime')
     highlight Cursor guifg=White guibg=Red
     highlight CursorIM guifg=Black guibg=Green
+    hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
   endif
 endfunction
 
@@ -348,6 +350,7 @@ function! s:open_cygwin_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! CYGWIN :call s:open_cygwin_terminal()
 
@@ -360,6 +363,7 @@ function! s:open_ps3_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! PS3 :call s:open_ps3_terminal()
 
@@ -372,6 +376,7 @@ function! s:open_ps5x86_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! PS86 :call s:open_ps5x86_terminal()
 
@@ -384,6 +389,7 @@ function! s:open_msys_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! MSYS :call s:open_msys_terminal()
 
@@ -397,6 +403,7 @@ function! s:open_wsl_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! WSL :call s:open_wsl_terminal()
 
@@ -410,6 +417,7 @@ function! s:open_pwsh_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! PWSH :call s:open_pwsh_terminal()
 
@@ -422,6 +430,7 @@ function! s:open_cmd_terminal()
   set shell=C:\Windows\System32\cmd.exe
   colorscheme green
   call s:revert_cursor_color()
+  hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold
 endfunction
 command! CMD :call s:open_cmd_terminal()
 
@@ -469,3 +478,5 @@ vnoremap <Leader>r :s/\<\(and\\|or\\|from\\|inner\\|outer\\|left\\|right\\|on\\|
 noremap <S-Del> :emenu Edit.Paste<CR>
 inoremap <S-Del> <Esc>:emenu Edit.Paste<CR>
 tnoremap <Del> <C-w>:emenu Edit.Paste<CR>
+
+hi TabLineSel guifg=#FFFFFF guibg=#000080 gui=bold

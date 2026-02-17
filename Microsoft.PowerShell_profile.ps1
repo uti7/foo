@@ -13,7 +13,7 @@ Function ll($p){
 set-alias l ll
 
 function coldspa {cd c:\cast\proj\coldspa\v3}
-function ahk { coldspa;  & 'C:\Program Files (x86)\AutoHotkey\AutoHotkey.exe' coldspa3.ahk }
+function ahk { coldspa;  & 'C:\Program Files\AutoHotkey\AutoHotkey.exe' coldspa4.ahk }
 
 Function gvim {
   $files_str =@("--")
@@ -84,10 +84,13 @@ Function str2arr([string] $s, [string] $delim = "\s+", [int] $max = 0)
     return $a
 }
 
-function invCsCom([string] $member, [array] $args){
+Function invCsCom($member, $argarray){
 	$c = New-Object -Comobject ColdSpa.COM
+  $c.ScriptDir ="$pwd\coldspa3.ps1"
 	$ret = $c.getType().InvokeMember($member,
-		[Reflection.BindingFlags]::InvokeMethod, $null, $c, $args)
+		[Reflection.BindingFlags]::InvokeMethod, $null, $c, $argarray)
+  [void] [System.Runtime.Interopservices.Marshal]::ReleaseComObject($c)
+  $c = $null
 	return $ret
 }
 
@@ -161,7 +164,7 @@ Function hh()
     [switch] $run_latest = $false
   )
   $id = $null; $cl = $null
-  Get-History | ? { !($_.CommandLine -match '^hh') -and $_.CommandLine -match $pattern } | % { $id = $_.Id; $cl = $_.CommandLine; $_ }
+  Get-History -Count 1000 | ? { !($_.CommandLine -match '^hh') -and $_.CommandLine -match $pattern } | % { $id = $_.Id; $cl = $_.CommandLine; $_ }
   if($run_latest){
     if($id -ne $null){
       Write-Host -ForegroundColor Yellow "$id`t$cl"
