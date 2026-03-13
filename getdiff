@@ -49,6 +49,11 @@ example:
   (using [ls -R] for scan with "-V" option due to "-p" option does not work)
   $ $self -L -c -N config.php -N database.php -N log4php_configurator.xml -V 'foo/app|bar/log' /var/www/html/foo | tee /tmp/aaa
 
+FYI:
+  # Mount a network drive (using Command Prompt)
+    C:>mount 192.168.162.128:/var/www/html z:
+  # Manually mount an external drive in WSL2
+    $ sudo mount -t drvfs e: /mnt/e
 EOT
 }
 
