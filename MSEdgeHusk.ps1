@@ -39,7 +39,10 @@ Param(
 
 Set-Location $PSScriptRoot
 
-[void][System.Reflection.Assembly]::LoadFile((Join-Path (Get-Location) "WebDriver.dll"))
+# selenium driver api dll
+#[void][System.Reflection.Assembly]::LoadFile((Join-Path (Get-Location) "WebDriver.dll"))
+$webDriverPath="$env:USERPROFILE\AppData\Local\PackageManagement\NuGet\Packages\Selenium.WebDriver.4.41.0\lib\netstandard2.0\WebDriver.dll"
+Add-Type -Path $webDriverPath
 
 Add-Type -A 'System.IO.Compression.FileSystem' # poweshell 5.1: .NetFramework4.7 required.
 
@@ -81,9 +84,11 @@ function Download-EdgeDriver($version){
   }else{
     $edgedriverVersion = "none."
   }
-  Write-Host -ForegroundColor Cyan ("MSEdge Version:       " + $edgeVersion)
-  Write-Host -ForegroundColor Cyan ("MSEdgeDriver Version: " + $edgedriverVersion)
-  Write-Host -ForegroundColor Cyan ("Selenium WebDriver Version: " + (Get-ItemProperty ".\WebDriver.dll").VersionInfo.FileVersion + " (4.9.1)")
+  $webDriverVersion = (Get-ItemProperty $webDriverPath).VersionInfo.ProductVersion
+
+  Write-Host -ForegroundColor Cyan ("MSEdge Version            : " + $edgeVersion)
+  Write-Host -ForegroundColor Cyan ("MSEdgeDriver Version      : " + $edgedriverVersion)
+  Write-Host -ForegroundColor Cyan ("Selenium WebDriver Version: " + $webDriverVersion)
   if($edgeVersion -ne $edgedriverVersion){
     $msg = @"
 MSEdgedriver download link:
@@ -202,7 +207,7 @@ class MSEdgeHusk {
         return $false
     }
 
-    $waitms = 1500
+    $waitms = 3000
     Write-Host -ForegroundColor Magenta "wait $waitms [ms]"
     Start-Sleep -milliseconds $waitms
     return $true
