@@ -1,3 +1,4 @@
+#Requires -Version 7.0
 <#
 # husk of MSEdge (EddgeDriver, SeleniumWebDriver)
 # 
@@ -41,8 +42,10 @@ Set-Location $PSScriptRoot
 
 # selenium driver api dll
 #[void][System.Reflection.Assembly]::LoadFile((Join-Path (Get-Location) "WebDriver.dll"))
-$webDriverPath="$env:USERPROFILE\AppData\Local\PackageManagement\NuGet\Packages\Selenium.WebDriver.4.41.0\lib\netstandard2.0\WebDriver.dll"
-Add-Type -Path $webDriverPath
+#$webDriverPath="$env:USERPROFILE\AppData\Local\PackageManagement\NuGet\Packages\Selenium.WebDriver.4.41.0\lib\netstandard2.0\WebDriver.dll"
+$webDriverPath = (Join-Path $PWD "WebDriver.dll")
+#Add-Type -Path $webDriverPath
+[void][System.Reflection.Assembly]::LoadFile($webDriverPath)
 
 Add-Type -A 'System.IO.Compression.FileSystem' # poweshell 5.1: .NetFramework4.7 required.
 
