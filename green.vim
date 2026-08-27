@@ -42,5 +42,9 @@ hi StatusLineNC cterm=none gui=none ctermfg=40 guifg=lightgreen ctermbg=234 guib
 hi Pmenu ctermbg=232 guibg=darkgreen ctermfg=40 guifg=green
 hi PmenuSel ctermbg=40 guibg=lightgreen ctermfg=232 guifg=black
 hi MatchParen ctermbg=232 guibg=darkred ctermfg=2 guifg=yellow
-hi diffAdded ctermfg=2 guifg=white cterm=none gui=none
+hi diffAdded ctermbg=40 guibg=lightgreen ctermfg=232 guifg=black
+hi diffAdd ctermbg=40 guibg=lightgreen ctermfg=232 guifg=black
 hi diffRemoved ctermfg=1 guifg=gray20
+hi diffChange ctermfg=13 ctermbg=11 guifg=LightGreen guibg=DarkGreen
+hi diffText term=standout ctermfg=13 ctermbg=12 gui=standout guifg=DarkGreen guibg=Red
+hi Cursor guifg=Red guibg=DarkYellow
