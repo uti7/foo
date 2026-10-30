@@ -158,7 +158,9 @@ function exec_or_plan {
         if [ "${is_review_mode-0}" -eq 0 ]; then
           :
           # dummy of prompt and echo back
+          echo -en '\e[7m'
           printf "%s@%s %s\n$ %s\n" "$USER" "$HOSTNAME" "$(echo $PWD|sed -e s?${HOME}?~?)" "$*"
+          echo -en '\e[0m'
           :
           eval "$*" || exit $?
           :
