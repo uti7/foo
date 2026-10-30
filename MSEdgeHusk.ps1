@@ -140,9 +140,11 @@ function Create-EdgeDriver {
     $option.AddArgument("--user-data-dir=$edgeUserProfilePath")
     $option.AddArgument("--profile-directory=Default")
 
+    $timeout = [System.TimeSpan]::FromMinutes(3)  # 3 min.
+    
     $service = [OpenQA.Selenium.Edge.EdgeDriverService]::CreateDefaultService((Get-Location), "msedgedriver.exe")
-    $driver= New-Object OpenQA.Selenium.Edge.EdgeDriver($service, $option)
-    $driver.Manage().Timeouts().ImplicitWait = [System.TimeSpan]::FromSeconds(10)
+    $driver= New-Object OpenQA.Selenium.Edge.EdgeDriver($service, $option, $timeout)
+    #$driver.Manage().Timeouts().ImplicitWait = [System.TimeSpan]::FromSeconds(10)
     return $driver
 }
 
